@@ -1,0 +1,125 @@
+Long ago...
+
+So long ago that everyone forgot...
+
+7 magical spheres came to Earth.
+
+When gathered, these sacred orbs call forth the Eternal Dragon!
+
+The Dragon will then grant a single wish!
+
+However, everyone has forgotten this legend.[The legend has been forgotten]
+
+Including the boy who owns one of these balls as a keepsake from his late grandfather. [The boy has forgotten-- the boy who owns one of these balls as a keepsake from his late grandfather]
+
+The boy's name is Son Goku.
+
+Despite his size, Goku has remarkable strength and skill, making him exceptional!
+
+Not to mention his tail!
+
+Ever since his grandfather passed away, Goku has lived alone deep in the woods.
+
+But he is more than capable of taking care of himself.
+
+This will come in handy as he is about to set out on an adventure that will change his life!
+
+Goku: Okay! Grandpa, I'm headed out to get some food. I'll be back soon. Don't go anywhere, okay?
+
+Goku sets out to find food like he normally does this time of day. [Goku sets out to find dinner as usual]
+
+He approaches the river down in the lowlands and...
+
+Goku: Aha! The fish are as big as ever!
+
+Goku: Hmmm...I bet I can catch that one!
+
+Fish: Oh please, not me!
+
+Goku: Oh okay...
+
+Big Fish: Small Fry! Get lost before I gobble you up!
+
+Goku: You talkin' to me?
+
+Big Fish: You bet! I'll swallow you whole little boy!
+
+Goku: Ha! A fight? Let's go!
+
+//goto battle
+
+Big Fish: ~~*
+
+Goku: Gotcha!
+
+Goku finds the food he needs, and gathers up his catch.
+
+Goku: Time to get back!
+
+Goku takes the trip back to his grandpa's house...
+
+Meanwhile...
+
+Girl: Wow. I never thought the countryside would be this pretty. It's way different than where I am from.
+
+Girl: To think, the world could be this big and vast. No wonder no one has ever found them all. 
+
+Girl. Ha! But I will!
+
+Who is this mysterious girl?
+
+[[Chapter 1 - The Girl From West City]]
+
+Goku: Broil or sautee'? I'll ask Grandpa what he thinks!
+
+Goku: Huh... what's that?
+
+*Girl's car approaches at high speed*
+
+Goku: Auuaaagh! 
+
+Girl: Aaaaah!
+
+*BAM*
+
+Girl: Oh my god! Oh my god! I hit him!
+
+Goku ...
+
+Girl: Huh? Hey! Are you okay?
+
+Goku: ...Uuugh. Hey! What'd you go and do that for?
+
+Girl: Oh my god...
+
+Goku: Grrrr! You're after my fish aren't you!
+
+Girl: What? Y-your fish?
+
+Goku: You'll pay for that! Yaaah!
+
+Girl: Woah! Stay back!
+
+*The girl fires several shots from her pistol at Goku*
+
+Goku: Yeaowch!
+
+Girl: No way!
+
+Goku: I'll show you!
+
+//goto battle
+
+Girl: Aaah! My car!
+
+Goku: You won't be stealing any fish today! Get your own!
+
+Girl: W-wait! I'm not a monster! I'm a girl!
+
+Goku: Uh...a what?
+
+The girl climbs from the car.
+
+[[
+
+
