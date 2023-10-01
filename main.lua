@@ -84,7 +84,6 @@ function gridview:new(name, rows, columns, options, index, mType)
         o.cText = "none"
         gridviewSprite:setZIndex(3)
     elseif o.mType == "tag" then
-        gridview:setCellPadding(0,0,3,0)
         gridviewSprite:setZIndex(5)
         gridviewSprite.tag = o.mType
         o.cText = name
@@ -96,7 +95,7 @@ function gridview:new(name, rows, columns, options, index, mType)
         gridviewSprite:remove()
     end
 
-    gridviewSprite:add() -- and finally add the sprite to the draw list
+    gridviewSprite:add()
     
     function o:getOption()
         local s = o:getSelectedRow()
@@ -123,14 +122,10 @@ function gridview:new(name, rows, columns, options, index, mType)
             end
             local gridviewImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             if o.mType == "menu" then
-                if o.name == "Main Menu" then
-                    gridviewSprite:moveTo(80,150)
-                else
-                    gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
-                end
+                gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
             elseif o.mType == "story" then
                 gridviewSprite:moveTo(0,160)
-                gridview:setContentInset(5,10,10,0)
+                gridview:setContentInset(5,10,0,0)
                 gridview:setCellSize(380, 50)
             elseif o.mType == "tag" then
                 gridview:setContentInset(0,0,0,0)
@@ -216,10 +211,18 @@ end
 --Background Image
 
 local backgroundImage = gfx.image.new('assets/images/background/400240.png')
+assert( backgroundImage )
 
+gfx.sprite.setBackgroundDrawingCallback(
+    function( x, y, width, height )
+        -- x,y,width,height is the updated area in sprite-local coordinates
+        -- The clip rect is already set to this area, so we don't need to set it ourselves
+        backgroundImage:draw( 0, 0 )
+    end)
 
 function bgChange(bgImage)
-    backgroundImage = gfx.image.new("assets/images/background/"..bgImage..".png") or gfx.image.new('assets/images/background/400240.png')
+
+    local backgroundImage = gfx.image.new('assets/images/background/'..bgImage..'.png')
     assert( backgroundImage )
     
     gfx.sprite.setBackgroundDrawingCallback(
@@ -239,7 +242,6 @@ gameMode = "menu" -- can be menu, battle, map, etc
 function playdate.update()
 
    while gameBoot == 0 do -- First thing the game does is check for a save
-        bgChange("dragonBallTitle")
         local ver = initLoadSav()
         if ver == false then -- if save is not found
             initSaveFile()

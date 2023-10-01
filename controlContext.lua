@@ -48,5 +48,13 @@ end
         end
         if playdate.buttonJustPressed("b") then
         end
+
     end
+
+    if playdate.buttonJustPressed("b") then
+        local f = portIndex
+        printTable(f)
+    end
+
+
 end
