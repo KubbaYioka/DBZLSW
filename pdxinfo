@@ -1,0 +1,7 @@
+name=Dragon Ball: Legendary Super Warriors
+author=Kubba Yioka.
+description=A Dragon Ball fangame.
+bundleID=com.kubba.DBLSW
+version=0.01
+buildNumber=100
+imagePath=SystemAssets
