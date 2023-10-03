@@ -43,6 +43,8 @@ function modeChange(string, storyLoc, index)
         -- load appropriate menu
     elseif string == "map" then
         print("Mode Changed to Map")
+        gameMode = "map"
+        createMap(storyLoc) 
         -- load appropriate map 
     elseif string == "story" then
         print("Mode Changed to Story")
