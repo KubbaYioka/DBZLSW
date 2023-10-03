@@ -246,6 +246,7 @@ gameMode = GameMode.MENU
 function playdate.update()
 
    while gameBoot == 0 do -- First thing the game does is check for a save
+        --show opening animation
         local ver = initLoadSav()
         if ver == false then -- if save is not found
             initSaveFile()

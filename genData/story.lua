@@ -24,9 +24,12 @@ storyLoc1={ 1 --story
 , function() dTag("clear") end
 , function() portChange("clear") end
 ,"Goku sets out to find food like he normally does this time of day."
-, 3 --loadmap
-storyLoc1A=
-, function() bgChange("dbRiver") end
+, function() gameModeChange(GameMode.MAP,mapNumberT) end
+},
+
+
+storyLoc1A={
+ function() bgChange("dbRiver") end
 ,"He approaches the river down in the lowlands and..."
 , function() portChange("dbGokuExcite", "left") end
 , function() dTag("left", "Goku") end

@@ -28,25 +28,25 @@ end
 function gameContinue() -- returns the gamemode, story location, and key of story location
     local inthe = playdate.datastore.read("sav")
     local loc = inthe[2]
-    local izu = loc.location
-    local sub = loc.subloc
-    local sum = "storyLoc"..izu
-    if type(sub)=="number" then
-        if sub == 1 then
-            return "story", sum, sub 
-        elseif sub==2 then
-            gameModeChange("menu")          -------- WILL NEED TO CHANGE FOR NEW SYSTEM
-        elseif sub==3 then
-            gameModeChange("map")
-        end
+    local izu = loc.currentMode
+    local yve = loc.currentLocation
+    print(izu)
+    print(yve)
+    if izu == "story" then
+        --change gamemode and load story at yve
+    elseif izu == "menu" then
+        --changegamemode and load menu at appropriate level
+    elseif izu == "map" then
+        --changegamemode and load appropriate map at yve
     end
+    -- maybe think about making this a function that returns a value? Maybe.
 end
 
 function initSaveFile() --creates the initial save file if none exists
     local chrDat ={}
     local storyDat = {}
-    storyDat.location = 1
-    storyDat.subloc = 1
+    storyDat.currentMode = GameMode.STORY
+    storyDat.currentLocation = "storyLoc1"
     storyDat.completed = false
     for i=1, 300, 1 do
         chrDat[i] = "none" --create character slots for all potential characters. Indexes with value "none"

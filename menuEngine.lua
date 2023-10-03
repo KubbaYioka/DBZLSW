@@ -27,27 +27,20 @@ function gridviewRend()
     return gridview
 end
 
-function gameModeChange(string, storyLoc, index)
-    if string == "battle" then
+function gameModeChange(mode, location, index)
+    gameMode = mode
+    if mode == GameMode.BATTLE then
+        print("Mode Changed to Battle")
         --display vs and transition
-    elseif string == "menu" then
+    elseif mode == GameMode.MENU then
         print("Mode Changed to Menu")
-        if menuType == "menuBattle" then
-            --load appropriate battle parameters. Recall stats and cards from save
-        elseif menuType == "menuPause" then
-            -- simply load the pause menu over the map screen
-        elseif menuType == "title" then
-            -- construct title menu
-        end
+        -- gridview etc etc
         -- load appropriate menu
-    elseif string == "map" then
+    elseif mode == GameMode.MAP then
         print("Mode Changed to Map")
-        gameMode = GameMode.MAP
-        goMap(storyLoc) 
-        -- load appropriate map 
-    elseif string == "story" then
+        goMap(location) -- loads map from appropriate dataset
+    elseif mode == GameMode.STORY then
         print("Mode Changed to Story")
-        gameMode = GameMode.STORY
        -- gridview:new(name, rows, columns, options, index, mType)
         local nDialogue = gridview:new(storyLoc,1,1,index,1, "story")
         -- load appropriate story from save
@@ -65,7 +58,37 @@ function clearMenus()
     gfx.setDrawOffset(0, 0)
 end
 
-function goMenu(item)
+function clearSprites()
+
+    for k,v in pairs(spriteIndex) do
+        spriteIndex[k] = nil
+    end
+    spriteIndex = {}
+    gfx.sprite.removeAll()
+    gfx.setDrawOffset(0, 0)
+end
+
+function clearPorts()
+
+    for k,v in pairs(portIndex) do
+        portIndex[k] = nil
+    end
+    portIndex = {}
+    gfx.sprite.removeAll()
+    gfx.setDrawOffset(0, 0)
+end
+
+function clearTags()
+
+    for k,v in pairs(tagIndex) do
+        tagIndex[k] = nil
+    end
+    tagIndex = {}
+    gfx.sprite.removeAll()
+    gfx.setDrawOffset(0, 0)
+end
+
+function goMenu(item)       ------------    change for new gamemode handler
     if item == "Continue" then
         clearMenus()
         local gmMode, storLoc, key = gameContinue()
