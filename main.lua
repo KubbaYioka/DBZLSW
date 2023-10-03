@@ -190,15 +190,16 @@ function gridview:new(name, rows, columns, options, index, mType)
         end
     end
 
-    function o:menuControl(direction)
+    function o:menuControl(direction) 
         if o.mType == "menu" then
             if direction == "up" then
                 o:selectPreviousRow(true)
             elseif direction == "down" then
                 o:selectNextRow(true)
             end
-        elseif o.mType == "story" then
+        elseif o.mType == "story" then -- Iterates through all line items in a story.
             if direction == "a" then
+                print("A")
                 o:text()
                 o:selectNextRow(true)
             end
