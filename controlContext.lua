@@ -1,7 +1,5 @@
 --This file contains the control schemes for button contexts.
 
-GameMode = require("gameModeEnum.lua")
-
 function menuInputContext()
 --[[
 if playdate.buttonJustPressed("right") then

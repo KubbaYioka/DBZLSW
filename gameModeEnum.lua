@@ -1,8 +1,10 @@
 --[[  G A M E   M O D E ]]--
 
-local GameMode = { -- Note case sensitive letters
+GameMode = { -- Note case sensitive letters
     MENU = "menu",
     STORY = "story",
     BATTLE = "battle",
-    MAP = "map",
+    MAP = "map"
 }
+
+return GameMode

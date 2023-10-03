@@ -1,5 +1,4 @@
 --Contains functions for menu rendering and modes
-GameMode = require("gameModeEnum.lua")
 local gfx = playdate.graphics
 
 function gridSprite(spriteType) -- sprite gen for menu\story
@@ -44,7 +43,7 @@ function gameModeChange(string, storyLoc, index)
     elseif string == "map" then
         print("Mode Changed to Map")
         gameMode = GameMode.MAP
-        createMap(storyLoc) 
+        goMap(storyLoc) 
         -- load appropriate map 
     elseif string == "story" then
         print("Mode Changed to Story")

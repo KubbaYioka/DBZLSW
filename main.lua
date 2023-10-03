@@ -11,6 +11,7 @@ import 'controlContext'
 
 --Menu Engine and General Game Logic
 import 'menuEngine'
+import 'gameModeEnum'
 
 --Battle Engine
 import 'battleEngine'
@@ -34,7 +35,7 @@ import '/genData/story'
 --File Access
 import 'fileAccess'
 
-GameMode = require("gameModeEnum.lua")
+
 
 --Font
 local dbFont = playdate.graphics.font.new('assets/fonts/DBLSW2')

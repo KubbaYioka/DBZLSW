@@ -1,6 +1,5 @@
 --File Access Control
 --Contains the functions for accessing save files
-GameMode = require("gameModeEnum.lua")
 
 function clearOne() --checks to see if the game has been completed once
     local check = playdate.datastore.read("sav")

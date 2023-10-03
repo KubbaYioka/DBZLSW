@@ -9,7 +9,8 @@ tileSet = '/assets/tilemaps/testMap.png'
 --]]
 
 
-function createMap(mapNumber) --command builds a map based on information from the table mapNumber
+function goMap(mapNumber) --command builds a map based on information from the table mapNumber
+    --clear all menus, portraits, text, etc
     local mapRef = mapNumber
     printTable(mapRef)
     local tileset = Tileset.new(mapRef[tileSet])
