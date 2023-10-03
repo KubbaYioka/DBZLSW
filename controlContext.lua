@@ -1,5 +1,7 @@
 --This file contains the control schemes for button contexts.
 
+GameMode = require("gameModeEnum.lua")
+
 function menuInputContext()
 --[[
 if playdate.buttonJustPressed("right") then
@@ -8,7 +10,7 @@ if playdate.buttonJustPressed("right") then
 end
 --]]
 
-    if gameMode == "menu" then
+    if gameMode == GameMode.MENU then
         if playdate.buttonJustPressed("b") then
 
         end
@@ -31,15 +33,15 @@ end
         end
     end
 
-    if gameMode == "battle" then
+    if gameMode == GameMode.BATTLE then
 
     end
 
-    if gameMode == "map" then
+    if gameMode == GameMode.MAP then
 
     end
 
-    if gameMode == "story" then
+    if gameMode == GameMode.STORY then
         if #menuIndex > 0 then
             if playdate.buttonJustPressed("a") then
                 local fs = menuIndex[#menuIndex]

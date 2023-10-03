@@ -34,6 +34,8 @@ import '/genData/story'
 --File Access
 import 'fileAccess'
 
+GameMode = require("gameModeEnum.lua")
+
 --Font
 local dbFont = playdate.graphics.font.new('assets/fonts/DBLSW2')
 playdate.graphics.setFont(dbFont) 
@@ -199,7 +201,6 @@ function gridview:new(name, rows, columns, options, index, mType)
             end
         elseif o.mType == "story" then -- Iterates through all line items in a story.
             if direction == "a" then
-                print("A")
                 o:text()
                 o:selectNextRow(true)
             end
@@ -238,7 +239,8 @@ end
 --END DEBUG BLOCK
 
 gameBoot = 0
-gameMode = "menu" -- can be menu, battle, map, etc
+gameMode = GameMode.MENU 
+
 
 function playdate.update()
 
@@ -264,6 +266,7 @@ function playdate.update()
     end
     
     for i,v in pairs(portIndex) do
+        print("menuIndexNote")
         v:portUpdate()
     end
 

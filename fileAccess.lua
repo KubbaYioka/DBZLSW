@@ -1,6 +1,6 @@
 --File Access Control
 --Contains the functions for accessing save files
-
+GameMode = require("gameModeEnum.lua")
 
 function clearOne() --checks to see if the game has been completed once
     local check = playdate.datastore.read("sav")
@@ -36,9 +36,9 @@ function gameContinue() -- returns the gamemode, story location, and key of stor
         if sub == 1 then
             return "story", sum, sub 
         elseif sub==2 then
-            modeChange("menu")
+            gameModeChange("menu")          -------- WILL NEED TO CHANGE FOR NEW SYSTEM
         elseif sub==3 then
-            modeChange("map")
+            gameModeChange("map")
         end
     end
 end

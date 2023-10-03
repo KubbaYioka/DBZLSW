@@ -1,5 +1,5 @@
 --Contains functions for menu rendering and modes
-
+GameMode = require("gameModeEnum.lua")
 local gfx = playdate.graphics
 
 function gridSprite(spriteType) -- sprite gen for menu\story
@@ -28,7 +28,7 @@ function gridviewRend()
     return gridview
 end
 
-function modeChange(string, storyLoc, index)
+function gameModeChange(string, storyLoc, index)
     if string == "battle" then
         --display vs and transition
     elseif string == "menu" then
@@ -43,12 +43,12 @@ function modeChange(string, storyLoc, index)
         -- load appropriate menu
     elseif string == "map" then
         print("Mode Changed to Map")
-        gameMode = "map"
+        gameMode = GameMode.MAP
         createMap(storyLoc) 
         -- load appropriate map 
     elseif string == "story" then
         print("Mode Changed to Story")
-        gameMode = "story"
+        gameMode = GameMode.STORY
        -- gridview:new(name, rows, columns, options, index, mType)
         local nDialogue = gridview:new(storyLoc,1,1,index,1, "story")
         -- load appropriate story from save
@@ -70,7 +70,7 @@ function goMenu(item)
     if item == "Continue" then
         clearMenus()
         local gmMode, storLoc, key = gameContinue()
-        modeChange(gmMode, storLoc, key) 
+        gameModeChange(gmMode, storLoc, key) 
     end
     if item == "New Game" then
         clearMenus()
