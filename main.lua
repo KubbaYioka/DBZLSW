@@ -65,82 +65,95 @@ tagIndex = {}
 
 --Menu Object Classes
 
-function gridview:new(name, rows, columns, options, index, mType)
+function gridview:new(gType,name) -- creates grid object based on parameters passed to it
+-- types can be: dialogue, tagL, tagR, mainMenu, twoChoices, menu
     local o = o or {}
-    setmetatable(o, self)
+    setmetatable(o,self)
     self.__index=self
-    o.name = name or "none"
-    o.mType = mType or nil
-
-    o:setNumberOfRows(rows or 1)
-    o:setNumberOfColumns(columns or 1)
+    o.type = gType
 
     local gridviewSprite = gfx.sprite.new()
     gridviewSprite:setCenter(0, 0)
-
-    if gameMode == GameMode.MENU then
-        o.options = options or {}
-        o.index = index or 1
-    elseif gameMode == GameMode.STORY then
-        o.storyLoc = name
-        o.key = options
-        o.cText = "none"
-        gridviewSprite:setZIndex(3)
-        if o.mType == "tag" then
-            gridviewSprite:setZIndex(5)
-            gridviewSprite.tag = o.mType
-            o.cText = name
-            o.pos = options or "left" -- options argument passed as position
-            o.index = "tag" -- object indexed in menuIndex as "tag", a unique key.
-        end
-    end
 
     function o:spriteKill()
         gridviewSprite:remove()
     end
 
     gridviewSprite:add()
-    
-    function o:getOption()
-        local s = o:getSelectedRow()
-        for i,v in pairs(o.options) do
-            if s==i then
-                return v
+
+    local menuX = 0 -- controls width of background box
+    local menuY = 0 -- controls height of background box
+
+    if o.type == "menu" or "twoChoices" then
+        --options in menu list and menu orientation dependent on name variable
+        -- so like if name == y then o.options = option table 1, etc
+        o.options = name
+        menuY = (#o.options * 25) + 10
+        menuX = (100)
+        --display menu
+        
+        function o:getOption() -- item selection in menu
+            local s = o:getSelectedRow()
+            for i,v in pairs(o.options) do
+                if s==i then
+                    return v
+                end
             end
         end
+    
+    elseif o.type == "dialogue" then
+        menuY = (80)
+        menuX = (400)
+        o:setNumberOfRows(rows or 1)
+        o:setNumberOfColumns(columns or 1)
+        o.location = name
+        o.key = options
+        o.cText = "none"
+        gridviewSprite:setZIndex(3)
+        function o:text()
+            o.key = 1
+            for i,v in pairs(stories) do
+                if o.location == i then
+                    while type(v[o.key]) ~= "string" do -- do something else with other triggers that might be for graphics or changes in scenery\characters
+                        if type(v[o.key]) == "function" then
+                            v[o.key]()
+                        end
+                         o.key = o.key + 1
+                    end
+                    o.cText = v[o.key]
+                    o.key = o.key + 1
+                end
+            end
+        end
+    elseif o.type == "tagL" or o.type == "tagR" then
+        menuY = (25)
+        menuX = (100)
+    elseif o.type == "nil" then
+        --placeholder
     end
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local menuX = 0 -- controls width of background box
-            local menuY = 0 -- controls height of background box
-            if gameMode == GameMode.MENU then 
-                menuY = (#options * 25) + 10
-                menuX = (100)
-            elseif gameMode == GameMode.STORY then
-                menuY = (80)
-                menuX = (400)
-            elseif gameMode == GameMode.STORY and o.mType == "tag" then
-                menuY = (25)
-                menuX = (100)
-            end
             local gridviewImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
-            if o.mType == "menu" then
-                gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
-            elseif o.mType == "story" then
+            if o.type == "menu" or "twoChoices" then
+                if o.type == "menu" then
+                    gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
+                elseif o.type == "twoChoices" then
+                    gridviewSprite:moveTo(100, 100)
+                end
+            elseif o.type == "dialogue" then
                 gridviewSprite:moveTo(0,160)
                 gridview:setContentInset(5,10,0,0)
                 gridview:setCellSize(380, 50)
-            elseif o.mType == "tag" then
+            elseif o.type == "tagL" or "tagR" then
                 gridview:setContentInset(0,0,0,0)
                 gridview:setCellSize(100, 25)
-                if o.pos == "left" then
+                if o.type == "tagL" then
                     gridviewSprite:moveTo(0,160)
-                elseif o.pos == "right" then
+                elseif o.type == "tagR" then
                     gridviewSprite:moveTo(300,160)
                 end
             end
-
             gfx.pushContext(gridviewImage)
             o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
@@ -148,25 +161,8 @@ function gridview:new(name, rows, columns, options, index, mType)
         end
     end
 
-    function o:text()
-        if o.mType == "story" then
-            for i,v in pairs(stories) do
-                if o.storyLoc == i then
-                    while type(v[o.key]) ~= "string" do -- do something else with other triggers that might be for graphics or changes in scenery\characters
-                        if type(v[o.key]) == "function" then
-                            v[o.key]()
-                        end
-                        o.key = o.key + 1
-                    end
-                    o.cText = v[o.key]
-                    o.key = o.key + 1
-                end
-            end
-        end
-    end
-
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        if o.mType == "menu" then
+        if o.type == "menu" then
             if selected then
                 gfx.drawRect(x,y,width+2,height+2)
                 gfx.drawRect(x,y,width,height)
@@ -176,7 +172,7 @@ function gridview:new(name, rows, columns, options, index, mType)
         end
         local menuText={}
 
-        if o.mType == "menu" then
+        if o.type == "menu" then
             menuText = o.options
         else -- in "story" and "tag" instances
             menuText[1] = o.cText
@@ -185,7 +181,7 @@ function gridview:new(name, rows, columns, options, index, mType)
         local fontHeight = gfx.getSystemFont():getHeight()
         for i,v in pairs(menuText) do
             if row == i then
-                if o.mType == "tag" then
+                if o.type == "tagL" or "tagR" then
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.center)
                 else
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.left)
@@ -195,20 +191,29 @@ function gridview:new(name, rows, columns, options, index, mType)
     end
 
     function o:menuControl(direction) 
-        if o.mType == "menu" then
+        if o.type == "menu" or "twoChoices" then
             if direction == "up" then
                 o:selectPreviousRow(true)
             elseif direction == "down" then
                 o:selectNextRow(true)
             end
-        elseif o.mType == "story" then -- Iterates through all line items in a story.
+        elseif o.type == "dialogue" then -- Iterates through all line items in a story.
             if direction == "a" then
                 o:text()
                 o:selectNextRow(true)
             end
         end
     end
-    menuIndex[index] = o
+
+        local countI = 0
+        for _ in pairs(menuIndex) do 
+            countI = countI + 1 
+        end
+
+    
+    o.index = countI + 1
+    print(countI)
+    menuIndex[o.index] = o
     return o
 end
 
@@ -251,13 +256,13 @@ function playdate.update()
         local ver = initLoadSav()
         if ver == false then -- if save is not found
             initSaveFile()
-            mMenu = gridview:new("Main Menu", 2, 1, startMenu, 1, "menu")
+            mMenu = gridview:new("menu", startMenu)
         elseif ver == true then
             local sit = clearOne() -- check to see if the game has been beaten once
             if sit == true then
-                mMenu = gridview:new("Main Menu",4,1,fullMenuMain,1, "menu")
+                mMenu = gridview:new("menu",fullMenuMain)
             elseif sit == false then
-                mMenu = gridview:new("Main Menu", 3, 1, intermMenu, 1, "menu")
+                mMenu = gridview:new("menu",intermMenu)
             end
         end
         gameBoot = 1

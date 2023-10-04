@@ -89,7 +89,7 @@ function clearTags()
     gfx.setDrawOffset(0, 0)
 end
 
-function goMenu(item)       ------------    change for new gamemode handler
+function goMenu(item)       ------------change for new gamemode handler
     if item == "Continue" then
         clearMenus()
         local gmMode, storLoc, key = gameContinue()
@@ -104,3 +104,10 @@ function goMenu(item)       ------------    change for new gamemode handler
     if item == "Battle" then
     end
 end
+
+function tablelength(T) --simple function to get length of table
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
+end
+  
