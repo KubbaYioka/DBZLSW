@@ -63,7 +63,7 @@ portIndex = {}
 spriteIndex = {}
 tagIndex = {}
 
---Menu Object Class
+--Menu Object Classes
 
 function gridview:new(name, rows, columns, options, index, mType)
     local o = o or {}
@@ -78,20 +78,21 @@ function gridview:new(name, rows, columns, options, index, mType)
     local gridviewSprite = gfx.sprite.new()
     gridviewSprite:setCenter(0, 0)
 
-    if o.mType == "menu" then
+    if gameMode == GameMode.MENU then
         o.options = options or {}
         o.index = index or 1
-    elseif o.mType == "story" then
+    elseif gameMode == GameMode.STORY then
         o.storyLoc = name
         o.key = options
         o.cText = "none"
         gridviewSprite:setZIndex(3)
-    elseif o.mType == "tag" then
-        gridviewSprite:setZIndex(5)
-        gridviewSprite.tag = o.mType
-        o.cText = name
-        o.pos = options or "left" -- options argument passed as position
-        o.index = "tag" -- object indexed in menuIndex as "tag", a unique key.
+        if o.mType == "tag" then
+            gridviewSprite:setZIndex(5)
+            gridviewSprite.tag = o.mType
+            o.cText = name
+            o.pos = options or "left" -- options argument passed as position
+            o.index = "tag" -- object indexed in menuIndex as "tag", a unique key.
+        end
     end
 
     function o:spriteKill()
@@ -113,13 +114,13 @@ function gridview:new(name, rows, columns, options, index, mType)
         if o.needsDisplay then
             local menuX = 0 -- controls width of background box
             local menuY = 0 -- controls height of background box
-            if o.mType == "menu" then 
+            if gameMode == GameMode.MENU then 
                 menuY = (#options * 25) + 10
                 menuX = (100)
-            elseif o.mType == "story" then
+            elseif gameMode == GameMode.STORY then
                 menuY = (80)
                 menuX = (400)
-            elseif o.mType == "tag" then
+            elseif gameMode == GameMode.STORY and o.mType == "tag" then
                 menuY = (25)
                 menuX = (100)
             end

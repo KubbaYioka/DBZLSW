@@ -33,10 +33,11 @@ function gameContinue() -- returns the gamemode, story location, and key of stor
     print(izu)
     print(yve)
     if izu == "story" then
-        --change gamemode and load story at yve
+        gameModeChange(GameMode.STORY,yve)
     elseif izu == "menu" then
         --changegamemode and load menu at appropriate level
     elseif izu == "map" then
+        gameModeChange(GameMode.MAP,yve)
         --changegamemode and load appropriate map at yve
     end
     -- maybe think about making this a function that returns a value? Maybe.

@@ -5,9 +5,7 @@ tileSet = '/assets/tilemaps/testMap.png'
 ,tWidth = 16
 ,tHeight = 16
 }
-
 --]]
-
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
     --clear all menus, portraits, text, etc

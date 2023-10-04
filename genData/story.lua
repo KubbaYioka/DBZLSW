@@ -1,7 +1,7 @@
 stories={
 
-storyLoc1={ 1 --story
-,"Long ago..."
+storyLoc1={
+"Long ago..."
 ,"So long ago that everyone forgot..."
 , function() bgChange("dragonBalls1") end
 ,"7 magical spheres came to Earth."

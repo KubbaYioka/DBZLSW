@@ -28,6 +28,7 @@ function gridviewRend()
 end
 
 function gameModeChange(mode, location, index)
+    -- clearAll()
     gameMode = mode
     if mode == GameMode.BATTLE then
         print("Mode Changed to Battle")
@@ -42,7 +43,7 @@ function gameModeChange(mode, location, index)
     elseif mode == GameMode.STORY then
         print("Mode Changed to Story")
        -- gridview:new(name, rows, columns, options, index, mType)
-        local nDialogue = gridview:new(storyLoc,1,1,index,1, "story")
+    local nDialogue = gridview:new(location,1,1,index,1, "story ")
         -- load appropriate story from save
     end
 end
