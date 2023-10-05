@@ -171,6 +171,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
+        local menuText={}
         if o.type == "menu" then
             if selected then
                 gfx.drawRect(x,y,width+2,height+2)
@@ -180,12 +181,8 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                 gfx.drawRect(x,y,width,height)
                 print("drawCellNormal")
             end
-        end
-        local menuText={}
-
-        if o.type == "menu" then
             menuText = o.options
-        else -- in "story" and "tag" instances
+        else-- for dialogue, etc
             menuText[1] = o.cText
         end
 
@@ -221,7 +218,9 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             countI = countI + 1 
         end
     o.index = countI + 1
+    print(o.index)
     menuIndex[o.index] = o
+    printTable(o)
     return o
 end
 
