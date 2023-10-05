@@ -72,14 +72,13 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     self.__index=self
     o.type = gType
 
-
-
     local menuX = 0 -- controls width of background box
     local menuY = 0 -- controls height of background box
 
-    if o.type == "menu" or "twoChoices" then
+    if o.type == "menu" or o.type == "twoChoices" then
         --options in menu list and menu orientation dependent on name variable
         -- so like if name == y then o.options = option table 1, etc
+        o.options = {}
         o.options = name
         menuY = (#o.options * 25) + 10
         menuX = (100)
@@ -93,6 +92,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                 end
             end
         end
+
     elseif o.type == "dialogue" then
         menuY = (80)
         menuX = (400)
@@ -119,8 +119,8 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     elseif o.type == "tagL" or o.type == "tagR" then
         menuY = (25)
         menuX = (100)
-    elseif o.type == "nil" then
-        --placeholder
+    else
+        print("Error")
     end
 
     local gridviewSprite = gfx.sprite.new()
@@ -135,25 +135,32 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     function o:menuUpdate()
         if o.needsDisplay then
             local gridviewImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
-            if o.type == "menu" or "twoChoices" then
+            if o.type == "menu" or o.type == "twoChoices" then
                 if o.type == "menu" then
                     gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
+                    gridviewSprite:setZIndex(1)
+                    print("menuUpdate")
                 elseif o.type == "twoChoices" then
                     gridviewSprite:moveTo(100, 100)
+                    print("menuUpdateTwoChoices")
                 end
             elseif o.type == "dialogue" then
                 gridviewSprite:setZIndex(3)
                 gridviewSprite:moveTo(0,160)
                 gridview:setContentInset(5,10,0,0)
                 gridview:setCellSize(380, 50)
-            elseif o.type == "tagL" or "tagR" then
+                print("menuUpdateDialogue")
+            elseif o.type == "tagL" or o.type == "tagR" then
                 gridviewSprite:setZIndex(4)
                 gridview:setContentInset(0,0,0,0)
                 gridview:setCellSize(100, 25)
+                print("menuUpdateTag")
                 if o.type == "tagL" then
                     gridviewSprite:moveTo(0,160)
+                    print("menuUpdateTagL")
                 elseif o.type == "tagR" then
                     gridviewSprite:moveTo(300,160)
+                    print("menuUpdateTagR")
                 end
             end
             gfx.pushContext(gridviewImage)
@@ -168,8 +175,10 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             if selected then
                 gfx.drawRect(x,y,width+2,height+2)
                 gfx.drawRect(x,y,width,height)
+                print("drawCellSelected")
             else
                 gfx.drawRect(x,y,width,height)
+                print("drawCellNormal")
             end
         end
         local menuText={}
@@ -182,20 +191,19 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
         local fontHeight = gfx.getSystemFont():getHeight()
         for i,v in pairs(menuText) do
-
             if row == i then
-                 if o.type == "tagL" or "tagR" then
+                print(i)
+                 if o.type == "tagL" or o.type == "tagR" then
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.center)
                  elseif o.type == "menu" then
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.left)
-                    print("menu")
                 end
             end
         end
     end
 
     function o:menuControl(direction) 
-        if o.type == "menu" or "twoChoices" then
+        if o.type == "menu" or o.type == "twoChoices" then
             if direction == "up" then
                 o:selectPreviousRow(true)
             elseif direction == "down" then
@@ -213,7 +221,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             countI = countI + 1 
         end
     o.index = countI + 1
-    print(countI)
     menuIndex[o.index] = o
     return o
 end
@@ -256,14 +263,13 @@ function playdate.update()
         local ver = initLoadSav()
         if ver == false then -- if save is not found
             initSaveFile()
-            mMenu = gridview:new("menu", startMenu)
+            gridview:new("menu", startMenu)
         elseif ver == true then
             local sit = clearOne() -- check to see if the game has been beaten once
             if sit == true then
-                mMenu = gridview:new("menu",fullMenuMain)
+                gridview:new("menu",fullMenuMain)
             elseif sit == false then
-                mMenu = gridview:new("menu",intermMenu)
-                print("interim Menu Selected")
+                gridview:new("menu",intermMenu)
             end
         end
         gameBoot = 1

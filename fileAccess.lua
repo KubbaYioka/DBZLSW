@@ -72,7 +72,7 @@ function loadSavedPlayers(mode, chr) -- Mode will change what kind of value is r
         if type(v) == "table" then
             if mode=="names" then   --returns names of characters only
                 tblJdf[i] = v.name
-            elseif mode == "full" or "ind" then
+            elseif mode == "full" or mode == "ind" then
             tblJdf[i]=v
             end
         end
