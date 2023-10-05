@@ -31,23 +31,19 @@ function gridviewRend()
 end
 
 function gameModeChange(mode, location, index)
-    -- clearAll()
     gameMode = mode
     if mode == GameMode.BATTLE then
-        print("Mode Changed to Battle")
         --display vs and transition
     elseif mode == GameMode.MENU then
-        print("Mode Changed to Menu")
         -- gridview etc etc
         -- load appropriate menu
     elseif mode == GameMode.MAP then
-        print("Mode Changed to Map")
         goMap(location) -- loads map from appropriate dataset
     elseif mode == GameMode.STORY then
-        print("Mode Changed to Story")
+        print("Mode is now Story.")
        -- gridview:new(name, rows, columns, options, index, mType)
-    local nDialogue = gridview:new(location,1,1,index,1, "story ")
-        -- load appropriate story from save
+        gridview:new(mode, location)
+        -- load appropriate story
     end
 end
 
@@ -95,12 +91,11 @@ end
 function goMenu(item)       ------------change for new gamemode handler
     if item == "Continue" then
         clearMenus()
-        local gmMode, storLoc, key = gameContinue()
-        gameModeChange(gmMode, storLoc, key) 
+        local mode, loc = gameContinue()
+        gameModeChange(mode, loc) 
     end
     if item == "New Game" then
         clearMenus()
-        print("newGame()")
     end
     if item == "Options" then
     end

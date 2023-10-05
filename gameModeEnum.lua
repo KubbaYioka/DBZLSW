@@ -2,7 +2,7 @@
 
 GameMode = { -- Note case sensitive letters
     MENU = "menu",
-    STORY = "story",
+    STORY = "dialogue",
     BATTLE = "battle",
     MAP = "map"
 }

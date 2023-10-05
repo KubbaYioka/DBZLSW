@@ -80,6 +80,8 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         -- so like if name == y then o.options = option table 1, etc
         o.options = {}
         o.options = name
+        gridview:setNumberOfColumns(1)
+        gridview:setNumberOfRows(#o.options)
         menuY = (#o.options * 25) + 10
         menuX = (100)
         --display menu
@@ -99,10 +101,10 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         o:setNumberOfRows(rows or 1)
         o:setNumberOfColumns(columns or 1)
         o.location = name
-        o.key = options
+        o.key = 1
         o.cText = "none"
+
         function o:text()
-            o.key = 1
             for i,v in pairs(stories) do
                 if o.location == i then
                     while type(v[o.key]) ~= "string" do -- do something else with other triggers that might be for graphics or changes in scenery\characters
@@ -119,8 +121,12 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     elseif o.type == "tagL" or o.type == "tagR" then
         menuY = (25)
         menuX = (100)
+        o:setNumberOfRows(rows or 1)
+        o:setNumberOfColumns(columns or 1)
+        o.ctext = name
+        print(o.ctext)
     else
-        print("Error")
+        print("Error in o.type")
     end
 
     local gridviewSprite = gfx.sprite.new()
@@ -139,28 +145,22 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                 if o.type == "menu" then
                     gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
                     gridviewSprite:setZIndex(1)
-                    print("menuUpdate")
                 elseif o.type == "twoChoices" then
                     gridviewSprite:moveTo(100, 100)
-                    print("menuUpdateTwoChoices")
                 end
             elseif o.type == "dialogue" then
-                gridviewSprite:setZIndex(3)
+                gridviewSprite:setZIndex(2)
                 gridviewSprite:moveTo(0,160)
                 gridview:setContentInset(5,10,0,0)
                 gridview:setCellSize(380, 50)
-                print("menuUpdateDialogue")
             elseif o.type == "tagL" or o.type == "tagR" then
                 gridviewSprite:setZIndex(4)
                 gridview:setContentInset(0,0,0,0)
                 gridview:setCellSize(100, 25)
-                print("menuUpdateTag")
                 if o.type == "tagL" then
                     gridviewSprite:moveTo(0,160)
-                    print("menuUpdateTagL")
                 elseif o.type == "tagR" then
                     gridviewSprite:moveTo(300,160)
-                    print("menuUpdateTagR")
                 end
             end
             gfx.pushContext(gridviewImage)
@@ -176,26 +176,33 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             if selected then
                 gfx.drawRect(x,y,width+2,height+2)
                 gfx.drawRect(x,y,width,height)
-                print("drawCellSelected")
             else
                 gfx.drawRect(x,y,width,height)
-                print("drawCellNormal")
             end
             menuText = o.options
+
         else-- for dialogue, etc
             menuText[1] = o.cText
+
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
+        local rCount = row
+
         for i,v in pairs(menuText) do
-            if row == i then
+            if o.type == "tagL" or o.type == "tagR" then
                 print(i)
-                 if o.type == "tagL" or o.type == "tagR" then
+                print(v)
+            end
+            if rCount == i then
+                if o.type == "tagL" or o.type == "tagR" then
+                    print("tag in drawCell")
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.center)
-                 elseif o.type == "menu" then
+                elseif o.type == "menu" or o.type == "dialogue" then
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.left)
                 end
             end
+
         end
     end
 
@@ -213,14 +220,14 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             end
         end
     end
-        local countI = 0
-        for _ in pairs(menuIndex) do 
-            countI = countI + 1 
-        end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
     o.index = countI + 1
-    print(o.index)
     menuIndex[o.index] = o
-    printTable(o)
     return o
 end
 
@@ -280,7 +287,6 @@ function playdate.update()
     end
     
     for i,v in pairs(portIndex) do
-        print("menuIndexNote")
         v:portUpdate()
     end
 

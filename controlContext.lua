@@ -52,8 +52,7 @@ end
     end
 
     if playdate.buttonJustPressed("b") then
-        local f = portIndex
-        printTable(f)
+        print(gameMode)
     end
 
 

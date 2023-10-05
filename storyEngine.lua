@@ -83,11 +83,11 @@ function portChange(image, pos)
     end
 end
 
-function dTag(pos, name, change)
+function dTag(pos, name)
     for i, v in pairs(menuIndex) do
-        if v.mType == "tag" then
+        if v.type == "tagL" or v.type == "tagR" then
             v:spriteKill()
-            table.remove(menuIndex["tag"])
+            table.remove(menuIndex[i]) --remove tag at index 'i'
         end
     end
 
@@ -95,6 +95,13 @@ function dTag(pos, name, change)
         return
     end
 
-    local tag = gridview:new(name, 1, 1, pos, "tag", "tag")
+    local tagPos = "nil"
+    if pos == "left" then
+        tagPos = "tagL"
+    elseif pos == "tagR" then
+        tagPos = "tagR" 
+    end
+
+    gridview:new(tagPos, name)
 
 end
