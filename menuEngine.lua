@@ -6,9 +6,11 @@ function gridSprite(spriteType) -- sprite gen for menu\story
     gridviewSprite:setCenter(0, 0)
     if spriteType == "menu" then
         gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
+
     elseif spriteType == "story" then
         gridviewSprite:moveTo(0,180)
         gridview:setCellSize(240, 40)
+
     end
     gridviewSprite:add()
     return gridviewSprite
@@ -19,6 +21,7 @@ function gridviewRend()
     gridview:setNumberOfColumns(1)
     gridview:setNumberOfRows(1)
     gridview:setCellPadding(0,0,4,0)
+    
 
     --Set Menu\Text Border 
 

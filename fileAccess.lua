@@ -25,7 +25,7 @@ function initLoadSav() --tests for save in game folder.
     end
 end
 
-function gameContinue() -- returns the gamemode, story location, and key of story location
+function gameContinue() -- returns the gamemode, story location
     local inthe = playdate.datastore.read("sav")
     local loc = inthe[2]
     local izu = loc.currentMode
@@ -49,7 +49,7 @@ function initSaveFile() --creates the initial save file if none exists
     storyDat.currentMode = GameMode.STORY
     storyDat.currentLocation = "storyLoc1"
     storyDat.completed = false
-    for i=1, 300, 1 do
+    for i=1, 300, 1 do -- 300 is a placeholder for now.
         chrDat[i] = "none" --create character slots for all potential characters. Indexes with value "none"
     end
     local gok = chrRet(dbGoku) --start with the default character. Kid Goku
