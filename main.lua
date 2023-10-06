@@ -66,7 +66,7 @@ tagIndex = {}
 --Menu Object Classes
 
 function gridview:new(gType,name) -- creates grid object based on parameters passed to it
--- types can be: dialogue, tagL, tagR, mainMenu, twoChoices, menu
+-- types can be: dialogue, twoChoices, menu
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
@@ -118,13 +118,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                 end
             end
         end
-    elseif o.type == "tagL" or o.type == "tagR" then
-        menuY = (25)
-        menuX = (100)
-        o:setNumberOfRows(rows or 1)
-        o:setNumberOfColumns(columns or 1)
-        o.ctext = name
-        print(o.ctext)
     else
         print("Error in o.type")
     end
@@ -153,15 +146,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                 gridviewSprite:moveTo(0,160)
                 gridview:setContentInset(5,10,0,0)
                 gridview:setCellSize(380, 50)
-            elseif o.type == "tagL" or o.type == "tagR" then
-                gridviewSprite:setZIndex(4)
-                gridview:setContentInset(0,0,0,0)
-                gridview:setCellSize(100, 25)
-                if o.type == "tagL" then
-                    gridviewSprite:moveTo(0,160)
-                elseif o.type == "tagR" then
-                    gridviewSprite:moveTo(300,160)
-                end
             end
             gfx.pushContext(gridviewImage)
             o:drawInRect(0,0,menuX,menuY)
@@ -183,26 +167,15 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
         else-- for dialogue, etc
             menuText[1] = o.cText
-
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
         local rCount = row
 
         for i,v in pairs(menuText) do
-            if o.type == "tagL" or o.type == "tagR" then
-                print(i)
-                print(v)
-            end
             if rCount == i then
-                if o.type == "tagL" or o.type == "tagR" then
-                    print("tag in drawCell")
-                    gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.center)
-                elseif o.type == "menu" or o.type == "dialogue" then
-                    gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.left)
-                end
+                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.left)
             end
-
         end
     end
 
@@ -288,6 +261,9 @@ function playdate.update()
     
     for i,v in pairs(portIndex) do
         v:portUpdate()
+    end
+    for i,v in pairs(tagIndex) do
+        v:tagUpdate()
     end
 
     --UPDATE TIMERS

@@ -4,6 +4,53 @@ local gfx = playdate.graphics
 
 ChrPort = gfx.sprite.new()
 
+--nameTag object 
+nameTag = playdate.ui.gridview.new(0,20)
+nameTag:setNumberOfColumns(1)
+nameTag:setNumberOfRows(1)
+nameTag:setCellPadding(0,0,4,0)
+nameTag:setContentInset(5,5,5,5)
+nameTag.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+function nameTag:new(pos, name) -- create nametag at designated position
+
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+    local sizeY = (25)
+    local sizeX = (100)
+    local tagSprite = gfx.sprite.new()
+    tagSprite:setCenter(0,0)
+    function o:spriteKill()
+        tagSprite:remove()
+    end
+    tagSprite:add()
+
+    function o:tagUpdate()
+        if o.needsDisplay then
+            local tagImage = gfx.image.new(sizeX,sizeY,gfx.kColorWhite)
+            tagSprite:setZIndex(4)
+            nameTag:setContentInset(0,0,0,0)
+            nameTag:setCellSize(100, 25)
+            if pos == "left" then
+                tagSprite:moveTo(0,160)
+            elseif pos == "right" then
+                tagSprite:moveTo(300,160)
+            end
+            gfx.pushContext(tagImage)
+            o:drawInRect(0,0,sizeX,sizeY)
+            gfx.popContext()
+            tagSprite:setImage(tagImage)
+        end
+    end
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        local fontHeight = gfx.getSystemFont():getHeight()
+        gfx.drawTextInRect(name, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.center)
+    end
+    tagIndex[pos] = o
+    return o
+end
+
 function ChrPort:new(image, pos)
     print("portrait created")
     local o=o or {}
@@ -84,24 +131,21 @@ function portChange(image, pos)
 end
 
 function dTag(pos, name)
-    for i, v in pairs(menuIndex) do
-        if v.type == "tagL" or v.type == "tagR" then
+    for i, v in pairs(tagIndex) do -- automatically replaces the existing tag if another is called in the same position
+        if v.type == "left" or v.type == "right" then
             v:spriteKill()
-            table.remove(menuIndex[i]) --remove tag at index 'i'
+            table.remove(tagIndex[i]) --remove tag at index 'i'
         end
     end
 
     if pos == "clear" then
+        for i, v in pairs(tagIndex) do -- erases all tags 
+            v:spriteKill()
+            table.remove(tagIndex[i]) --remove tag at index 'i'
+        end
         return
     end
 
-    local tagPos = "nil"
-    if pos == "left" then
-        tagPos = "tagL"
-    elseif pos == "tagR" then
-        tagPos = "tagR" 
-    end
-
-    gridview:new(tagPos, name)
+    nameTag:new(pos, name)
 
 end

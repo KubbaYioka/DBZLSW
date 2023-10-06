@@ -52,7 +52,7 @@ end
     end
 
     if playdate.buttonJustPressed("b") then
-        print(gameMode)
+
     end
 
 
