@@ -27,7 +27,6 @@ storyLoc1={
 , function() gameModeChange(GameMode.MAP,"testMap") end
 },
 
-
 storyLoc1A={
  function() bgChange("dbRiver") end
 ,"He approaches the river down in the lowlands and..."
