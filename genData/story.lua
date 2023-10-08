@@ -24,10 +24,13 @@ storyLoc1={
 , function() dTag("clear") end
 , function() portChange("clear") end
 ,"Goku sets out to find food like he normally does this time of day."
+<<<<<<< HEAD
 , function() gameModeChange(GameMode.MAP,maps.mapNumberT) end
 ,"EOF"
+=======
+, function() gameModeChange(GameMode.MAP,"testMap") end
+>>>>>>> b6c9b08f6ed1a16bd95fe4951176d895684a67ea
 },
-
 
 storyLoc1A={
  function() bgChange("dbRiver") end

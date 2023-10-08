@@ -2,10 +2,10 @@
 
 local gfx = playdate.graphics
 
-ChrPort = gfx.sprite.new()
+local ChrPort = gfx.sprite.new()
 
 --nameTag object 
-nameTag = playdate.ui.gridview.new(0,20)
+local nameTag = playdate.ui.gridview.new(0,20)
 nameTag:setNumberOfColumns(1)
 nameTag:setNumberOfRows(1)
 nameTag:setCellPadding(0,0,4,0)

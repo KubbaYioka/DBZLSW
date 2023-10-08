@@ -36,8 +36,6 @@ import '/genData/maps'
 --File Access
 import 'fileAccess'
 
-
-
 --Font
 local dbFont = playdate.graphics.font.new('assets/fonts/DBLSW2')
 playdate.graphics.setFont(dbFont) 
@@ -207,7 +205,7 @@ end
 
 --Background Image
 
-local backgroundImage = gfx.image.new('assets/images/background/400240.png')
+local backgroundImage = gfx.image.new('assets/images/background/dragonBallTitle.png')
 assert( backgroundImage )
 
 gfx.sprite.setBackgroundDrawingCallback(
