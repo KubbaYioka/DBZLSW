@@ -21,7 +21,6 @@ function gridviewRend()
     gridview:setNumberOfColumns(1)
     gridview:setNumberOfRows(1)
     gridview:setCellPadding(0,0,4,0)
-    
 
     --Set Menu\Text Border 
 

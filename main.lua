@@ -144,7 +144,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             elseif o.type == "dialogue" then
                 gridviewSprite:setZIndex(2)
                 gridviewSprite:moveTo(0,160)
-                gridview:setContentInset(5,10,0,0)
+                gridview:setContentInset(5,20,0,0)
                 gridview:setCellSize(380, 50)
             end
             gfx.pushContext(gridviewImage)

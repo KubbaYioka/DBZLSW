@@ -9,7 +9,7 @@ nameTag = playdate.ui.gridview.new(0,20)
 nameTag:setNumberOfColumns(1)
 nameTag:setNumberOfRows(1)
 nameTag:setCellPadding(0,0,4,0)
-nameTag:setContentInset(5,5,5,5)
+nameTag:setContentInset(0,0,0,0)
 nameTag.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
 function nameTag:new(pos, name) -- create nametag at designated position

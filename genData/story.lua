@@ -25,6 +25,7 @@ storyLoc1={
 , function() portChange("clear") end
 ,"Goku sets out to find food like he normally does this time of day."
 , function() gameModeChange(GameMode.MAP,mapNumberT) end
+,"EOF"
 },
 
 
