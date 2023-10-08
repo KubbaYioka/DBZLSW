@@ -31,6 +31,7 @@ import '/genData/cards'
 import '/genData/transformations'
 import 'menuCat'
 import '/genData/story'
+import '/genData/maps'
 
 --File Access
 import 'fileAccess'
@@ -271,5 +272,8 @@ function playdate.update()
 
     --UPDATE SPRITES
     gfx.sprite.update()
+    if gameMode == GameMode.MAP then
+        currentMap:draw(0,0)
+    end
 
 end

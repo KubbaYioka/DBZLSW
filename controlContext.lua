@@ -36,7 +36,9 @@ end
     end
 
     if gameMode == GameMode.MAP then
-
+        if playdate.buttonJustPressed("b") then
+            
+        end
     end
 
     if gameMode == GameMode.STORY then
@@ -52,7 +54,7 @@ end
     end
 
     if playdate.buttonJustPressed("b") then
-
+    
     end
 
 

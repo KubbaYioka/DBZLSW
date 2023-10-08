@@ -30,13 +30,14 @@ function gridviewRend()
 end
 
 function gameModeChange(mode, location, index)
-    gameMode = mode
     if mode == GameMode.BATTLE then
         --display vs and transition
     elseif mode == GameMode.MENU then
         -- gridview etc etc
         -- load appropriate menu
     elseif mode == GameMode.MAP then
+        clearAll()
+        gfx.clear()
         goMap(location) -- loads map from appropriate dataset
     elseif mode == GameMode.STORY then
         print("Mode is now Story.")
@@ -44,14 +45,13 @@ function gameModeChange(mode, location, index)
         gridview:new(mode, location)
         -- load appropriate story
     end
+    gameMode = mode
 end
 
 function clearMenus()
-
     for k,v in pairs(menuIndex) do
         menuIndex[k] = nil
     end
-
     menuIndex = {}
     gfx.sprite.removeAll()
     gfx.setDrawOffset(0, 0)
@@ -85,6 +85,13 @@ function clearTags()
     tagIndex = {}
     gfx.sprite.removeAll()
     gfx.setDrawOffset(0, 0)
+end
+
+function clearAll()
+    clearTags()
+    clearPorts()
+    clearMenus()
+    clearSprites()
 end
 
 function goMenu(item)       ------------change for new gamemode handler
