@@ -19,11 +19,6 @@ function gridviewRend()
     gridview:setNumberOfColumns(1)
     gridview:setNumberOfRows(1)
     gridview:setCellPadding(0,0,4,0)
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> b6c9b08f6ed1a16bd95fe4951176d895684a67ea
     --Set Menu\Text Border 
 
     gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
@@ -38,12 +33,8 @@ function gameModeChange(mode, location, index)
         -- gridview etc etc
         -- load appropriate menu
     elseif mode == GameMode.MAP then
-<<<<<<< HEAD
         clearAll()
         gfx.clear()
-=======
-        clearMenus()
->>>>>>> b6c9b08f6ed1a16bd95fe4951176d895684a67ea
         goMap(location) -- loads map from appropriate dataset
     elseif mode == GameMode.STORY then
         print("Mode is now Story.")
