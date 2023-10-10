@@ -3,11 +3,29 @@ local gfx = playdate.graphics
 
 class('PlayerMSprite').extends(gfx.sprite)
 
-function PlayerMSprite:init(x, y, sprite)
+function PlayerMSprite:init(x, y, image)
     local plrSpr = gfx.sprite.new()
-    self:setImage(currentPlrSprite)
+    local pTable = gfx.imagetable.new(image)
+    local pTmap = gfx.tilemap.new(pTable)
+    self:setTilemap(pTmap)
+
+    -- Define sprite states
+    PlayerMSprite.states = {
+        DOWN = 1,
+        LEFT = 2,
+        RIGHT = 3,
+        UP = 4
+    }
+    PlayerMSprite.stateFrames = {
+        [PlayerMSprite.states.DOWN] = {1,2}, 
+        [PlayerMSprite.states.LEFT] = {7,8},
+        [PlayerMSprite.states.RIGHT] = {3,4},
+        [PlayerMSprite.states.UP] = {5,6}
+    }
+
     self:moveTo(x, y)
     self:setZIndex(10)
+    self.currentState = PlayerMSprite.states.DOWN
     self:add()
 end
 
@@ -29,11 +47,11 @@ function mapInit(map)
 
     --creates new tilemap and image table from a mapTable containing all information for each map
     
-    currentPlrSprite = gfx.image.new(map.mapChr)
+    currentPlrImage = map.mapChr
+    print(currentPlrImage)
     local cX = map.chrX
     local cY = map.chrY
-    print(cX.." "..cY)
-    PlayerMSprite(cX, cY, currentPlrSprite)
+    PlayerMSprite(cX, cY, currentPlrImage)
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber

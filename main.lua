@@ -204,7 +204,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 end
 
 --Background Image
-
 local backgroundImage = gfx.image.new('assets/images/background/dragonBallTitle.png')
 assert( backgroundImage )
 
