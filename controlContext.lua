@@ -37,7 +37,22 @@ end
 
     if gameMode == GameMode.MAP then
         if playdate.buttonJustPressed("b") then
-            
+
+        end
+        if playdate.buttonJustPressed("a") then
+
+        end
+
+        if playdate.buttonJustPressed("right") then
+
+        end
+
+        if playdate.buttonJustPressed("up") then
+
+        end
+
+        if playdate.buttonJustPressed("down") then
+
         end
     end
 

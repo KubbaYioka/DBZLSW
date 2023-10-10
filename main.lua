@@ -270,8 +270,5 @@ function playdate.update()
 
     --UPDATE SPRITES
     gfx.sprite.update()
-    if gameMode == GameMode.MAP then
-        currentMap:draw(0,0)
-    end
 
 end
