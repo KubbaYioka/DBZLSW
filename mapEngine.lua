@@ -1,33 +1,47 @@
 local tlp = playdate.graphics.tilemap
 local gfx = playdate.graphics
 
-class('PlayerMSprite').extends(gfx.sprite)
+class('PlayerMSprite').extends(AnimatedSprite)
 
-function PlayerMSprite:init(x, y, image)
-    local plrSpr = gfx.sprite.new()
+function PlayerMSprite:init(image)
     local pTable = gfx.imagetable.new(image)
-    local pTmap = gfx.tilemap.new(pTable)
-    self:setTilemap(pTmap)
+    print(image)
+    PlayerMSprite.super.init(self, pTable)
 
     -- Define sprite states
-    PlayerMSprite.states = {
-        DOWN = 1,
-        LEFT = 2,
-        RIGHT = 3,
-        UP = 4
-    }
-    PlayerMSprite.stateFrames = {
-        [PlayerMSprite.states.DOWN] = {1,2}, 
-        [PlayerMSprite.states.LEFT] = {7,8},
-        [PlayerMSprite.states.RIGHT] = {3,4},
-        [PlayerMSprite.states.UP] = {5,6}
-    }
+    self:addState("down", 1, 2, {tickStep = 4})
+    self:addState("up", 5, 6, {tickStep = 4})
+    self:addState("left",7 ,8, {tickStep = 4})
+    self:addState("right", 3, 4, {tickStep = 4})
+    self:playAnimation()
 
-    self:moveTo(x, y)
+    -- Properties
+
+    self:moveTo(64, 64) -- will need to change
     self:setZIndex(10)
-    self.currentState = PlayerMSprite.states.DOWN
+    --self:setCollideRect()
+    
     self:add()
 end
+
+function PlayerMSprite:update()
+    self:updateAnimation()
+end
+
+function PlayerMSprite:handleInput(button)
+    if gameMode == GameMode.MAP then
+    if button == "left" then
+        self.currentState = PlayerMSprite.states.LEFT
+    elseif button == "right" then
+        self.currentState = PlayerMSprite.states.RIGHT
+    elseif button == "up" then
+        self.currentState = PlayerMSprite.states.UP
+    elseif button == "down" then
+        self.currentState = PlayerMSprite.states.DOWN
+    end
+    end
+end
+
 
 local currentMapImage = nil
 currentMap = nil

@@ -6,6 +6,9 @@ import "CoreLibs/timer"
 import "CoreLibs/ui"
 import "CoreLibs/nineSlice"
 
+--Other Libraries
+import "assets/secondlib/AnimatedSprite"
+
 --Input Control
 import 'controlContext'
 
@@ -262,6 +265,10 @@ function playdate.update()
     end
     for i,v in pairs(tagIndex) do
         v:tagUpdate()
+    end
+
+    if gameMode == GameMode.MAP then
+        PlayerMSprite:update()
     end
 
     --UPDATE TIMERS
