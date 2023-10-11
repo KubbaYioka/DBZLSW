@@ -69,8 +69,8 @@ end
     end
 
     if playdate.buttonJustPressed("b") then
-    
+        local fgd = playdate.graphics.sprite.getAllSprites()
+        printTable(fgd)
     end
-
 
 end

@@ -62,7 +62,6 @@ gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16
 
 menuIndex = {}
 portIndex = {}
-spriteIndex = {}
 tagIndex = {}
 
 --Menu Object Classes
@@ -76,16 +75,21 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
     local menuX = 0 -- controls width of background box
     local menuY = 0 -- controls height of background box
+    local xPos = 0
+    local yPos = 0
+    
 
     if o.type == "menu" or o.type == "twoChoices" then
         --options in menu list and menu orientation dependent on name variable
         -- so like if name == y then o.options = option table 1, etc
         o.options = {}
         o.options = name
+
         gridview:setNumberOfColumns(1)
         gridview:setNumberOfRows(#o.options)
         menuY = (#o.options * 25) + 10
         menuX = (100)
+        xPos, yPos = menuPosition(name)
         --display menu
         
         function o:getOption() -- item selection in menu
@@ -138,7 +142,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             local gridviewImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             if o.type == "menu" or o.type == "twoChoices" then
                 if o.type == "menu" then
-                    gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
+                    gridviewSprite:moveTo(xPos, yPos) -- same location as where the grid is drawn
                     gridviewSprite:setZIndex(1)
                 elseif o.type == "twoChoices" then
                     gridviewSprite:moveTo(100, 100)
@@ -259,16 +263,11 @@ function playdate.update()
     for i,v in pairs(menuIndex) do
         v:menuUpdate()
     end
-    
     for i,v in pairs(portIndex) do
         v:portUpdate()
     end
     for i,v in pairs(tagIndex) do
         v:tagUpdate()
-    end
-
-    if gameMode == GameMode.MAP then
-        PlayerMSprite:update()
     end
 
     --UPDATE TIMERS

@@ -37,7 +37,6 @@ function gameModeChange(mode, location, index)
         gfx.clear()
         goMap(location) -- loads map from appropriate dataset
     elseif mode == GameMode.STORY then
-        print("Mode is now Story.")
        -- gridview:new(name, rows, columns, options, index, mType)
         gridview:new(mode, location)
         -- load appropriate story
@@ -55,10 +54,6 @@ function clearMenus()
 end
 
 function clearSprites()
-
-    for k,v in pairs(spriteIndex) do
-        spriteIndex[k] = nil
-    end
     spriteIndex = {}
     gfx.sprite.removeAll()
     gfx.setDrawOffset(0, 0)

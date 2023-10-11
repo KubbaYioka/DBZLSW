@@ -5,7 +5,6 @@ class('PlayerMSprite').extends(AnimatedSprite)
 
 function PlayerMSprite:init(image)
     local pTable = gfx.imagetable.new(image)
-    print(image)
     PlayerMSprite.super.init(self, pTable)
 
     -- Define sprite states
@@ -16,11 +15,10 @@ function PlayerMSprite:init(image)
     self:playAnimation()
 
     -- Properties
-
-    self:moveTo(64, 64) -- will need to change
-    self:setZIndex(10)
+    self:changeState("down",true)
+    self:moveTo(10, 10) -- will need to change
+    self:setZIndex(100)
     --self:setCollideRect()
-    
     self:add()
 end
 
@@ -30,15 +28,15 @@ end
 
 function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
-    if button == "left" then
-        self.currentState = PlayerMSprite.states.LEFT
-    elseif button == "right" then
-        self.currentState = PlayerMSprite.states.RIGHT
-    elseif button == "up" then
-        self.currentState = PlayerMSprite.states.UP
-    elseif button == "down" then
-        self.currentState = PlayerMSprite.states.DOWN
-    end
+        if button == "left" then
+            self.currentState = PlayerMSprite.states.LEFT
+        elseif button == "right" then
+            self.currentState = PlayerMSprite.states.RIGHT
+        elseif button == "up" then
+            self.currentState = PlayerMSprite.states.UP
+        elseif button == "down" then
+            self.currentState = PlayerMSprite.states.DOWN
+        end
     end
 end
 
