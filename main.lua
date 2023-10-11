@@ -274,7 +274,7 @@ function playdate.update()
     playdate.timer.updateTimers()
 
     if gameMode == GameMode.MAP then
-        PlayerMSprite:update()
+        --PlayerMSprite:update()
     end
 
     --UPDATE SPRITES

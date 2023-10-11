@@ -1,6 +1,6 @@
 local tlp = playdate.graphics.tilemap
 local gfx = playdate.graphics
-
+--[[
 class('PlayerMSprite').extends(AnimatedSprite)
 
 function PlayerMSprite:init(image)
@@ -26,6 +26,7 @@ function PlayerMSprite:update()
     self:updateAnimation()
 end
 
+
 function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
         if button == "left" then
@@ -39,7 +40,7 @@ function PlayerMSprite:handleInput(button)
         end
     end
 end
-
+]]
 local currentMapImage = nil
 currentMap = nil
 currentPlrSprite = nil
@@ -56,13 +57,26 @@ function mapInit(map)
     mapSprite:setZIndex(1)
     mapSprite:add()
 
+
     --creates new tilemap and image table from a mapTable containing all information for each map
     
-    currentPlrImage = map.mapChr
-    print(currentPlrImage)
+    currentPlrImage = gfx.imagetable.new(map.mapChr)
+    PlayerMSprite = AnimatedSprite(currentPlrImage)
+    PlayerMSprite:addState("down", 1, 2, {tickStep = 10})
+    PlayerMSprite:addState("up", 5, 6, {tickStep = 10})
+    PlayerMSprite:addState("left",7 ,8, {tickStep = 10})
+    PlayerMSprite:addState("right", 3, 4, {tickStep = 10})
+    PlayerMSprite:playAnimation()
+
+    -- Properties
+    PlayerMSprite:changeState("down",true)
+    PlayerMSprite:moveTo(100, 100) -- will need to change
+    PlayerMSprite:setZIndex(100)
+    --self:setCollideRect()
+    PlayerMSprite:add()
     local cX = map.chrX
     local cY = map.chrY
-    PlayerMSprite(cX, cY, currentPlrImage)
+    --PlayerMSprite(cX, cY, currentPlrImage)
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
