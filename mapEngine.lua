@@ -16,7 +16,7 @@ function PlayerMSprite:init(image)
 
     -- Properties
     self:changeState("down",true)
-    self:moveTo(10, 10) -- will need to change
+    self:moveTo(64, 64) -- will need to change
     self:setZIndex(100)
     --self:setCollideRect()
     self:add()
@@ -39,7 +39,6 @@ function PlayerMSprite:handleInput(button)
         end
     end
 end
-
 
 local currentMapImage = nil
 currentMap = nil

@@ -30,7 +30,7 @@ maps={
         --defines the location of certain kinds of objects
         --these objects are defined elsewhere in the program
         }
-    ,mapChr = "assets/images/mapSpr/kidGoku"-- Selects the character that the player will be in the overworld.
+    ,mapChr = "assets/images/mapSpr/kidGoku-table-16-16"-- Selects the character that the player will be in the overworld.
     ,chrX = 10 --player sprite starting x pos
     ,chrY = 10 --player sprite starting y pos
     },
