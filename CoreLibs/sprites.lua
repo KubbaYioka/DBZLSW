@@ -27,11 +27,6 @@ spritelib.baseObject = newfunc
 
 -- init function for Object subclass
 function spritelib.init(self, imageOrTilemap)
-
-	if ( type(imageOrTilemap) == 'string' ) then
-		print("init('" .. imageOrTilemap .. "'): sprite.init() no longer accepts a file name as an argument")
-	end
-
 	if imageOrTilemap ~= nil then
 		if getmetatable(imageOrTilemap) == gfx.image then
 			self:setImage(imageOrTilemap)
@@ -41,15 +36,13 @@ function spritelib.init(self, imageOrTilemap)
 	end
 
 	self:moveTo(0,0)
-
 end
 
 
 -- allow sprites to work without using object.lua
 function spritelib.new(arg1, arg2)
-	local o = newfunc()
-	o:init(arg2 or arg1) -- allow for both spritelib.new() and spritelib:new()
-
+	local o = newfunc(arg2 or arg1) -- allow for both spritelib.new() and spritelib:new()
+	o:init()
 	return o
 end
 
@@ -59,29 +52,6 @@ function spritelib.performOnAllSprites(func)
 	for i = 1, #allSprites do
 		func(allSprites[i])
 	end
-end
-
-local _moveWithCollisions = spritelib.moveWithCollisions
-function spritelib:moveWithCollisions(x, y)
-
-	if y == nil then	-- assume playdate.geometry.point was passed
-		x, y = x.x, x.y
-	end
-
-	local actualX, actualY, cols, l = _moveWithCollisions(self, x, y)
-
-	return self.x, self.y, cols, l
-end
-
-local _checkCollisions = spritelib.checkCollisions
-function spritelib:checkCollisions(x, y)
-
-	if y == nil then
-		x, y = x.x, x.y
-	end
-
-	local actualX, actualY, cols, l = _checkCollisions(self, x, y)
-	return actualX, actualY, cols, l
 end
 
 
@@ -164,7 +134,7 @@ function spritelib.setBackgroundDrawingCallback(drawCallback)
 			drawCallback(x, y, w, h)
 		end
 	bgsprite:add()
-	return s
+	return bgsprite
 end
 
 function spritelib.redrawBackground()
@@ -216,4 +186,16 @@ end
 function spritelib:removeAnimator()
 	self._animator = nil
 	self.update = self._update
+end
+
+
+-- playdate.graphics.sprite.spriteWithText(text, maxWidth, [maxHeight, [bgColor, [leadingAdjustment, [truncationString, [alignment, [font]]]]]])
+-- returns sprite, textWasTruncated
+function spritelib.spriteWithText(str, maxWidth, maxHeight, bgColor, lineHeightAdjustment, truncator, textAlignment, singleFont)
+	local textImage, truncated = gfx.imageWithText(str, maxWidth, maxHeight, bgColor, lineHeightAdjustment, truncator, textAlignment, singleFont)
+	if textImage == nil then
+		return nil, false
+	end
+	local sprite = spritelib.new(textImage)
+	return sprite, truncated
 end

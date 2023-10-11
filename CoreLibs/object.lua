@@ -59,7 +59,7 @@ function __NewClass.extends(Parent)
 	Child.__lt 			= Parent.__lt
 	Child.__le 			= Parent.__le
 	
-	mt = {
+	local mt = {
 		__index = Parent,
 		__call = function(self, ...)
 			local instance = Child.baseObject()

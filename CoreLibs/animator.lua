@@ -13,7 +13,7 @@ local function newNumberOrPointAnimation(duration, startValue, endValue, easingF
 	local startTimeOffset = startTimeOffset or 0
 	local easingFunction = easingFunction or playdate.easingFunctions.linear
 
-	local st = playdate.getCurrentTimeMilliseconds() + startTimeOffset
+	local st = playdate.getCurrentTimeMilliseconds()
 
 	local a = {
 		startTime = st,
@@ -54,7 +54,7 @@ local function newPartsAnimationWithDurations(durations, parts, easingFunctions,
 	local startTimeOffset = startTimeOffset or 0
 	local easingFunction = easingFunction or playdate.easingFunctions.linear
 	
-	local st = playdate.getCurrentTimeMilliseconds() + startTimeOffset
+	local st = playdate.getCurrentTimeMilliseconds()
 	
 	local a = {
 		startTime = st,
@@ -108,7 +108,7 @@ local function newPartsAnimation(duration, parts, easingFunction, startTimeOffse
 	local startTimeOffset = startTimeOffset or 0
 	local easingFunction = easingFunction or playdate.easingFunctions.linear
 	
-	local st = playdate.getCurrentTimeMilliseconds() + startTimeOffset
+	local st = playdate.getCurrentTimeMilliseconds()
 	
 	local a = {
 		startTime = st,
@@ -195,30 +195,60 @@ function playdate.graphics.animator.new(a, b, c, d, e)
 	end
 end
 
+function playdate.graphics.animator:reset(duration)
+	if duration ~= nil then self.duration = duration end
+	self.startTime = playdate.getCurrentTimeMilliseconds()
+	self.didend = false
+	self.lastTime = self.startTime
+	self.endTime = self.startTime + self.duration
+end
 
-function playdate.graphics.animator:currentValue()
+local function checkTime(self, t)
+	t -= self.startTimeOffset
 	
-	self.lastTime = playdate.getCurrentTimeMilliseconds()
+	if t < 0 then return 0 end
+
+	local len = self.reverses and 2 * self.duration or self.duration
 	
-	while ( self.repeatCount ~= 0 ) and ( self.lastTime - self.startTime > self.duration ) do
-		self.startTime += (self.duration + self.startTimeOffset)
-		if self.repeatCount > 0 then
-			self.repeatCount -= 1
-		end
+	if len <= 0 then
+		self.didend = true
+		return 1
 	end
 	
+	local reps = t // len
+	t %= len
+
 	-- for numbers and points the start and end values are not nil, but they are for the others (because the start value is implied by the geometry)
-	if self.repeatCount == 0 and self.endValue ~= nil and self.lastTime >= self.endTime then
-		return self.endValue
-	end
 	
+	if not self.repeats and self.repeatCount >= 0 and reps > self.repeatCount then
+		self.didend = true
+		return (self.reverses and self.repeatCount % 2 == 1) and 0 or self.duration
+	end
+
+	return t
+end
+
+function playdate.graphics.animator:valueAtTime(intime)
+	
+	time = checkTime(self, intime)
+	
+	if time > self.duration then -- reverse
+		time = 2 * self.duration - time
+	end
+
 	if self.startValue ~= nil then
-		local elapsedTime <const> = min(max(0, self.lastTime - self.startTime), self.duration)
+		
+		if self.didend then
+			return self.reverses and self.startValue or self.endValue
+		elseif time < 0 then
+			return self.startValue
+		end
+
 		if type(self.startValue) == "number" then
-			return self.easingFunction(elapsedTime, self.startValue, self.change, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
+			return self.easingFunction(time, self.startValue, self.change, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
 		else
-			local x <const> = self.easingFunction(elapsedTime, self.startValue.x, self.change.x, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
-			local y <const> = self.easingFunction(elapsedTime, self.startValue.y, self.change.y, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
+			local x <const> = self.easingFunction(time, self.startValue.x, self.change.x, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
+			local y <const> = self.easingFunction(time, self.startValue.y, self.change.y, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
 			return geo.point.new(x, y)
 		end
 		
@@ -227,86 +257,97 @@ function playdate.graphics.animator:currentValue()
 		
 			-- just one duration for this animation
 		
-			if #self.animationParts > 0 and self.totalLength > 0 then
-				local d = self.easingFunction(self.lastTime - self.startTime, 0, self.totalLength, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
+			if #self.animationParts > 0 then
+			
+				local part, dist
 				
-				-- figure out which part we're currently on
-				local i = 1
-				while self.lengths[i] ~= nil and d > self.lengths[i] and #self.lengths >= i do				
-					i += 1
-				end
+				if self.totalLength > 0 and not self.didend then
+					-- figure out which part we're currently on
+					local d = self.easingFunction(time, 0, self.totalLength, self.duration, self.s or self.easingAmplitude, self.easingPeriod)
+					
+					local i = 1
+					while self.lengths[i] ~= nil and d > self.lengths[i] and #self.lengths >= i and i < #self.animationParts do				
+						i += 1
+					end
+
+					part = self.animationParts[i]
+					dist = d - (self.lengths[i-1] or 0)
 				
-				part = self.animationParts[i]
-				dist = d - (self.lengths[i-1] or 0)
-				
-				-- if at the end of the parts list, use the final part and the end distance
-				if part == nil then
+				elseif self.reverses then
+					part = self.animationParts[1]
+					dist = 0
+				else
 					part = self.animationParts[#self.animationParts]
-					dist = self.lengths[#self.lengths]
+					dist = self.lengths[#self.lengths] - (self.lengths[#self.lengths-1] or 0)
 				end
-				
+
 				if getmetatable(part) == geo.lineSegment then
-					return part:pointOnLine(dist)
+					return part:pointOnLine(dist, true)
 				
 				elseif getmetatable(part) == geo.arc then
-					return part:pointOnArc(dist)
+					return part:pointOnArc(dist, true)
 					
 				elseif getmetatable(part) == geo.polygon then
-					return part:pointOnPolygon(dist)				
+					return part:pointOnPolygon(dist, true)
 				end
 				
 			end
 		else
-			-- durations for each part
-			
-			local time = self.lastTime - self.startTime
-			
-			-- figure out which part we're on
 			local i = 1
-			while self.durationTotals[i] ~= nil and time > self.durationTotals[i] and #self.durationTotals >= i do				
-				i += 1
-			end
-			
-			if i > #self.animationParts then
-				i = #self.animationParts
+
+			if self.didend then
+				i = self.reverses and 1 or #self.animationParts
+				time = self.reverses and 0 or self.durations[i]
+			else
+				-- figure out which part we're on
+				while time > self.durations[i] do
+					time -= self.durations[i]
+					i += 1
+				end
 			end
 			
 			local part = self.animationParts[i]
-			
 			local easingFunction = self.easingFunctions[i]
-			local elapsedTime = self.lastTime - self.startTime - (self.durationTotals[i-1] or 0)
 			
-			local dist = easingFunction(elapsedTime, 0, part:length(), self.durations[i], self.s or self.easingAmplitude, self.easingPeriod)
+			local dist = easingFunction(time, 0, part:length(), self.durations[i], self.s or self.easingAmplitude, self.easingPeriod)
 			
 			if getmetatable(part) == geo.lineSegment then
-				return part:pointOnLine(dist)
+				return part:pointOnLine(dist, true)
 			
 			elseif getmetatable(part) == geo.arc then
-				return part:pointOnArc(dist)
+				return part:pointOnArc(dist, true)
 				
 			elseif getmetatable(part) == geo.polygon then
-				return part:pointOnPolygon(dist)				
+				return part:pointOnPolygon(dist, true)				
 			end
 			
 		end
 	end
 end
 
+function playdate.graphics.animator:currentValue()
+	return self:valueAtTime(playdate.getCurrentTimeMilliseconds() - self.startTime)
+end
+
+function playdate.graphics.animator:progress()
+	if self.repeats or self.repeatCount < 0 then return nil end
+
+	local len = self.reverses and 2 * self.duration or self.duration
+	len *= 1 + self.repeatCount
+	
+	if len <= 0 then return 1 end
+	
+	local p = (playdate.getCurrentTimeMilliseconds() - self.startTime) / len
+	return p < 0 and 0 or p > 1 and 1 or p
+end
 
 function playdate.graphics.animator:ended()
+
+	if self.didend then return true end
 	
 	-- only returns true if either this function or currentValue() has been called since the animation ended
 	-- this is to allow animations to fully finish before true is returned, which often triggers cleanup code
-	
-	if self.repeatCount ~= 0 then
-		return false
-	end
-	
-	if self.lastTime >= self.endTime then
-		return true
-	end
-		
-	self.lastTime = playdate.getCurrentTimeMilliseconds()
+	checkTime(self, playdate.getCurrentTimeMilliseconds() - self.startTime)
 	return false
 	
 end

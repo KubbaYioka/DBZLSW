@@ -6,6 +6,10 @@ playdate.ui = playdate.ui or {}
 playdate.ui.gridview = {}
 playdate.ui.gridview.__index = playdate.ui.gridview
 
+-- used to avoid having timer callback closures retain gridView instances, so that the grid view's __gc metamethod gets called
+local gridViewForTimer = {}
+setmetatable(gridViewForTimer, {__mode = "v"})
+
 local gfx = playdate.graphics
 local easingFunctions = playdate.easingFunctions
 
@@ -58,6 +62,11 @@ playdate.ui.gridview.__newindex = function(table, key, value)
 	end
 end
 
+
+playdate.ui.gridview.__gc = function(self)
+	self.timerX:remove()
+	self.timerY:remove()
+end
 
 
 function playdate.ui.gridview.new(cellWidth, cellHeight)
@@ -116,28 +125,34 @@ function playdate.ui.gridview.new(cellWidth, cellHeight)
 	timerX.discardOnCompletion = false
 	timerX.easingFunction = easingFunctions.outCubic
 	timerX:pause()
+	gridViewForTimer[timerX] = o
 	timerX.updateCallback = function(timer)
-			o.scrollPositionX = timer.value
-			o.needsDisplay = true
+			local gridView = gridViewForTimer[timer]
+			gridView.scrollPositionX = timer.value
+			gridView.needsDisplay = true
 		end
 	timerX.timerEndedCallback = function(timer)
-			o.scrollPositionX = timer.endValue
-			o._isScrolling = false
-			o.needsDisplay = true
+			local gridView = gridViewForTimer[timer]
+			gridView.scrollPositionX = timer.endValue
+			gridView._isScrolling = false
+			gridView.needsDisplay = true
 		end
 		
 	local timerY = playdate.timer.new(250)
 	timerY.discardOnCompletion = false
 	timerY.easingFunction = easingFunctions.outCubic
 	timerY:pause()
+	gridViewForTimer[timerY] = o
 	timerY.updateCallback = function(timer)
-			o.scrollPositionY = timer.value
-			o.needsDisplay = true
+			local gridView = gridViewForTimer[timer]
+			gridView.scrollPositionY = timer.value
+			gridView.needsDisplay = true
 		end
 	timerY.timerEndedCallback = function(timer)
-			o.scrollPositionY = timer.endValue
-			o._isScrolling = false
-			o.needsDisplay = true
+			local gridView = gridViewForTimer[timer]
+			gridView.scrollPositionY = timer.endValue
+			gridView._isScrolling = false
+			gridView.needsDisplay = true
 		end
 		
 	o.timerX = timerX
@@ -367,11 +382,11 @@ local function calculateContentSizeAndClampScrollPosition(self, drawingWidth, dr
 		self.contentHeight = self.contentInsetTop + self.contentInsetBottom + (self.numSections * (self.sectionHeaderHeight + self.sectionHeaderPaddingTop + self.sectionHeaderPaddingBottom)) + (totalRows * (self.cellHeight + self.cellPaddingTop + self.cellPaddingBottom)) + dividerSpace
 
 	else
-		self.contentWidth = self.contentInsetTop + self.contentInsetBottom
+		self.contentHeight = self.contentInsetTop + self.contentInsetBottom
 	end
 	
 	-- make sure we're not scrolled beyond what we're allowed to be scrolled to
-	-- since gridview doesn't have an intrisic size, this is really the only place this can be done
+	-- since gridview doesn't have an intrinsic size, this is really the only place this can be done
 	if self.scrollPositionX < 0 then
 		self.scrollPositionX = 0
 	elseif self.scrollPositionX  > self.contentWidth - drawingWidth then
@@ -777,8 +792,8 @@ end
 -- scrollToSelection is true by default
 function playdate.ui.gridview:selectNextRow(wrapSelection, scrollToSelection, animate)
 
-	local scroll = scrollToSelection or true
-	local animate = animate or true
+	if scrollToSelection == nil then scrollToSelection = true end
+	if animate == nil then animate = true end
 
 	local lastSection = self.numSections
 	local currentSection = self.selectedSection
@@ -802,7 +817,7 @@ function playdate.ui.gridview:selectNextRow(wrapSelection, scrollToSelection, an
 	self.selectedSection = nextSelectionSection
 	self.selectedRow = nextSelectionRow
 	
-	if scroll then
+	if scrollToSelection then
 		scrollToSelectedCell(self, animate)
 	end
 	
@@ -814,8 +829,8 @@ end
 
 function playdate.ui.gridview:selectPreviousRow(wrapSelection, scrollToSelection, animate)
 
-	local scroll = scrollToSelection or true
-	local animate = animate or true
+	if scrollToSelection == nil then scrollToSelection = true end
+	if animate == nil then animate = true end
 
 	local lastSection = self.numSections
 	local currentSection = self.selectedSection
@@ -839,7 +854,7 @@ function playdate.ui.gridview:selectPreviousRow(wrapSelection, scrollToSelection
 	self.selectedSection = nextSelectionSection
 	self.selectedRow = nextSelectionRow
 	
-	if scroll then
+	if scrollToSelection then
 		scrollToSelectedCell(self, animate)
 	end
 	
@@ -851,8 +866,8 @@ end
 
 function playdate.ui.gridview:selectNextColumn(wrapSelection, scrollToSelection, animate)
 
-	local scroll = scrollToSelection or true
-	local animate = animate or true
+	if scrollToSelection == nil then scrollToSelection = true end
+	if animate == nil then animate = true end
 	
 	local newColumn = self.selectedColumn + 1
 	
@@ -869,7 +884,7 @@ function playdate.ui.gridview:selectNextColumn(wrapSelection, scrollToSelection,
 	
 	self.selectedColumn = newColumn
 	
-	if scroll then
+	if scrollToSelection then
 		scrollToSelectedCell(self, animate)
 	end
 	
@@ -881,8 +896,8 @@ end
 
 function playdate.ui.gridview:selectPreviousColumn(wrapSelection, scrollToSelection, animate)
 
-	local scroll = scrollToSelection or true
-	local animate = animate or true
+	if scrollToSelection == nil then scrollToSelection = true end
+	if animate == nil then animate = true end
 	
 	local newColumn = self.selectedColumn - 1
 	
@@ -899,7 +914,7 @@ function playdate.ui.gridview:selectPreviousColumn(wrapSelection, scrollToSelect
 	
 	self.selectedColumn = newColumn
 	
-	if scroll then
+	if scrollToSelection then
 		scrollToSelectedCell(self, animate)
 	end
 	

@@ -228,29 +228,50 @@ local function _styleCharacterForNewline(line)
 	return ""
 end
 
+local function _addStyleToLine(style, line)
+	if #style == 0 then
+		return line
+	elseif line:sub(1,1) == style then
+		return line:sub(2,-1)
+	else
+		return style .. line
+	end
+end
 
 -- XXX: doesn't break Japanese characters correctly
 -- returns (requiredWidth, requiredHeight, textWasTruncated) - the smallest size up to `width` wide that the text will fit inside, and a boolean indicating if the text had to be truncated
 local function _layoutTextInRect(shouldDrawText, str, x, ...)
+
+	if str == nil then 
+		return 0, 0, false, nil 
+	end
 	
-	if str == nil then return 0, 0 end
-	
-	local y, width, height, lineHeightAdjustment, truncator, textAlignment, singleFont
+	-- returnStringInfo is used to return a table of line information for later drawing into an image
+	local y, width, height, lineHeightAdjustment, truncator, textAlignment, singleFont, returnStringInfo
 	if (type(x) == "userdata") then		-- check if x is a playdate.geometry.rect object
 		x, y, width, height = x.x, x.y, x.width, x.height
-		lineHeightAdjustment, truncator, textAlignment = select(1, ...)
+		lineHeightAdjustment, truncator, textAlignment, singleFont, returnStringInfo = select(1, ...)
 	else
-		y, width, height, lineHeightAdjustment, truncator, textAlignment, singleFont = select(1, ...)
+		y, width, height, lineHeightAdjustment, truncator, textAlignment, singleFont, returnStringInfo = select(1, ...)
+	end
+	
+	local stringInfo = nil
+	if returnStringInfo == true then
+		stringInfo = {}
+		stringInfo.textAlignment = textAlignment
+		stringInfo.singleFont = singleFont
 	end
 	
 	if width < 0 or height < 0 then
-		return 0, 0, false
+		return 0, 0, false, nil
 	end
 	
 	local font = nil
 	if singleFont == nil then 
 		font = g.getFont()
-		if font == nil then print('error: no font set!') return 0, 0, false end
+		if font == nil then print('error: no font set!') 
+			return 0, 0, false, nil 
+		end
 	end
 	
 	y = math.floor(y)
@@ -266,18 +287,21 @@ local function _layoutTextInRect(shouldDrawText, str, x, ...)
 
 	local lineHeight
 	local fontLeading
+	local fontHeight
 	if singleFont == nil then 
 		fontLeading = font:getLeading()
-		lineHeight = font:getHeight() + fontLeading
+		fontHeight = font:getHeight()
+		lineHeight = fontHeight + fontLeading
 	else
 		fontLeading = singleFont:getLeading()
-		lineHeight = singleFont:getHeight() + fontLeading
+		fontHeight = singleFont:getHeight()
+		lineHeight = fontHeight + fontLeading
 	end
-	local unmodifiedLineHeight = lineHeight
+	-- local unmodifiedLineHeight = lineHeight
 	
 	local maxLineWidth = 0
 	
-	if height < lineHeight then
+	if height < fontHeight then
 		return 0, 0, false	-- if the rect is shorter than the text, don't draw anything
 	else
 		lineHeight += lineHeightAdjustment
@@ -295,6 +319,14 @@ local function _layoutTextInRect(shouldDrawText, str, x, ...)
 		
 		if twidth > maxLineWidth then
 			maxLineWidth = twidth
+		end
+		
+		if stringInfo ~= nil then
+			stringInfo[#stringInfo+1] = {
+				text = t,
+				width = twidth,
+				y = y
+			}
 		end
 		
 		if shouldDrawText == false then
@@ -320,14 +352,14 @@ local function _layoutTextInRect(shouldDrawText, str, x, ...)
 		local truncatedWord = wordLine
 		local stylePrefix = _styleCharacterForNewline(truncatedWord)
 		
-		while lineWidth > width do							-- shorten word until truncator fits
+		while lineWidth > width and #truncatedWord > 1 do	-- shorten word until truncator fits
 			truncatedWord = truncatedWord:sub(1, -2)		-- remove last character, and try again
 			lineWidth = getLineWidth(truncatedWord)
 		end
 
 		drawAlignedText(truncatedWord, lineWidth)
 	
-		local remainingWord = stylePrefix .. wordLine:sub(#truncatedWord+1, -1)
+		local remainingWord = _addStyleToLine(stylePrefix, wordLine:sub(#truncatedWord+1, -1))
 		lineWidth = getLineWidth(remainingWord)
 		firstWord = true
 		return remainingWord
@@ -348,12 +380,15 @@ local function _layoutTextInRect(shouldDrawText, str, x, ...)
 		firstWord = true
 
 		drawAlignedText(currentLine, lineWidth)
+		
+		local textBlockHeight = y - top + fontHeight
+		return maxLineWidth, textBlockHeight, true, stringInfo
 	end
 	
 	
 	local function drawLineAndMoveToNext(firstWordOfNextLine)
 
-		firstWordOfNextLine = _styleCharacterForNewline(currentLine) .. firstWordOfNextLine
+		firstWordOfNextLine = _addStyleToLine(_styleCharacterForNewline(currentLine), firstWordOfNextLine)
 		
 		drawAlignedText(currentLine, lineWidth)
 		y += lineHeight
@@ -399,12 +434,17 @@ local function _layoutTextInRect(shouldDrawText, str, x, ...)
 						y += lineHeight
 					end
 				else
-					while getLineWidth(leadingWhiteSpace .. word) > width do
-						if y + unmodifiedLineHeight <= bottom then
-							word = drawTruncatedWord(leadingWhiteSpace .. word)
+					word = leadingWhiteSpace .. word
+					while getLineWidth(word) > width do
+						if y + fontHeight <= bottom then
+							if y + lineHeight + fontHeight <= bottom then
+								word = drawTruncatedWord(leadingWhiteSpace .. word)
+							else 	-- a line after this one will not fit
+								currentLine = word
+								return drawTruncatedLine() -- no room for another line
+							end
 							leadingWhiteSpace = ""
 						end
-						word = ""
 						y += lineHeight
 					end
 				end
@@ -414,24 +454,24 @@ local function _layoutTextInRect(shouldDrawText, str, x, ...)
 			if getLineWidth(currentLine .. leadingWhiteSpace .. trimWhitespace(word)) <= width then
 				currentLine = currentLine .. leadingWhiteSpace .. word
 			else 
-				if y + lineHeight + unmodifiedLineHeight <= bottom then
+				if y + lineHeight + fontHeight <= bottom then
 					currentLine = leadingWhiteSpace .. trimTrailingWhitespace(currentLine)	-- trim whitespace at the end of the line
 					lineWidth = getLineWidth(currentLine)
 					drawLineAndMoveToNext(leadingWhiteSpace .. word)
 				else
 					-- the next line is lower than the boundary, so we need to truncate and stop drawing
 					currentLine = leadingWhiteSpace ..currentLine .. word
-					if y + unmodifiedLineHeight <= bottom then
-						drawTruncatedLine()
+					if y + fontHeight <= bottom then
+						return drawTruncatedLine()
 					end
-					local textBlockHeight = y - top + unmodifiedLineHeight
-					return maxLineWidth, textBlockHeight, true
+					local textBlockHeight = y - top + fontHeight
+					return maxLineWidth, textBlockHeight, true, stringInfo
 				end
 			end
 			
 		end
 		
-		if (lines[i+1] == nil) or (y + lineHeight + unmodifiedLineHeight - fontLeading <= bottom) then
+		if (lines[i+1] == nil) or (y + lineHeight + fontHeight <= bottom) then
 			
 			if #currentLine > 0 then
 				while getLineWidth(currentLine) > width do
@@ -443,29 +483,68 @@ local function _layoutTextInRect(shouldDrawText, str, x, ...)
 			lineWidth = getLineWidth(currentLine)
 			drawLineAndMoveToNext('')
 		else
-			drawTruncatedLine()
-			local textBlockHeight = y - top + unmodifiedLineHeight
-			return maxLineWidth, textBlockHeight, true
+			return drawTruncatedLine()
 		end
 	end
 	
-	local textBlockHeight = y - top - lineHeight + unmodifiedLineHeight - fontLeading
-	return maxLineWidth, textBlockHeight, false
+	local textBlockHeight = y - top - lineHeight + fontHeight
+	return maxLineWidth, textBlockHeight, false, stringInfo
 end
 
 
 -- XXX: doesn't break Japanese characters correctly
--- playdate.graphics.drawTextInRect(str, x, y, width, height, [lineHeightAdjustment, [truncator, [textAlignment]]])
--- playdate.graphics.drawTextInRect(str, rect, [lineHeightAdjustment, [truncator, [textAlignment]]])
+-- playdate.graphics.drawTextInRect(str, x, y, width, height, [leadingAdjustment, [truncationString, [alignment, [font]]]]) 
+-- playdate.graphics.drawTextInRect(str, rect, [leadingAdjustment, [truncationString, [alignment, [font]]]]) 
 function playdate.graphics.drawTextInRect(str, x, ...)
 	return _layoutTextInRect(true, str, x, ...)
 end
 
-
-function playdate.graphics.getTextSizeForMaxWidth(str, width, lineHeightAdjustment, singleFont)
-	-- (shouldDrawText, str, x, y, width, height, lineHeightAdjustment, truncator, textAlignment, singleFont)
-	local w, h, _ = _layoutTextInRect(false, str, 0, 0, width, math.maxinteger, lineHeightAdjustment or 0, "", kTextAlignment.left, singleFont)
+-- playdate.graphics.getTextSizeForMaxWidth(str, maxWidth, [leadingAdjustment, [font]]])
+function playdate.graphics.getTextSizeForMaxWidth(str, maxWidth, lineHeightAdjustment, singleFont)
+	local w, h, _ = _layoutTextInRect(false, str, 0, 0, maxWidth, math.maxinteger, lineHeightAdjustment or 0, "", kTextAlignment.left, singleFont)
 	return w, h
+end
+
+-- playdate.graphics.imageWithText(text, maxWidth, [maxHeight, [bgColor, [leadingAdjustment, [truncationString, [alignment, [font]]]]]])
+-- returns image, textWasTruncated
+function playdate.graphics.imageWithText(str, maxWidth, maxHeight, bgColor, lineHeightAdjustment, truncator, textAlignment, singleFont)
+
+	if maxHeight == nil then maxHeight = math.maxinteger end
+	if bgColor == nil then bgColor = g.kColorClear end
+	
+	local w, h, truncated, textInfo = _layoutTextInRect(false, str, 0, 0, maxWidth, maxHeight, lineHeightAdjustment, truncator, textAlignment, singleFont, true)
+	
+	if textInfo == nil then
+		return nil, false
+	end
+	
+	local textAlignment = textInfo.textAlignment
+	local singleFont = textInfo.singleFont
+	local img = g.image.new(w, h, bgColor)
+	g.lockFocus(img)
+		
+	local function drawAlignedText(t, y, twidth)
+		local alignedX = 0
+		if textAlignment == kTextAlignment.right then
+			alignedX = w - twidth
+		elseif textAlignment == kTextAlignment.center then
+			alignedX = ((w - twidth) // 2)
+		end
+		if singleFont == nil then
+			g.drawText(t, alignedX, y)
+		else
+			singleFont:drawText(t, alignedX, y)
+		end
+	end
+	
+	local i, line
+	for i = 1, #textInfo do
+		line = textInfo[i]
+		drawAlignedText(line.text, line.y, line.width)
+	end
+	
+	g.unlockFocus()
+	return img, truncated
 end
 
 
@@ -479,7 +558,7 @@ function playdate.graphics.drawTextAligned(str, x, y, textAlignment, lineHeightA
 	local styleCharacterForNewline = ""
 
 	for line in str:gmatch("[^\r\n]*") do		-- split into hard-coded lines
-		line = styleCharacterForNewline .. line
+		line = _addStyleToLine(styleCharacterForNewline, line)
 		
 		local width = g.getTextSize(line)
 		
@@ -528,18 +607,27 @@ function playdate.graphics.drawLocalizedTextAligned(text, x, y, alignment, langu
 end
 
 
--- playdate.graphics.drawLocalizedTextInRect(str, x, y, width, height, [lineHeightAdjustment, [truncator, [textAlignment, [language]]]])
--- playdate.graphics.drawLocalizedTextInRect(str, rect, [lineHeightAdjustment, [truncator, [textAlignment, [language]]]])
+-- playdate.graphics.drawLocalizedTextInRect(str, x, y, width, height, [lineHeightAdjustment, [truncator, [textAlignment, [font, [language]]]]])
+-- playdate.graphics.drawLocalizedTextInRect(str, rect, [lineHeightAdjustment, [truncator, [textAlignment, [font, [language]]]]])
 function playdate.graphics.drawLocalizedTextInRect(text, x, ...)
 	
-	local language
+	local index
 	if (type(x) == "userdata") then		-- check if x is a playdate.geometry.rect object
-		language = select(4, ...)
+		index = 4
 	else
-		language = select(7, ...)
+		index = 7
+	end
+	
+	local font, language = select(index, ...)	
+	local args = table.pack(...)
+	
+	-- check to see if the language is in the "font" spot, as that's where the docs used to say to put it	
+	if language == nil and type(font) == 'number' or type(font) == 'string' then
+		language = font
+		font = nil
+		table.remove(args, index)
 	end
 	
 	local localizedText = g.getLocalizedText(text, language)
-	g.drawTextInRect(localizedText, x, ...)
-
+	g.drawTextInRect(localizedText, x, table.unpack(args))
 end

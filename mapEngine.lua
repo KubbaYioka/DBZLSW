@@ -16,7 +16,7 @@ function PlayerMSprite:init(image)
 
     -- Properties
     self:changeState("down",true)
-    self:moveTo(64, 64) -- will need to change
+    self:moveTo(100, 100) -- will need to change
     self:setZIndex(100)
     --self:setCollideRect()
     self:add()

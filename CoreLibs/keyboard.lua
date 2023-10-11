@@ -173,6 +173,8 @@ local keyboardUpdate = nil
 local scrollRepeatDelay = 0
 local scrollingVertically = false
 
+local keyRepeatDelay = 0
+
 -- Animation Variables
 local selectionYOffset = 0
 local selectionStartY
@@ -404,7 +406,8 @@ local function hideKeyboard(okPressed)
 	kb.hide()
 		
 	-- free up memory
-	columnSound = nil
+	columnNextSound = nil
+	columnPreviousSound = nil
 	rowSound = nil
 	bumpSound = nil
 	keySound = nil
@@ -468,9 +471,8 @@ local function handleMenuCommand()
 
 end
 
-
 local lastKeyEnteredTime = 0
-local minKeyRepeatMilliseconds <const> = 100
+local minKeyRepeatMilliseconds <const> = 100 -- this is used for debouncing, I believe we were getting double letter entry at one point in initial wifi password setup
 
 local function enterNewLetterIfNecessary()
 	
@@ -494,6 +496,19 @@ local function enterNewLetterIfNecessary()
 	if playdate.buttonJustPressed(playdate.kButtonA) and currentMillis > lastKeyEnteredTime + minKeyRepeatMilliseconds then
 		enterKey()
 		lastKeyEnteredTime = currentMillis
+		
+		local initialKeyRepeatSeconds = 0.3
+		keyRepeatDelay = floor(initialKeyRepeatSeconds * refreshRate)
+		
+	elseif playdate.buttonIsPressed(playdate.kButtonA) then
+		if keyRepeatDelay <= 0 then
+			enterKey()
+			local keyRepeatSeconds = 0.1 -- the following repeat delays should be shorter
+			keyRepeatDelay = floor(keyRepeatSeconds * refreshRate)
+		else
+			keyRepeatDelay -= 1
+		end
+
 	end
 end
 
@@ -789,8 +804,19 @@ local function checkButtonInputs()
 	elseif playdate.buttonJustPressed(playdate.kButtonB) then
 		playSound(kSoundKeyPress)
 		deleteAction()
-	end
+		local initialKeyRepeatSeconds = 0.3
+		keyRepeatDelay = floor(initialKeyRepeatSeconds * refreshRate)
 
+	elseif playdate.buttonIsPressed(playdate.kButtonB) then	
+		if keyRepeatDelay <= 0 then
+			playSound(kSoundKeyPress)
+			deleteAction()
+			local keyRepeatSeconds = 0.1
+			keyRepeatDelay = floor(keyRepeatSeconds * refreshRate)
+		else
+			keyRepeatDelay -= 1
+		end
+	end
 end
 
 --! update

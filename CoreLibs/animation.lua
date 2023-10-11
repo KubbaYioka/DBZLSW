@@ -1,6 +1,6 @@
 -- Playdate CoreLibs: Animation addons
 -- Copyright (C) 2014 Panic, Inc.
-
+import "CoreLibs/object.lua"
 
 playdate.graphics.animation = playdate.graphics.animation or {}
 
@@ -21,7 +21,7 @@ local function updateLoopAnimation(loop, force)
 
 	local startTime = loop.t
 	local elapsedTime = playdate.getCurrentTimeMilliseconds() - startTime
-	local frame = loop.startFrame + floor(elapsedTime / loop.delay) * loop.step
+	local frame = loop.startFrame + floor(elapsedTime / loop._delay) * loop._step
 
 	if loop.loop or frame <= loop.endFrame then
 		local startFrame = loop.startFrame
@@ -43,41 +43,46 @@ loopAnimation.__index = function(table, key)
 	if key == "frame" then
 		updateLoopAnimation(table)
 		return table.currentFrame
-
+	
+	elseif key == "delay" then
+		return table._delay
+		
 	elseif key == "paused" then
 		return table._paused
-
-	elseif key == "start" then
-		if nag1 == true then
-			print("playdate.graphics.animation.loop.start has been renamed to playdate.graphics.animation.loop.startFrame. `start` will still work now but is depricated and will be removed in the future.")
-			nag1 = false
-		end
-		return table.startFrame
-
-	elseif key == "end" then
-		if nag2 == true then
-			print("playdate.graphics.animation.loop.stop has been renamed to playdate.graphics.animation.loop.endFrame. `stop` will still work now but is depricated and will be removed in the future.")
-			nag2 = false
-		end
-		return table.endFrame
-
+		
+	elseif key == "step" then
+		return table._step
 	else
 		return rawget(loopAnimation, key)
 	end
 end
 
-
 loopAnimation.__newindex = function(table, key, value)
 
 	if key == "frame" then
 		local newFrame = math.floor(tonumber(value))
-		assert(newFrame ~= nil, "playdate.graphics.animation.loop.frame must be an number")
-		local newFrame = math.min(table.endFrame, math.max(table.startFrame, value))
+		assert(newFrame ~= nil, "playdate.graphics.animation.loop.frame must be a number")
+		local newFrame = math.min(table.endFrame, math.max(table.startFrame, newFrame))
 		local frameOffset = newFrame - table.startFrame
-		table.t = playdate.getCurrentTimeMilliseconds() - (frameOffset * table.delay)
+		table.t = playdate.getCurrentTimeMilliseconds() - (frameOffset * table._delay)
 		table.valid = true
 		updateLoopAnimation(table, true)
-
+		
+	elseif key == "delay" then
+		
+		local newDelay = tonumber(value)
+		assert(newDelay ~= nil, "playdate.graphics.animation.loop.delay must be a number")
+		
+		local loopTime = table.t
+		local currentTime = playdate.getCurrentTimeMilliseconds()
+		
+		-- calculate the time (.t) the animation needs to be set at to maintain the current frame
+		local fractionalFrame = table.startFrame + (((currentTime - loopTime) / table._delay) * table._step)		
+		local newLoopTime = currentTime - (((fractionalFrame - table.startFrame) / table._step) * newDelay)
+		
+		table.t = newLoopTime
+		table._delay = newDelay
+		
 	elseif key == "paused" then
 
 		assert(value == true or value == false, "playdate.graphics.animation.loop.paused can only be set to true or false")
@@ -105,30 +110,17 @@ loopAnimation.__newindex = function(table, key, value)
 		if value == false then
 			-- adjust the start time of the loop so that it's what it would have been if the loop started at the beginning of this cycle
 			local currentTime = playdate.getCurrentTimeMilliseconds()
-			local oneLoopDuration = table.delay * (table.endFrame - table.startFrame + 1)
+			local oneLoopDuration = table._delay * (table.endFrame - table.startFrame + 1)
 			table.t += (floor((currentTime - table.t) / oneLoopDuration) * oneLoopDuration)			
 		end
 		
 		table.loop = value
+		
+	elseif key == "step" then
+		assert(value ~= nil and value > 0, "playdate.graphics.animation.loop.step must be a positive integer")
+		local newStep = math.floor(tonumber(value))
+		table._step = newStep
 
-	elseif key == "start" then
-		table.startFrame = value
-		if nag1 == true then
-			print("playdate.graphics.animation.loop.start has been renamed to playdate.graphics.animation.loop.startFrame. `start` will still work now but is depricated and will be removed in the future.")
-			nag1 = false
-		end
-
-	elseif key == "stop" then
-		table.endFrame = value
-		if nag2 == true then
-			print("playdate.graphics.animation.loop.stop has been renamed to playdate.graphics.animation.loop.endFrame. `stop` will still work now but is depricated and will be removed in the future.")
-			nag2 = false
-		end
-	elseif key == "remove" then
-		if nag3 == true then
-		print("playdate.graphics.animation.loop.stop has been removed. Instead, simply don't call playdate.graphics.animation.loop:draw(x, y).")
-			nag3 = false
-		end
 	else
 		rawset(table, key, value)
 	end
@@ -137,15 +129,15 @@ end
 
 function loopAnimation.new(delay, imageTable, shouldLoop)
 
-	assert(delay~=loopAnimation, 'Please use loop.new() instead of loop:new()')
+	assert(delay~=loopAnimation, 'Please use playdate.graphics.animation.loop.new() instead of playdate.graphics.animation.loop:new()')
 
 	local o = {}
 
-	o.delay = delay or 100
+	o._delay = delay or 100
 	o.startFrame = 1
 	o.currentFrame = 1
 	o.endFrame = 1
-	o.step = 1
+	o._step = 1
 	o.loop = shouldLoop ~= false
 	o._paused = false
 	o.valid = true
@@ -198,37 +190,78 @@ end
 playdate.graphics.animation.blinker = {}
 
 local blinker = playdate.graphics.animation.blinker
-blinker.__index = blinker
+
+blinker.__index = function(table, key)
+
+	if key == "default" then
+		return table._default
+	else
+		return rawget(blinker, key)
+	end
+end
+
+blinker.__newindex = function(table, key, value)
+	
+	if key == "default" then
+		assert(value ~= nil and type(value) == "boolean", "playdate.graphics.animation.blinker.default must be a boolean")
+		table._default = value
+		
+		if table.running == false then
+			table.on = table._default
+		end
+	else
+		rawset(table, key, value)
+	end
+end
 
 blinker.allBlinkers = {}
 blinker.needsRemoval = false
 
-function blinker.new(o)
+
+
+local function setBlinkerDefaults(b, o, ...)
+	
+	local onDuration, offDuration, loop, cycles, default
+	
+	if (type(o) == "table") then
+		onDuration = o.onDuration
+		offDuration = o.offDuration
+		loop = o.loop
+		cycles = o.cycles
+		default = o.default
+	else
+		onDuration = o
+		offDuration, loop, cycles, default = select(1, ...)
+	end
+	
+	b.cycles = (cycles or b.cycles) or 6
+	b.onDuration = (onDuration or b.onDuration) or 200
+	b.offDuration = (offDuration or b.offDuration) or 200
+	
+	if loop ~= nil then b.loop = loop end
+	if b.loop == nil then b.loop = false end
+	
+	if default ~= nil then b._default = default end
+	if b._default == nil then b._default = true end
+	
+end
+
+-- accepts a table with defaults for keys: cycles, onDuration, offDuration, default, loop
+-- or those values as optional keys: blinker.new([onDuration, [offDuration, [loop, [cycles, [default]]]]])
+
+function blinker.new(o, ...)
   assert(o~=blinker, 'Please use blinker.new() instead of blinker:new()')
 
-  o = o or {}
-  setmetatable(o, blinker)
-
-  o.t = 0
-
-  o.counter = 0
-  if o.cycles == nil then o.cycles = 6 end
-
-  if o.onDuration == nil then o.onDuration = 200 end
-  if o.offDuration == nil then o.offDuration = 200 end
-
-  if o.default == nil then o.default = true end
-  o.on = o.default
-
-  if o.loop == nil then o.loop = false end
-
-  o.running = false
-
-  o.valid = true
-
-  table.insert(blinker.allBlinkers, o)
-
-  return o
+  local b = {}
+  setmetatable(b, blinker)
+  setBlinkerDefaults(b, o, ...)
+  b.t = 0
+  b.counter = 0
+  b.running = false
+  b.valid = true
+  b.on = b._default
+  table.insert(blinker.allBlinkers, b)
+  return b
 end
 
 local function removeInvalidBlinkers()
@@ -273,7 +306,7 @@ function blinker:update()
     self.counter = self.counter - 1
 
   elseif self.counter == 0 then
-    self.on = self.default
+    self.on = self._default
     self.t = 0
     self.running = false
 
@@ -284,20 +317,23 @@ function blinker:update()
 end
 
 function blinker:startLoop()
-  self.loop = true
-  self:start()
+  self:start(nil, nil, true)
 end
 
-function blinker:start()
+-- same arguments as .new()
+function blinker:start(o, ...)
+	
+  setBlinkerDefaults(self, o, ...)
+	
   self.counter = self.cycles
   self.t = playdate.getCurrentTimeMilliseconds()
   self.running = true
+  self.on = self.default
 end
 
 function blinker:stop()
   self.counter = 0
-  self.on = self.default
-  self.loop = false
+  self.on = self._default
   self.running = false
 end
 

@@ -45,12 +45,15 @@ function playdate.ui.crankIndicator:start()
 	end)
 end
 
+
 function playdate.ui.crankIndicator:update(xOffset)
 
 	assert( self.bubbleX, "Please call playdate.ui.crankIndicator:start() before calling :update()" )
 		
 	xOffset = xOffset or 0
 	
+	local offsetX, offsetY = gfx.getDrawOffset()
+	gfx.setDrawOffset(0, 0)
 	gfx.pushContext()
 	
 	gfx.setImageDrawMode( gfx.kDrawModeCopy )
@@ -82,5 +85,6 @@ function playdate.ui.crankIndicator:update(xOffset)
 	end
 	
 	gfx.popContext()
+	gfx.setDrawOffset(offsetX, offsetY)
 	
 end
