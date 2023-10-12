@@ -23,6 +23,8 @@ function PlayerMSprite:init(image)
 
 
 printTable(self.states)
+print(self.currentState)
+printTable(self.currentState)
 
     self:add()
 end
@@ -41,7 +43,7 @@ function PlayerMSprite:handleInput(button)
         elseif button == "down" then
             self:changeState("down")
         elseif button == "a" then
-            print(PlayerMSprite.currentState)
+            print(PlayerMSprite.states)
 
         end
     end
