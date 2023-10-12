@@ -40,19 +40,23 @@ end
 
         end
         if playdate.buttonJustPressed("a") then
+            PlayerMSprite:handleInput("a")
 
         end
 
         if playdate.buttonJustPressed("right") then
-
+            PlayerMSprite:handleInput("right")
         end
 
         if playdate.buttonJustPressed("up") then
-
+            PlayerMSprite:handleInput("up")
         end
 
         if playdate.buttonJustPressed("down") then
-
+            PlayerMSprite:handleInput("down")
+        end
+        if playdate.buttonJustPressed("left") then
+            PlayerMSprite:handleInput("left")
         end
     end
 
