@@ -43,7 +43,7 @@ function PlayerMSprite:handleInput(button)
         elseif button == "down" then
             self:changeState("down")
         elseif button == "a" then
-            print(PlayerMSprite.states)
+            print(self.states)
 
         end
     end
@@ -74,7 +74,7 @@ function mapInit(map)
     currentPlrImage = map.mapChr
     print(currentPlrImage)
 
-    PlayerMSprite(currentPlrImage)
+    pMapSprite = PlayerMSprite(currentPlrImage)
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
