@@ -34,34 +34,67 @@ pMapSprite = PlayerMSprite(config)]]
 
 function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
-        if button == "left" then
-            if pMapSprite.currentState == "left" then
-            end
-            pMapSprite:changeState("left")
+        if pMapSprite.isMovingX == false and pMapSprite.isMovingY == false then
+            if button == "left" then
+                if pMapSprite.currentState == "left" then
+                    pMapSprite.targetX = pMapSprite.x - GRID_SIZE
+                    self.isMovingX = true
+                end
+                pMapSprite:changeState("left")
 
-        elseif button == "right" then
-            if pMapSprite.currentState == "right" then
-            end
-            pMapSprite:changeState("right")
+            elseif button == "right" then
+                if pMapSprite.currentState == "right" then
+                    pMapSprite.targetX = pMapSprite.x + GRID_SIZE
+                    self.isMovingX = true
+                end
+                pMapSprite:changeState("right")
 
-        elseif button == "up" then
-            if pMapSprite.currentState == "up" then
-            end
-            pMapSprite:changeState("up")
+            elseif button == "up" then
+                if pMapSprite.currentState == "up" then
+                    pMapSprite.targetY = pMapSprite.y - GRID_SIZE
+                    self.isMovingY = true
+                end
+                pMapSprite:changeState("up")
 
-        elseif button == "down" then
-            if pMapSprite.currentState == "down" then
-                
+            elseif button == "down" then
+                if pMapSprite.currentState == "down" then
+                    pMapSprite.targetY = pMapSprite.y + GRID_SIZE
+                    self.isMovingY = true
+                end
+                pMapSprite:changeState("down")
+            elseif button == "a" then
+                --checkObject(pMapSprite.currentState) --checks the tile immediately in front of the player
             end
-            pMapSprite:changeState("down")
-        elseif button == "a" then
-            --checkObject(pMapSprite.currentState) --checks the tile immediately in front of the player
         end
     end
 end
 
 function PlayerMSprite:updatePosition()
+    if self.isMovingX then
+        if self.x < self.targetX then
+            local inc = self.x + 1
+            self:moveTo(inc)
+        elseif self.x > self.targetX then
+            local inc = self.x - 1
+            self:moveTo(inc)
+        end
+        if self.x == self.targetX then
+            self.isMovingX = false
+        end
+    end
 
+    if self.isMovingY then
+        if self.y < self.targetY then
+            local inc = self.y + 1
+            self:moveTo(inc)
+        elseif self.y > self.targetY then
+            local inc = self.y - 1
+            self:moveTo(inc)
+        end
+        if self.y == self.targetY then
+            self.isMovingY = false
+        end
+    end
 end
 
 local currentMapImage = nil
