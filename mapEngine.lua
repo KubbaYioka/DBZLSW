@@ -73,10 +73,12 @@ function PlayerMSprite:updatePosition()
     if self.isMovingX then
         if self.x < self.targetX then
             local inc = self.x + 1
-            self:moveTo(inc)
+            self:moveTo(inc, self.y)
+            self.x = inc
         elseif self.x > self.targetX then
             local inc = self.x - 1
-            self:moveTo(inc)
+            self:moveTo(inc, self.y)
+            self.x = inc
         end
         if self.x == self.targetX then
             self.isMovingX = false
@@ -86,16 +88,19 @@ function PlayerMSprite:updatePosition()
     if self.isMovingY then
         if self.y < self.targetY then
             local inc = self.y + 1
-            self:moveTo(inc)
+            self:moveTo(self.x, inc)
+            self.y = inc
         elseif self.y > self.targetY then
             local inc = self.y - 1
-            self:moveTo(inc)
+            self:moveTo(self.x, inc)
+            self.y = inc
         end
         if self.y == self.targetY then
             self.isMovingY = false
         end
     end
 end
+
 
 local currentMapImage = nil
 currentMap = nil
