@@ -19,8 +19,6 @@ function PlayerMSprite:init(image)
     self:changeState("down",true)
     self:setZIndex(100)
     --self:setCollideRect()
-    printTable(self)
-
     self:add()
 end
 
@@ -130,6 +128,7 @@ function mapInit(map)
     pMapSprite.targetX = map.chrX
     pMapSprite.targetY = map.chrY
     pMapSprite.hasContext = true
+    pMapSprite.isMoving = false
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
