@@ -279,7 +279,8 @@ function playdate.update()
         if pMapSprite then
             if pMapSprite.hasContext then
                 pMapSprite:updatePosition()
-                print(pMapSprite.isMoving)
+                print(pMapSprite.isMovingX)
+                print(pMapSprite.isMovingY)
             end
         end
     end

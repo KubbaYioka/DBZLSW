@@ -48,57 +48,64 @@ function PlayerMSprite:handleInput(button)
         elseif button == "a" then
             --checkObject() --checks the tile immediately in front of the player
         end
-        if not pMapSprite.isMoving then
+        if not self.isMovingX and not self.isMovingY then
 
             if button == "up" then
-                pMapSprite.targetY = pMapSprite.y - GRID_SIZE
+                self.targetY = self.y - GRID_SIZE
+                self.isMovingY = true
             elseif button == "down" then
-                pMapSprite.targetY = pMapSprite.y + GRID_SIZE
+                self.targetY = self.y + GRID_SIZE
+                self.isMovingY = true
             elseif button == "left" then
-                pMapSprite.targetX = pMapSprite.x - GRID_SIZE
+                self.targetX = self.x - GRID_SIZE
+                self.isMovingX = true
             elseif button == "right" then
-                pMapSprite.targetX = pMapSprite.x + GRID_SIZE
+                self.targetX = self.x + GRID_SIZE
+                self.isMovingX = true
             end
-            pMapSprite.isMoving = true
         end
     end
 end
 
 function PlayerMSprite:updatePosition()
     -- Grid-based movement logic
-    if pMapSprite.isMoving then
+    if self.isMovingX then
         local moveSpeed = 1  -- Adjust for desired movement speed
 
         -- Move in the X direction
-        if pMapSprite.x < pMapSprite.targetX then
-            pMapSprite.x = pMapSprite.x + moveSpeed
-            if pMapSprite.x > pMapSprite.targetX then
-                pMapSprite.x = pMapSprite.targetX
+        if self.x < self.targetX then
+            self.x = self.x + moveSpeed
+            if self.x > self.targetX then
+                self.x = self.targetX
             end
-        elseif pMapSprite.x > pMapSprite.targetX then
-            pMapSprite.x = pMapSprite.x - moveSpeed
-            if pMapSprite.x < pMapSprite.targetX then
-                pMapSprite.x = pMapSprite.targetX
+        elseif self.x > self.targetX then
+            self.x = self.x - moveSpeed
+            if self.x < self.targetX then
+                self.x = self.targetX
             end
         end
+    end
+    if self.isMovingY then
+        local moveSpeed = 1  -- Adjust for desired movement speed
 
         -- Move in the Y direction
-        if pMapSprite.y < pMapSprite.targetY then
-            pMapSprite.y = pMapSprite.y + moveSpeed
-            if pMapSprite.y > pMapSprite.targetY then
-                pMapSprite.y = pMapSprite.targetY
+        if self.y < self.targetY then
+            self.y = self.y + moveSpeed
+            if self.y > self.targetY then
+                self.y = self.targetY
             end
-        elseif pMapSprite.y > pMapSprite.targetY then
-            pMapSprite.y = pMapSprite.y - moveSpeed
-            if pMapSprite.y < pMapSprite.targetY then
-                pMapSprite.y = pMapSprite.targetY
+        elseif self.y > self.targetY then
+            self.y = self.y - moveSpeed
+            if self.y < self.targetY then
+                self.y = self.targetY
             end
         end
+    end
 
-        -- Check if sprite reached target position
-        if pMapSprite.x == pMapSprite.targetX and pMapSprite.y == pMapSprite.targetY then
-            pMapSprite.isMoving = false
-        end
+    -- Check if sprite reached target position
+    if self.x == self.targetX and self.y == self.targetY then
+        self.isMovingX = false
+        self.isMovingY = false
     end
 end
 
@@ -128,7 +135,8 @@ function mapInit(map)
     pMapSprite.targetX = map.chrX
     pMapSprite.targetY = map.chrY
     pMapSprite.hasContext = true
-    pMapSprite.isMoving = false
+    pMapSprite.isMovingX = false
+    pMapSprite.isMovingY = false
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
