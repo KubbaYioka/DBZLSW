@@ -271,8 +271,17 @@ function playdate.update()
 
     --UPDATE TIMERS
     playdate.timer.updateTimers()
-    
+
     --UPDATE SPRITES
     gfx.sprite.update()
+
+    if gameMode == GameMode.MAP then
+        if pMapSprite then
+            if pMapSprite.hasContext then
+                pMapSprite:updatePosition()
+                print(pMapSprite.y)
+            end
+        end
+    end
 
 end

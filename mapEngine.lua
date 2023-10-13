@@ -63,42 +63,45 @@ function PlayerMSprite:handleInput(button)
             end
             pMapSprite.isMoving = true
         end
-        if pMapSprite.isMoving then
-            local moveSpeed = GRID_SIZE -- This can be adjusted based on desired movement speed        
-            -- Move in the X direction
-            if pMapSprite.x < pMapSprite.targetX then
-                pMapSprite.x = pMapSprite.x + moveSpeed
-                if pMapSprite.x > pMapSprite.targetX then
-                    pMapSprite.x = pMapSprite.targetX
-                end
-            elseif pMapSprite.x > pMapSprite.targetX then
-                pMapSprite.x = pMapSprite.x - moveSpeed
-                if pMapSprite.x < pMapSprite.targetX then
-                    pMapSprite.x = pMapSprite.targetX
-                end
-            end
-            -- Move in the Y direction
-            if pMapSprite.y < pMapSprite.targetY then
-                pMapSprite.y = pMapSprite.y + moveSpeed
-                if pMapSprite.y > pMapSprite.targetY then
-                    pMapSprite.y = pMapSprite.targetY
-                end
-            elseif pMapSprite.y > pMapSprite.targetY then
-                pMapSprite.y = pMapSprite.y - moveSpeed
-                if pMapSprite.y < pMapSprite.targetY then
-                    pMapSprite.y = pMapSprite.targetY
-                end
-            end
-            -- Check if sprite reached target position
-            if pMapSprite.x == pMapSprite.targetX and pMapSprite.y == pMapSprite.targetY then
-                pMapSprite.isMoving = false
-            end
-        end
     end
 end
 
-function PlayerMSprite:update()
-    self:updateAnimation()
+function PlayerMSprite:updatePosition()
+    -- Grid-based movement logic
+    if pMapSprite.isMoving then
+        local moveSpeed = 1  -- Adjust for desired movement speed
+
+        -- Move in the X direction
+        if pMapSprite.x < pMapSprite.targetX then
+            pMapSprite.x = pMapSprite.x + moveSpeed
+            if pMapSprite.x > pMapSprite.targetX then
+                pMapSprite.x = pMapSprite.targetX
+            end
+        elseif pMapSprite.x > pMapSprite.targetX then
+            pMapSprite.x = pMapSprite.x - moveSpeed
+            if pMapSprite.x < pMapSprite.targetX then
+                pMapSprite.x = pMapSprite.targetX
+            end
+        end
+
+        -- Move in the Y direction
+        if pMapSprite.y < pMapSprite.targetY then
+            pMapSprite.y = pMapSprite.y + moveSpeed
+            if pMapSprite.y > pMapSprite.targetY then
+                pMapSprite.y = pMapSprite.targetY
+            end
+        elseif pMapSprite.y > pMapSprite.targetY then
+            pMapSprite.y = pMapSprite.y - moveSpeed
+            if pMapSprite.y < pMapSprite.targetY then
+                pMapSprite.y = pMapSprite.targetY
+            end
+        end
+
+        -- Check if sprite reached target position
+        if pMapSprite.x == pMapSprite.targetX and pMapSprite.y == pMapSprite.targetY then
+            pMapSprite.isMoving = false
+        end
+    end
 end
 
 local currentMapImage = nil
@@ -126,9 +129,12 @@ function mapInit(map)
     pMapSprite:moveTo(map.chrX,map.chrY)
     pMapSprite.targetX = map.chrX
     pMapSprite.targetY = map.chrY
+    pMapSprite.hasContext = true
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
     mapInit(mapNumber)
     --clear all menus, portraits, text, etc
 end
+
+--[[The movement speed is set to GRID_SIZE, which means the sprite will move the entire grid size in one frame. This will make the movement instantaneous, and you won't see the sprite transitioning smoothly from one grid cell to another. To achieve smooth movement, you should reduce the moveSpeed value. For example, setting it to 1 or 2 will make the sprite move 1 or 2 pixels per frame, respectively.]]
