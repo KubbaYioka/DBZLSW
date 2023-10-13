@@ -1,5 +1,6 @@
 local tlp = playdate.graphics.tilemap
 local gfx = playdate.graphics
+local GRID_SIZE = 16 -- size of all grid tiles. 
 
 class('PlayerMSprite').extends(AnimatedSprite)
 
@@ -16,35 +17,82 @@ function PlayerMSprite:init(image)
 
     -- Properties
     self:changeState("down",true)
-    self:moveTo(100, 100) -- will need to change
     self:setZIndex(100)
     --self:setCollideRect()
-
-
-
-printTable(self.states)
-print(self.currentState)
-printTable(self.currentState)
+    printTable(self)
 
     self:add()
 end
 
+--[[ Possible alternate way to load player sprite info for maps. local config would need to go in maps.lua
+local config = {
+    imagetable = currentPlrImage,
+    states = someStates,
+    animate = someAnimateValue,
+    startX = maps.mapNumberT.chrX,
+    startY = maps.mapNumberT.chrY
+}
+pMapSprite = PlayerMSprite(config)]]
+
 function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
         if button == "left" then
-            self:changeState("left")
+            pMapSprite:changeState("left")
 
         elseif button == "right" then
-            self:changeState("right")
+            pMapSprite:changeState("right")
 
         elseif button == "up" then
-            self:changeState("up")
+            pMapSprite:changeState("up")
 
         elseif button == "down" then
-            self:changeState("down")
+            pMapSprite:changeState("down")
         elseif button == "a" then
-            print(self.states)
+            --checkObject() --checks the tile immediately in front of the player
+        end
+        if not pMapSprite.isMoving then
 
+            if button == "up" then
+                pMapSprite.targetY = pMapSprite.y - GRID_SIZE
+            elseif button == "down" then
+                pMapSprite.targetY = pMapSprite.y + GRID_SIZE
+            elseif button == "left" then
+                pMapSprite.targetX = pMapSprite.x - GRID_SIZE
+            elseif button == "right" then
+                pMapSprite.targetX = pMapSprite.x + GRID_SIZE
+            end
+            pMapSprite.isMoving = true
+        end
+        if pMapSprite.isMoving then
+            local moveSpeed = GRID_SIZE -- This can be adjusted based on desired movement speed        
+            -- Move in the X direction
+            if pMapSprite.x < pMapSprite.targetX then
+                pMapSprite.x = pMapSprite.x + moveSpeed
+                if pMapSprite.x > pMapSprite.targetX then
+                    pMapSprite.x = pMapSprite.targetX
+                end
+            elseif pMapSprite.x > pMapSprite.targetX then
+                pMapSprite.x = pMapSprite.x - moveSpeed
+                if pMapSprite.x < pMapSprite.targetX then
+                    pMapSprite.x = pMapSprite.targetX
+                end
+            end
+            -- Move in the Y direction
+            if pMapSprite.y < pMapSprite.targetY then
+                pMapSprite.y = pMapSprite.y + moveSpeed
+                if pMapSprite.y > pMapSprite.targetY then
+                    pMapSprite.y = pMapSprite.targetY
+                end
+            elseif pMapSprite.y > pMapSprite.targetY then
+                pMapSprite.y = pMapSprite.y - moveSpeed
+                if pMapSprite.y < pMapSprite.targetY then
+                    pMapSprite.y = pMapSprite.targetY
+                end
+            end
+            -- Check if sprite reached target position
+            if pMapSprite.x == pMapSprite.targetX and pMapSprite.y == pMapSprite.targetY then
+                pMapSprite.isMoving = false
+            end
         end
     end
 end
@@ -75,6 +123,9 @@ function mapInit(map)
     print(currentPlrImage)
 
     pMapSprite = PlayerMSprite(currentPlrImage)
+    pMapSprite:moveTo(map.chrX,map.chrY)
+    pMapSprite.targetX = map.chrX
+    pMapSprite.targetY = map.chrY
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber

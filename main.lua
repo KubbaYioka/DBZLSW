@@ -77,7 +77,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     local menuY = 0 -- controls height of background box
     local xPos = 0
     local yPos = 0
-    
 
     if o.type == "menu" or o.type == "twoChoices" then
         --options in menu list and menu orientation dependent on name variable
@@ -272,11 +271,7 @@ function playdate.update()
 
     --UPDATE TIMERS
     playdate.timer.updateTimers()
-
-    if gameMode == GameMode.MAP then
-        PlayerMSprite:update()
-    end
-
+    
     --UPDATE SPRITES
     gfx.sprite.update()
 
