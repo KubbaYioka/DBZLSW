@@ -36,31 +36,23 @@ function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
         if pMapSprite.isMovingX == false and pMapSprite.isMovingY == false then
             if button == "left" then
-                if pMapSprite.currentState == "left" then
-                    pMapSprite.targetX = pMapSprite.x - GRID_SIZE
-                    self.isMovingX = true
-                end
+                pMapSprite.targetX = pMapSprite.x - GRID_SIZE
+                self.isMovingX = true
                 pMapSprite:changeState("left")
 
             elseif button == "right" then
-                if pMapSprite.currentState == "right" then
-                    pMapSprite.targetX = pMapSprite.x + GRID_SIZE
-                    self.isMovingX = true
-                end
+                pMapSprite.targetX = pMapSprite.x + GRID_SIZE
+                self.isMovingX = true
                 pMapSprite:changeState("right")
 
             elseif button == "up" then
-                if pMapSprite.currentState == "up" then
-                    pMapSprite.targetY = pMapSprite.y - GRID_SIZE
-                    self.isMovingY = true
-                end
+                pMapSprite.targetY = pMapSprite.y - GRID_SIZE
+                self.isMovingY = true
                 pMapSprite:changeState("up")
 
             elseif button == "down" then
-                if pMapSprite.currentState == "down" then
-                    pMapSprite.targetY = pMapSprite.y + GRID_SIZE
-                    self.isMovingY = true
-                end
+                pMapSprite.targetY = pMapSprite.y + GRID_SIZE
+                self.isMovingY = true
                 pMapSprite:changeState("down")
             elseif button == "a" then
                 --checkObject(pMapSprite.currentState) --checks the tile immediately in front of the player
@@ -128,6 +120,8 @@ function mapInit(map)
     pMapSprite:moveTo(map.chrX,map.chrY)
     pMapSprite.targetX = pMapSprite.x
     pMapSprite.targetY = pMapSprite.y
+    pMapSprite.isMovingX = false
+    pMapSprite.isMovingY = false
     pMapSprite.hasContext = true
     pMapSprite.facing = "down"
 

@@ -41,8 +41,6 @@ end
         end
         if playdate.buttonJustPressed("a") then
             pMapSprite:handleInput("a")
-            print(pMapSprite.targetX,pMapSprite.x)
-            print(pMapSprite.targetY,pMapSprite.y)
 
         end
 
