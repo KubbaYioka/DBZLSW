@@ -36,6 +36,8 @@ end
     end
 
     if gameMode == GameMode.MAP then
+        
+
         if playdate.buttonJustPressed("b") then
 
         end
@@ -43,20 +45,28 @@ end
             pMapSprite:handleInput("a")
 
         end
+        if playdate.buttonIsPressed("right") then
 
-        if playdate.buttonJustPressed("right") then
             pMapSprite:handleInput("right")
+
         end
 
-        if playdate.buttonJustPressed("up") then
+        if playdate.buttonIsPressed("up") then
+
             pMapSprite:handleInput("up")
+
         end
 
-        if playdate.buttonJustPressed("down") then
+        if playdate.buttonIsPressed("down") then
+
             pMapSprite:handleInput("down")
+
         end
-        if playdate.buttonJustPressed("left") then
+
+        if playdate.buttonIsPressed("left") then
+
             pMapSprite:handleInput("left")
+
         end
     end
 
@@ -69,12 +79,10 @@ end
         end
         if playdate.buttonJustPressed("b") then
         end
-
     end
 
     if playdate.buttonJustPressed("b") then
         --local fgd = playdate.graphics.sprite.getAllSprites()
         --printTable(fgd)
     end
-
 end
