@@ -278,7 +278,8 @@ function playdate.update()
     if gameMode == GameMode.MAP then
         if pMapSprite then
             if pMapSprite.hasContext then
-                pMapSprite:updatePosition()
+                PlayerMSprite:updatePosition()
+                --pMapSprite:updatePosition()
             end
         end
     end

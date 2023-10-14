@@ -126,9 +126,10 @@ function mapInit(map)
 
     pMapSprite = PlayerMSprite(currentPlrImage)
     pMapSprite:moveTo(map.chrX,map.chrY)
-
+    pMapSprite.targetX = pMapSprite.x
+    pMapSprite.targetY = pMapSprite.y
     pMapSprite.hasContext = true
-    pMapSprite.facing
+    pMapSprite.facing = "down"
 
 end
 
