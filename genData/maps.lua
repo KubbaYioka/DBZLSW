@@ -26,6 +26,9 @@ maps={
         12,17,1,2,1,1,1,1,1,1,1,3,4,3,13,15,
         10,11,12,25,25,42,12,24,25,11,12,25,15,17,15,13
         }
+    ,mTypeLayer = { -- table of values corresponding to the mLayout tiles. Establishes the type of tile (passthrough, impassable, etc) Tiles are defined elsewhere, but refer to this table.
+
+    }
     ,mObjectLayout = {
         --defines the location of certain kinds of objects
         --these objects are defined elsewhere in the program
