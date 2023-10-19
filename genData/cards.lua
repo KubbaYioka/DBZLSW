@@ -15,3 +15,4 @@ desig = {"number","desig","name","cc","type","stat","ability","allowedChrs"}
 allowedChrs= list of characters the card can be used by. chrAll for all characters
 --]]
 
+

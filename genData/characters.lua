@@ -2,7 +2,7 @@
 --Master list of initial values for all characters. Can be modified by save data or place in story.
 
 --[[
-desig = {"roster", "desig", "name", "hp", "str", "ki", "spd", "def", "spedef", "exp", "levelcap", "appearance", "trans1", "trans1lvl",  
+desig = {"roster", "desig", "name", "hp", "str", "ki", "spd", "def", "exp", "levelcap", "appearance", "trans1", "trans1lvl",  
     "trans2", "trans2lvl", "trans3", "trans3lvl", "trans4", "trans4lvl", "trans5", "trans5lvl", "trans6", "trans6lvl", "trans7", 
     "trans7lvl", "trans8", "trans8lvl"}
     
