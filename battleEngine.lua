@@ -1,3 +1,4 @@
+--[[
 --battleEngine
 
 
@@ -29,7 +30,6 @@ local positionalBonuses = {
     ["Air Aft"] -- DEF Bonus, Ki Penalty, Phys Defense
     ["Air Fore"] -- KI Bonus, Ki Penalty, Phys Defense
 }
-
 -- Functions
 local function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
     if phaseType == attack then
@@ -101,3 +101,4 @@ while true do
     -- Initialization, Turn Sequence, End Conditions
     -- This is a placeholder; the actual game loop would be more complex and involve user input, UI updates, etc.
 end
+]]--

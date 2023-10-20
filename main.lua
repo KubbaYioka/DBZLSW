@@ -17,7 +17,7 @@ import 'menuEngine'
 import 'gameModeEnum'
 
 --Battle Engine
-import 'battleEngine'
+import 'battleEngine' --commented out. Something is crashing the program.
 import '/data/battleData'
 
 --Story Engine

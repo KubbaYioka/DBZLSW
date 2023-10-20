@@ -34,6 +34,47 @@ pMapSprite = PlayerMSprite(config)]]
 
 function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
+        local nextX = self.x
+        local nextY = self.y
+
+        if button == "left" then
+            nextX = self.x - GRID_SIZE
+        elseif button == "right" then
+            nextX = self.x + GRID_SIZE
+        elseif button == "up" then
+            nextY = self.y - GRID_SIZE
+        elseif button == "down" then
+            nextY = self.y + GRID_SIZE
+        end
+
+        -- Convert the pixel coordinates to tile coordinates
+        local tileX = math.floor(nextX / GRID_SIZE) + 1
+        local tileY = math.floor(nextY / GRID_SIZE) + 1
+
+        -- Check if the destination tile is passable
+        local tileIndex = (tileY - 1) * maps.mapNumberT.mapWidth + tileX
+        if maps.mapNumberT.mTypeLayer[tileIndex] ~= 1 and self.isMovingX == false and self.isMovingY == false then
+            -- If the tile is passable, update the target coordinates
+            if button == "left" or button == "right" then
+                self.targetX = nextX
+                self.isMovingX = true
+            else
+                self.targetY = nextY
+                self.isMovingY = true
+            end
+            -- Update the sprite's facing direction and animation state
+            self:changeState(button)
+        elseif self.isMovingX == false and self.isMovingY == false then
+            -- Update the sprite's facing direction and animation state
+            self:changeState(button)
+        end
+    end
+end
+
+
+--[[
+function PlayerMSprite:handleInput(button)
+    if gameMode == GameMode.MAP then
         if pMapSprite.isMovingX == false and pMapSprite.isMovingY == false then
             if button == "left" then
                 pMapSprite.targetX = pMapSprite.x - GRID_SIZE
@@ -60,7 +101,7 @@ function PlayerMSprite:handleInput(button)
         end
     end
 end
-
+]]--
 function PlayerMSprite:updatePosition()
     if self.isMovingX then
         if self.x < self.targetX then
