@@ -16,7 +16,7 @@ EXP - Total Experience
 There are other stats that are calculated from the base stats:
 
 OFFENSE: STR + KI | Power Level
-EVASION: SPD + DEF | Chance to dodge and base strength of after-image (a technique that can be powered up to cause a miss)
+EVASION: sqrt(SPD + DEF) | Chance to dodge and base strength of after-image (a technique that can be powered up to cause a miss)
 MASS: STR + DEF | Resistance to knockback (which can cause additional damage)
 ACCURACY: Assists in the chance of a successful hit. Also has a combined effect with cards to cause a critical hit.
 
