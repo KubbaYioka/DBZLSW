@@ -51,7 +51,7 @@ maps={
         obj1 = {
             x = 10
             ,y = 12
-            ,sprite = "assets/images/mapSpr/testObj"
+            ,sprite = "assets/images/mapSpr/testObj-table-16-16"
             ,text = {
                 function() dTag("left", "Goku") end
                 ,"This is a test object."
@@ -61,7 +61,7 @@ maps={
         ,obj2 = {
             x = 6
             ,y = 8
-            ,sprite = "assets/images/mapSpr/testObj"
+            ,sprite = "assets/images/mapSpr/testObj-table-16-16"
             ,text = {
                 function() dTag("left", "Goku") end
                 ,"This is another test object."

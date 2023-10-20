@@ -25,15 +25,18 @@ end
 class('ObjectSprite').extends(AnimatedSprite)
 
 function createMapObj(table)
-    local objTileMap = setTilemap(table.sprite)
-
-    ObjectSprite:init(objTileMap)
+    
+    local obj = table.sprite
+    print("table.sprite "..obj)
+    ObjectSprite(obj)
 end
 function ObjectSprite:init(image)
     local oTable = gfx.imagetable.new(image)
     ObjectSprite.super.init(self,oTable)
+    printTable(oTable)
+
     -- define sprite states
-    local tileNum = tlp:getTiles(image)
+    local tileNum = gfx.imagetable:getLength(oTable)
     print("number of tiles: ")
     if tileNum == 1 then
         print("1")
@@ -122,7 +125,6 @@ function PlayerMSprite:updatePosition()
     end
 end
 
-
 local currentMapImage = nil
 currentMap = nil
 currentPlrSprite = nil
@@ -140,7 +142,7 @@ function mapInit(map)
     mapSprite:setZIndex(1)
     mapSprite:add()
     
-    -- begin creating nes player sprite
+    -- begin creating new player sprite
     currentPlrImage = map.mapChr
     pMapSprite = PlayerMSprite(currentPlrImage)
     pMapSprite:moveTo(map.chrX,map.chrY)
@@ -152,12 +154,8 @@ function mapInit(map)
     pMapSprite.facing = "down"
 
     for i,v in pairs(map.mObjLayout) do
-        printTable(v)
-        ObjectSprite:init(v)
-
-        ObjectSprite:movoTo(v.x,v.y)
+        createMapObj(v)
     end
-
 end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
