@@ -44,11 +44,31 @@ maps={
     1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
     }
-    ,mObjectLayout = {
+    ,mObjLayout = {
         --sampleObject(x,y,type,function,function2) where function is what the object does and function2 is the result of that action?
         --defines the location of certain kinds of objects
         --these objects are defined elsewhere in the program
+        obj1 = {
+            x = 10
+            ,y = 12
+            ,sprite = "assets/images/mapSpr/testObj"
+            ,text = {
+                function() dTag("left", "Goku") end
+                ,"This is a test object."
+                , function() dTag("clear") end
+            }
         }
+        ,obj2 = {
+            x = 6
+            ,y = 8
+            ,sprite = "assets/images/mapSpr/testObj"
+            ,text = {
+                function() dTag("left", "Goku") end
+                ,"This is another test object."
+                , function() dTag("clear") end
+            }
+        }   
+    }
     ,mapChr = "assets/images/mapSpr/kidGoku-table-16-16"-- Selects the character that the player will be in the overworld.
     ,chrX = 64 --player sprite starting x pos
     ,chrY = 64 --player sprite starting y pos
