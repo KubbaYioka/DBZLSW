@@ -2,6 +2,8 @@ local tlp = playdate.graphics.tilemap
 local gfx = playdate.graphics
 local GRID_SIZE = 16 -- size of all grid tiles. 
 
+class('Wall')
+
 class('PlayerMSprite').extends(AnimatedSprite)
 
 function PlayerMSprite:init(image)
@@ -16,6 +18,8 @@ function PlayerMSprite:init(image)
     self:playAnimation()
 
     -- Properties
+    self:setCollideRect( 0, 0, self:getSize() )
+    self:collisionsEnabled()
     self:changeState("down",true)
     self:setZIndex(100)
     --self:setCollideRect()
@@ -53,7 +57,9 @@ function ObjectSprite:init(image)
     --Other Properties
     self:changeState("down",true)
     self:setZIndex(100)
-    self:setCollideRect(0,0,self:getSize())
+    self:isA(Wall)
+    self:setCollideRect( 0, 0, self:getSize() )
+    self:collisionsEnabled()
     self:add()
 end
 
