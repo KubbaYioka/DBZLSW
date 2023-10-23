@@ -28,7 +28,8 @@ function createMapObj(table)
     
     local obj = table.sprite
     print("table.sprite "..obj)
-    ObjectSprite(obj)
+    local tempObj = ObjectSprite(obj)
+    tempObj:moveTo(GRID_SIZE*table.x,GRID_SIZE*table.y)
 end
 function ObjectSprite:init(image)
     local oTable = gfx.imagetable.new(image)
@@ -36,10 +37,11 @@ function ObjectSprite:init(image)
     printTable(oTable)
 
     -- define sprite states
-    local tileNum = gfx.imagetable:getLength(oTable)
+    local tileNum = oTable:getLength()
     print("number of tiles: ")
     if tileNum == 1 then
         print("1")
+        self:addState("down",1)
     elseif tileNum == 2 then
         print("2")
     elseif tileNum == 3 then
@@ -47,8 +49,9 @@ function ObjectSprite:init(image)
     elseif tileNum == 4 then
         print("4")
     end
+    self:playAnimation()
     --Other Properties
-    --self:changeState("down",true)
+    self:changeState("down",true)
     self:setZIndex(100)
     self:setCollideRect(0,0,self:getSize())
     self:add()
