@@ -71,8 +71,8 @@ maps={
         }   
     }
     ,mapChr = "assets/images/mapSpr/kidGoku-table-16-16"-- Selects the character that the player will be in the overworld.
-    ,chrX = 40 --player sprite starting x pos
-    ,chrY = 57 --player sprite starting y pos
+    ,chrX = 64 --player sprite starting x pos
+    ,chrY = 64 --player sprite starting y pos
     },
     map01 = {}
 }

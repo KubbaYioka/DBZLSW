@@ -9,6 +9,7 @@ class('PlayerMSprite').extends(AnimatedSprite)
 function PlayerMSprite:init(image)
     local pTable = gfx.imagetable.new(image)
     PlayerMSprite.super.init(self, pTable)
+    self:setCenter(0, 0)
 
     -- Define sprite states
     self:addState("down",1,2,{tickStep = 12})
@@ -19,7 +20,7 @@ function PlayerMSprite:init(image)
 
     -- Properties
     local sX, sY = self:getSize()
-    self:setCollideRect( 0, 0, self:getSize() )
+    self:setCollideRect( 0, 0, self:getSize())
     self:collisionsEnabled()
     self:changeState("down",true)
     self:setZIndex(100)
@@ -32,27 +33,24 @@ class('ObjectSprite').extends(AnimatedSprite)
 function createMapObj(table)
     
     local obj = table.sprite
-    print("table.sprite "..obj)
     local tempObj = ObjectSprite(obj)
     tempObj:moveTo(GRID_SIZE*table.x,GRID_SIZE*table.y)
 end
 function ObjectSprite:init(image)
     local oTable = gfx.imagetable.new(image)
     ObjectSprite.super.init(self,oTable)
-    printTable(oTable)
+    self:setCenter(0, 0)
 
     -- define sprite states
     local tileNum = oTable:getLength()
-    print("number of tiles: ")
     if tileNum == 1 then
-        print("1")
         self:addState("down",1)
     elseif tileNum == 2 then
-        print("2")
+        self:addState("down",1)
     elseif tileNum == 3 then
-        print("3")
+        self:addState("down",1)
     elseif tileNum == 4 then
-        print("4")
+        self:addState("down",1)
     end
     self:playAnimation()
     --Other Properties
@@ -65,37 +63,69 @@ end
 
 function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
-        local nextX = self.x
-        local nextY = self.y
-        print(self.x..self.y)
 
-        if button == "left" then
-            self.targetX = self.x - GRID_SIZE
-            self.isMovingX = true
-        elseif button == "right" then
-            self.targetX = self.x + GRID_SIZE
-            self.isMovingX = true
-        elseif button == "up" then
-            self.targetY = self.y - GRID_SIZE
-            self.isMovingY = true
-        elseif button == "down" then
-            self.targetY = self.y + GRID_SIZE
-            self.isMovingY = true
-        end
-        self:changeState(button)
+
+        if self.isMovingY == false and self.isMovingX == false then
+            if button == "left" then
+                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x-GRID_SIZE, self.y, self:getSize())
+                foreBox:add()
+                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
+                print(length)
+                printTable(collisions)
+                self.querySpritesAtPoint(self.x+GRID_SIZE, self.y)
+                if length == 1 then
+                    self.targetX = self.x - GRID_SIZE
+                    self.isMovingX = true
+                end
+                foreBox:remove()
+            elseif button == "right" then
+                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x+GRID_SIZE, self.y, self:getSize())
+                foreBox:add()
+                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
+                print(length)
+                printTable(collisions)
+                if length == 1 then
+                    self.targetX = self.x + GRID_SIZE
+                    self.isMovingX = true
+                end
+                foreBox:remove()
+            elseif button == "up" then
+                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x, self.y-GRID_SIZE, self:getSize())
+                foreBox:add()
+                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
+                print(length)
+                printTable(collisions)
+                if length == 1 then
+                    self.targetY = self.y - GRID_SIZE
+                    self.isMovingY = true
+                end
+                foreBox:remove()
+            elseif button == "down" then
+                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x, self.y+GRID_SIZE, self:getSize())
+                foreBox:add()
+                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
+                print(length)
+                printTable(collisions)
+                if length == 1 then
+                    self.targetY = self.y + GRID_SIZE
+                    self.isMovingY = true
+                end
+                foreBox:remove()
+            end
+            self:changeState(button)
+        end       
 
         -- Check if the destination tile is passable
         local actualX, actualY, collisions, collisionsLen = self:moveWithCollisions(self.x,self.y)
-        if collisionsLen ~= 0 then
-            local pee = playdate.graphics.sprite.allOverlappingSprites()
-            print(pee)
-            printTable(pee)
+            if collisionsLen ~= 0 then
+            local spriCol = playdate.graphics.sprite.allOverlappingSprites()
         end
     end
 end
 
 function PlayerMSprite:updatePosition()
     if self.isMovingX then
+       -- print("Current X Posit : "..self.x)
         if self.x < self.targetX then
             local inc = self.x + 1
             self:moveTo(inc, self.y)
@@ -107,10 +137,13 @@ function PlayerMSprite:updatePosition()
         end
         if self.x == self.targetX then
             self.isMovingX = false
+            print("x = "..self.x)
+            print("y = "..self.y)
         end
     end
 
     if self.isMovingY then
+        --print("Current Y Posit : "..self.y)
         if self.y < self.targetY then
             local inc = self.y + 1
             self:moveTo(self.x, inc)
@@ -122,6 +155,8 @@ function PlayerMSprite:updatePosition()
         end
         if self.y == self.targetY then
             self.isMovingY = false
+            print("x = "..self.x)
+            print("y = "..self.y)
         end
     end
 end
