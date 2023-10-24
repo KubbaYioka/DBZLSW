@@ -67,50 +67,37 @@ function PlayerMSprite:handleInput(button)
 
         if self.isMovingY == false and self.isMovingX == false then
             if button == "left" then
-                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x-GRID_SIZE, self.y, self:getSize())
-                foreBox:add()
-                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
-                print(length)
-                printTable(collisions)
-                self.querySpritesAtPoint(self.x+GRID_SIZE, self.y)
-                if length == 1 then
-                    self.targetX = self.x - GRID_SIZE
-                    self.isMovingX = true
-                end
-                foreBox:remove()
+
+                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x-8,self.y+8)
+                printTable(teest)
+                
+                self.targetX = self.x - GRID_SIZE
+                self.isMovingX = true
+
             elseif button == "right" then
-                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x+GRID_SIZE, self.y, self:getSize())
-                foreBox:add()
-                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
-                print(length)
-                printTable(collisions)
-                if length == 1 then
-                    self.targetX = self.x + GRID_SIZE
-                    self.isMovingX = true
-                end
-                foreBox:remove()
+
+                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x+24,self.y+8)
+                printTable(teest)
+
+                self.targetX = self.x + GRID_SIZE
+                self.isMovingX = true
+
             elseif button == "up" then
-                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x, self.y-GRID_SIZE, self:getSize())
-                foreBox:add()
-                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
-                print(length)
-                printTable(collisions)
-                if length == 1 then
-                    self.targetY = self.y - GRID_SIZE
-                    self.isMovingY = true
-                end
-                foreBox:remove()
+
+                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x+8,self.y-8)
+                printTable(teest)
+
+                self.targetY = self.y - GRID_SIZE
+                self.isMovingY = true
+
             elseif button == "down" then
-                local foreBox = gfx.sprite.addEmptyCollisionSprite(self.x, self.y+GRID_SIZE, self:getSize())
-                foreBox:add()
-                local actualX, actualY, collisions, length = foreBox:moveWithCollisions(self.x+GRID_SIZE, self.y, foreBox:getSize())
-                print(length)
-                printTable(collisions)
-                if length == 1 then
-                    self.targetY = self.y + GRID_SIZE
-                    self.isMovingY = true
-                end
-                foreBox:remove()
+
+                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x+8,self.y+24)
+                printTable(teest)
+
+                self.targetY = self.y + GRID_SIZE
+                self.isMovingY = true
+
             end
             self:changeState(button)
         end       
@@ -137,8 +124,6 @@ function PlayerMSprite:updatePosition()
         end
         if self.x == self.targetX then
             self.isMovingX = false
-            print("x = "..self.x)
-            print("y = "..self.y)
         end
     end
 
@@ -155,8 +140,6 @@ function PlayerMSprite:updatePosition()
         end
         if self.y == self.targetY then
             self.isMovingY = false
-            print("x = "..self.x)
-            print("y = "..self.y)
         end
     end
 end
