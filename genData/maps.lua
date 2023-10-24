@@ -26,6 +26,7 @@ maps={
         12,17,1,2,1,1,1,1,1,1,1,3,4,3,13,15,
         10,11,12,25,25,42,12,24,25,11,12,25,15,17,15,13
         }
+    ,mEmptyIds = {1,2,3,4,18,19}
     ,mTypeLayer = { -- table of values corresponding to the mLayout tiles. Establishes the type of tile (passthrough, impassable, etc) Tiles are defined elsewhere, but refer to this table.
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -70,8 +71,8 @@ maps={
         }   
     }
     ,mapChr = "assets/images/mapSpr/kidGoku-table-16-16"-- Selects the character that the player will be in the overworld.
-    ,chrX = 64 --player sprite starting x pos
-    ,chrY = 64 --player sprite starting y pos
+    ,chrX = 40 --player sprite starting x pos
+    ,chrY = 57 --player sprite starting y pos
     },
     map01 = {}
 }

@@ -18,6 +18,7 @@ function PlayerMSprite:init(image)
     self:playAnimation()
 
     -- Properties
+    local sX, sY = self:getSize()
     self:setCollideRect( 0, 0, self:getSize() )
     self:collisionsEnabled()
     self:changeState("down",true)
@@ -57,7 +58,6 @@ function ObjectSprite:init(image)
     --Other Properties
     self:changeState("down",true)
     self:setZIndex(100)
-    self:isA(Wall)
     self:setCollideRect( 0, 0, self:getSize() )
     self:collisionsEnabled()
     self:add()
@@ -67,37 +67,29 @@ function PlayerMSprite:handleInput(button)
     if gameMode == GameMode.MAP then
         local nextX = self.x
         local nextY = self.y
+        print(self.x..self.y)
 
         if button == "left" then
-            nextX = self.x - GRID_SIZE
+            self.targetX = self.x - GRID_SIZE
+            self.isMovingX = true
         elseif button == "right" then
-            nextX = self.x + GRID_SIZE
+            self.targetX = self.x + GRID_SIZE
+            self.isMovingX = true
         elseif button == "up" then
-            nextY = self.y - GRID_SIZE
+            self.targetY = self.y - GRID_SIZE
+            self.isMovingY = true
         elseif button == "down" then
-            nextY = self.y + GRID_SIZE
+            self.targetY = self.y + GRID_SIZE
+            self.isMovingY = true
         end
-
-        -- Convert the pixel coordinates to tile coordinates
-        local tileX = math.floor(nextX / GRID_SIZE) + 1
-        local tileY = math.floor(nextY / GRID_SIZE) + 1
+        self:changeState(button)
 
         -- Check if the destination tile is passable
-        local tileIndex = (tileY - 1) * maps.mapNumberT.mapWidth + tileX
-        if maps.mapNumberT.mTypeLayer[tileIndex] ~= 1 and self.isMovingX == false and self.isMovingY == false then
-            -- If the tile is passable, update the target coordinates
-            if button == "left" or button == "right" then
-                self.targetX = nextX
-                self.isMovingX = true
-            else
-                self.targetY = nextY
-                self.isMovingY = true
-            end
-            -- Update the sprite's facing direction and animation state
-            self:changeState(button)
-        elseif self.isMovingX == false and self.isMovingY == false then
-            -- Update the sprite's facing direction and animation state
-            self:changeState(button)
+        local actualX, actualY, collisions, collisionsLen = self:moveWithCollisions(self.x,self.y)
+        if collisionsLen ~= 0 then
+            local pee = playdate.graphics.sprite.allOverlappingSprites()
+            print(pee)
+            printTable(pee)
         end
     end
 end
@@ -146,6 +138,7 @@ function mapInit(map)
     currentMap:setTiles(map.mLayout, map.mapWidth)
     local mapSprite = gfx.sprite.new()
     mapSprite:setTilemap(currentMap)
+    mapSprite.addWallSprites(currentMap,map.mEmptyIds)
     mapSprite:moveTo(0,0)
     mapSprite:setCenter(0,0)
     mapSprite:setZIndex(1)
