@@ -58,6 +58,7 @@ maps={
                 ,"This is a test object."
                 , function() dTag("clear") end
             }
+            ,tag = "object"
         }
         ,obj2 = {
             x = 6
@@ -68,6 +69,7 @@ maps={
                 ,"This is another test object."
                 , function() dTag("clear") end
             }
+            ,tag = "object"
         }   
     }
     ,mapChr = "assets/images/mapSpr/kidGoku-table-16-16"-- Selects the character that the player will be in the overworld.

@@ -67,37 +67,27 @@ function PlayerMSprite:handleInput(button)
 
         if self.isMovingY == false and self.isMovingX == false then
             if button == "left" then
-
-                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x-8,self.y+8)
-                printTable(teest)
-                
-                self.targetX = self.x - GRID_SIZE
-                self.isMovingX = true
-
+                if sprObjCheck("left",self.x,self.y) == 0 then
+                    self.targetX = self.x - GRID_SIZE
+                    self.isMovingX = true
+                end
             elseif button == "right" then
-
-                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x+24,self.y+8)
-                printTable(teest)
-
-                self.targetX = self.x + GRID_SIZE
-                self.isMovingX = true
-
+                if sprObjCheck("right",self.x,self.y) == 0 then
+                    self.targetX = self.x + GRID_SIZE
+                    self.isMovingX = true
+                end
             elseif button == "up" then
-
-                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x+8,self.y-8)
-                printTable(teest)
-
-                self.targetY = self.y - GRID_SIZE
-                self.isMovingY = true
-
+                if sprObjCheck("up",self.x,self.y) == 0 then
+                    self.targetY = self.y - GRID_SIZE
+                    self.isMovingY = true
+                end
             elseif button == "down" then
-
-                local teest = playdate.graphics.sprite.querySpritesAtPoint(self.x+8,self.y+24)
-                printTable(teest)
-
-                self.targetY = self.y + GRID_SIZE
-                self.isMovingY = true
-
+                if sprObjCheck("down",self.x,self.y) == 0 then
+                    self.targetY = self.y + GRID_SIZE
+                    self.isMovingY = true
+                end
+            elseif button == "a" then
+                
             end
             self:changeState(button)
         end       
@@ -109,6 +99,28 @@ function PlayerMSprite:handleInput(button)
         end
     end
 end
+
+function sprObjCheck(direction,xOrig,yOrig)
+    local xDir = 0
+    local yDir = 0
+    if direction == "down" then
+        xDir = xOrig+8
+        yDir = yOrig+24
+    elseif direction == "up" then
+        xDir = xOrig+8
+        yDir = yOrig-8
+    elseif direction == "right" then
+        xDir = xOrig+24
+        yDir = yOrig+8
+    elseif direction == "left" then
+        xDir = xOrig-8
+        yDir = yOrig+8
+    end
+    local query = playdate.graphics.sprite.querySpritesAtPoint(xDir,yDir)
+    local queryResult = #query
+    return queryResult
+end
+
 
 function PlayerMSprite:updatePosition()
     if self.isMovingX then

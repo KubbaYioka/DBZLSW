@@ -42,7 +42,7 @@ end
 
         end
         if playdate.buttonJustPressed("a") then
-            --pMapSprite:handleInput("a")
+            pMapSprite:handleInput("a")
 
         end
         if playdate.buttonIsPressed("right") then
