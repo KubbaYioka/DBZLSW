@@ -100,26 +100,57 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             end
         end
 
-    elseif o.type == "dialogue" then
+    elseif o.type == "dialogue" or o.type == "mapDialogue" then
         menuY = (80)
         menuX = (400)
         o:setNumberOfRows(rows or 1)
         o:setNumberOfColumns(columns or 1)
+        
         o.location = name
+
         o.key = 1
         o.cText = "none"
 
+
         function o:text()
-            for i,v in pairs(stories) do
-                if o.location == i then
-                    while type(v[o.key]) ~= "string" do -- do something else with other triggers that might be for graphics or changes in scenery\characters
-                        if type(v[o.key]) == "function" then
-                            v[o.key]()
+            local qryText = nil
+            if o.type == "mapDialogue" then
+                
+                for i,v in pairs(o.location) do
+                    
+                    if v then
+                        for j,w in pairs(v) do
+                            if j=="text" then
+                                qryText=w
+                                print(qryText)
+                            end
                         end
-                         o.key = o.key + 1
                     end
-                    o.cText = v[o.key]
-                    o.key = o.key + 1
+                end
+                local linCnt = #qryText
+                for i,v in pairs(qryText) do
+                    print(v)
+                    while type(v)~= "string" do
+                        if type(v) == "function" then
+                            v()
+                        end
+                        i = i+1
+                    end
+                    o.cText = v
+                end
+
+            elseif o.type == "dialogue" then
+                for i,v in pairs(stories) do
+                    if o.location == i then
+                        while type(v[o.key]) ~= "string" do -- do something else with other triggers that might be for graphics or changes in scenery\characters
+                            if type(v[o.key]) == "function" then
+                                v[o.key]()
+                            end
+                            o.key = o.key + 1
+                        end
+                        o.cText = v[o.key]
+                        o.key = o.key + 1
+                    end
                 end
             end
         end
@@ -142,12 +173,12 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             if o.type == "menu" or o.type == "twoChoices" then
                 if o.type == "menu" then
                     gridviewSprite:moveTo(xPos, yPos) -- same location as where the grid is drawn
-                    gridviewSprite:setZIndex(1)
+                    gridviewSprite:setZIndex(130)
                 elseif o.type == "twoChoices" then
                     gridviewSprite:moveTo(100, 100)
                 end
-            elseif o.type == "dialogue" then
-                gridviewSprite:setZIndex(2)
+            elseif o.type == "dialogue" or o.type == "mapDialogue" then
+                gridviewSprite:setZIndex(130)
                 gridviewSprite:moveTo(0,160)
                 gridview:setContentInset(5,20,0,0)
                 gridview:setCellSize(380, 50)
@@ -191,7 +222,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             elseif direction == "down" then
                 o:selectNextRow(true)
             end
-        elseif o.type == "dialogue" then -- Iterates through all line items in a story.
+        elseif o.type == "dialogue" or o.type == "mapDialogue" then -- Iterates through all line items in a story.
             if direction == "a" then
                 o:text()
                 o:selectNextRow(true)
@@ -238,6 +269,7 @@ end
 
 gameBoot = 0
 gameMode = GameMode.MENU 
+controlContext = GameMode.MENU
 
 function playdate.update()
 

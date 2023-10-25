@@ -68,6 +68,10 @@ maps={
                 function() dTag("left", "Goku") end
                 ,"This is another test object."
                 , function() dTag("clear") end
+                --,-- command to say that this is the end of this dialogue session, and that the next won't begin until a flag is triggered.
+                ,function() dTag("left", "Goku") end
+                ,"This is more text."
+                , function() dTag("clear") end
             }
             ,tag = "object"
         }   

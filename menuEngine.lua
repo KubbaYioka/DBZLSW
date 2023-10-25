@@ -28,15 +28,19 @@ end
 
 function gameModeChange(mode, location, index)
     if mode == GameMode.BATTLE then
+        controlContext = GameMode.BATTLE
         --display vs and transition
     elseif mode == GameMode.MENU then
+        controlContext = GameMode.MENU
         -- gridview etc etc
         -- load appropriate menu
     elseif mode == GameMode.MAP then
+        controlContext = GameMode.MAP
         clearAll()
         gfx.clear()
         goMap(location) -- loads map from appropriate dataset
     elseif mode == GameMode.STORY then
+        controlContext = GameMode.STORY
        -- gridview:new(name, rows, columns, options, index, mType)
         gridview:new(mode, location)
         -- load appropriate story

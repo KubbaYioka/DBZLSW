@@ -24,7 +24,6 @@ function PlayerMSprite:init(image)
     self:collisionsEnabled()
     self:changeState("down",true)
     self:setZIndex(100)
-    --self:setCollideRect()
     self:add()
 end
 
@@ -33,7 +32,12 @@ class('ObjectSprite').extends(AnimatedSprite)
 function createMapObj(table)
     
     local obj = table.sprite
+    
     local tempObj = ObjectSprite(obj)
+    tempObj.tag = table.tag
+    if table.text then
+        tempObj.text = table.text
+    end
     tempObj:moveTo(GRID_SIZE*table.x,GRID_SIZE*table.y)
 end
 function ObjectSprite:init(image)
@@ -53,6 +57,11 @@ function ObjectSprite:init(image)
         self:addState("down",1)
     end
     self:playAnimation()
+
+    function killObj(self)
+        gfx.sprite.removeSprite(self)
+    end
+
     --Other Properties
     self:changeState("down",true)
     self:setZIndex(100)
@@ -67,29 +76,33 @@ function PlayerMSprite:handleInput(button)
 
         if self.isMovingY == false and self.isMovingX == false then
             if button == "left" then
-                if sprObjCheck("left",self.x,self.y) == 0 then
+                if sprObjChk("left",self.x,self.y) == 0 then
                     self.targetX = self.x - GRID_SIZE
                     self.isMovingX = true
                 end
             elseif button == "right" then
-                if sprObjCheck("right",self.x,self.y) == 0 then
+                if sprObjChk("right",self.x,self.y) == 0 then
                     self.targetX = self.x + GRID_SIZE
                     self.isMovingX = true
                 end
             elseif button == "up" then
-                if sprObjCheck("up",self.x,self.y) == 0 then
+                if sprObjChk("up",self.x,self.y) == 0 then
                     self.targetY = self.y - GRID_SIZE
                     self.isMovingY = true
                 end
             elseif button == "down" then
-                if sprObjCheck("down",self.x,self.y) == 0 then
+                if sprObjChk("down",self.x,self.y) == 0 then
                     self.targetY = self.y + GRID_SIZE
                     self.isMovingY = true
                 end
             elseif button == "a" then
-                
+                local dirChk = self.currentState
+                sprObjChk(dirChk,self.x,self.y,true)
+
             end
-            self:changeState(button)
+            if button ~= "a" then
+                self:changeState(button)
+            end
         end       
 
         -- Check if the destination tile is passable
@@ -100,7 +113,7 @@ function PlayerMSprite:handleInput(button)
     end
 end
 
-function sprObjCheck(direction,xOrig,yOrig)
+function sprObjChk(direction,xOrig,yOrig,obj)
     local xDir = 0
     local yDir = 0
     if direction == "down" then
@@ -117,14 +130,35 @@ function sprObjCheck(direction,xOrig,yOrig)
         yDir = yOrig+8
     end
     local query = playdate.graphics.sprite.querySpritesAtPoint(xDir,yDir)
-    local queryResult = #query
-    return queryResult
+    if obj == true then
+        queryObject(xDir,yDir,query)
+    else
+        local queryResult = #query
+        return queryResult
+    end
 end
 
+function queryObject(xPos,yPos,qryObj)
+    local qryTag = nil
+    for i,v in ipairs(qryObj) do
+        if v then
+            for j,w in pairs(v) do
+                if j=="tag" then
+                    qryTag=w
+                    print("Tag is Object.")
+                end
+            end
+        end
+    end
+    if qryTag == "object" then
+        ctrlConSwi("story")
+        gridview:new("mapDialogue",qryObj)
+    end
+end
 
 function PlayerMSprite:updatePosition()
     if self.isMovingX then
-       -- print("Current X Posit : "..self.x)
+
         if self.x < self.targetX then
             local inc = self.x + 1
             self:moveTo(inc, self.y)
@@ -140,7 +174,7 @@ function PlayerMSprite:updatePosition()
     end
 
     if self.isMovingY then
-        --print("Current Y Posit : "..self.y)
+
         if self.y < self.targetY then
             local inc = self.y + 1
             self:moveTo(self.x, inc)

@@ -8,7 +8,7 @@ if playdate.buttonJustPressed("right") then
 end
 --]]
 
-    if gameMode == GameMode.MENU then
+    if controlContext == GameMode.MENU  then
         if playdate.buttonJustPressed("b") then
 
         end
@@ -31,13 +31,12 @@ end
         end
     end
 
-    if gameMode == GameMode.BATTLE then
+    if controlContext == GameMode.BATTLE then
 
     end
 
-    if gameMode == GameMode.MAP then
+    if controlContext == GameMode.MAP then
         
-
         if playdate.buttonJustPressed("b") then
 
         end
@@ -70,7 +69,7 @@ end
         end
     end
 
-    if gameMode == GameMode.STORY then
+    if controlContext == GameMode.STORY then
         if #menuIndex > 0 then
             if playdate.buttonJustPressed("a") then
                 local fs = menuIndex[#menuIndex]
@@ -80,9 +79,21 @@ end
         if playdate.buttonJustPressed("b") then
         end
     end
-
-    if playdate.buttonJustPressed("b") then
-        --local fgd = playdate.graphics.sprite.getAllSprites()
-        --printTable(fgd)
+end
+function ctrlConSwi(item)
+    if item ~= "off" then
+        if item == "menu" then
+            controlContest = GameMode.MENU
+        elseif item == "story" then
+            controlContext = GameMode.STORY
+        elseif item == "map" then
+            controlContext = GameMode.MAP
+        elseif item == "battle" then
+            controlContext = GameMode.BATTLE
+        else 
+            print("Error in controlContext function: ctrlConSwi")
+        end
+    elseif item == "off" then
+        controlContext = gameMode
     end
 end
