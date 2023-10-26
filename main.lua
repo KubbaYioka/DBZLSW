@@ -122,7 +122,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                         end
                     end
                 end
-                if #qryText >= o.key then
+                if #qryText > o.key then
 
                     while type(qryText[o.key]) ~= "string" do
                         print(o.key)
@@ -133,7 +133,8 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     end
                     o.cText = qryText[o.key]
                     o.key = o.key + 1
-                else 
+                elseif #qryText == o.key then
+                    qryText[o.key]()
                     o:spriteKill()
                     menuIndex = {}
                     ctrlConSwi("off")
@@ -181,7 +182,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
                 gridviewSprite:setZIndex(130)
                 gridviewSprite:moveTo(0,160)
-                o:setContentInset(5,20,0,0)
+                o:setContentInset(5,20,10,0)
                 o:setCellSize(380, 50)
             end
 
@@ -212,7 +213,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
         for i,v in pairs(menuText) do
             if rCount == i then
-                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.left)
+                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
     end
@@ -226,6 +227,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             end
         elseif o.type == "dialogue" or o.type == "mapDialogue" then -- Iterates through all line items in a story.
             if direction == "a" then
+                
                 o:text()
                 o:selectNextRow(true)
             end
