@@ -123,6 +123,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     end
                 end
                 if #qryText >= o.key then
+                    print("trigOne")
                     if type(qryText[o.key]) ~= "string" then
                         if type(qryText[o.key]) == "function" then
                             qryText[o.key]()
@@ -131,6 +132,11 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     end
                     o.cText = qryText[o.key]
                     o.key = o.key + 1
+                else
+                    o:spriteKill()
+                    menuIndex = {}
+                    clearMenus()
+                    return
                 end
             
             elseif o.type == "dialogue" then
@@ -172,12 +178,18 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     gridviewSprite:moveTo(100, 100)
                 end
             elseif o.type == "dialogue" or o.type == "mapDialogue" then
+
                 gridviewSprite:setZIndex(130)
                 gridviewSprite:moveTo(0,160)
-                gridview:setContentInset(5,20,0,0)
-                gridview:setCellSize(380, 50)
+                o:setContentInset(5,20,0,0)
+                o:setCellSize(380, 50)
             end
+
             gfx.pushContext(gridviewImage)
+            if o.type=="mapDialogue" then 
+                print("trigTwo")
+                print(gridviewImage)
+            end
             o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             gridviewSprite:setImage(gridviewImage)
@@ -284,9 +296,17 @@ function playdate.update()
         gameBoot = 1
     end
 
+    --UPDATE TIMERS
+    playdate.timer.updateTimers()
+
+    --UPDATE SPRITES
+    gfx.sprite.update()
+
     menuInputContext()
-    for i,v in pairs(menuIndex) do
-        v:menuUpdate()
+    if #menuIndex > 0 then
+        for i,v in pairs(menuIndex) do
+            v:menuUpdate()
+        end
     end
     for i,v in pairs(portIndex) do
         v:portUpdate()
@@ -295,11 +315,7 @@ function playdate.update()
         v:tagUpdate()
     end
 
-    --UPDATE TIMERS
-    playdate.timer.updateTimers()
 
-    --UPDATE SPRITES
-    gfx.sprite.update()
 
     if gameMode == GameMode.MAP then
         if pMapSprite then
