@@ -50,13 +50,14 @@ maps={
         --defines the location of certain kinds of objects
         --these objects are defined elsewhere in the program
         obj1 = {
-            x = 10
-            ,y = 12
+            x = 4
+            ,y = 5
             ,sprite = "assets/images/mapSpr/testObj-table-16-16"
             ,text = {
                 function() dTag("left", "Goku") end
                 ,"This is a test object."
                 , function() dTag("clear") end
+                , function() ctrlConSwi("off") end
             }
             ,tag = "object"
         }

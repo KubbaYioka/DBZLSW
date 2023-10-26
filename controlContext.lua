@@ -7,7 +7,6 @@ if playdate.buttonJustPressed("right") then
     printTable(SptCn)
 end
 --]]
-
     if controlContext == GameMode.MENU  then
         if playdate.buttonJustPressed("b") then
 
@@ -73,10 +72,12 @@ end
         if #menuIndex > 0 then
             if playdate.buttonJustPressed("a") then
                 local fs = menuIndex[#menuIndex]
+                
                 fs:menuControl("a")
             end
         end
         if playdate.buttonJustPressed("b") then
+            
         end
     end
 end

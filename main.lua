@@ -107,38 +107,32 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         o:setNumberOfColumns(columns or 1)
         
         o.location = name
-
         o.key = 1
         o.cText = "none"
-
 
         function o:text()
             local qryText = nil
             if o.type == "mapDialogue" then
-                
                 for i,v in pairs(o.location) do
-                    
                     if v then
                         for j,w in pairs(v) do
                             if j=="text" then
                                 qryText=w
-                                print(qryText)
                             end
                         end
                     end
                 end
-                local linCnt = #qryText
-                for i,v in pairs(qryText) do
-                    print(v)
-                    while type(v)~= "string" do
-                        if type(v) == "function" then
-                            v()
+                if #qryText >= o.key then
+                    if type(qryText[o.key]) ~= "string" then
+                        if type(qryText[o.key]) == "function" then
+                            qryText[o.key]()
                         end
-                        i = i+1
+                        o.key = o.key + 1
                     end
-                    o.cText = v
+                    o.cText = qryText[o.key]
+                    o.key = o.key + 1
                 end
-
+            
             elseif o.type == "dialogue" then
                 for i,v in pairs(stories) do
                     if o.location == i then

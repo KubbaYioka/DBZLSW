@@ -29,7 +29,7 @@ function nameTag:new(pos, name) -- create nametag at designated position
     function o:tagUpdate()
         if o.needsDisplay then
             local tagImage = gfx.image.new(sizeX,sizeY,gfx.kColorWhite)
-            tagSprite:setZIndex(4)
+            tagSprite:setZIndex(140)
             nameTag:setContentInset(0,0,0,0)
             nameTag:setCellSize(100, 25)
             if pos == "left" then
