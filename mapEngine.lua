@@ -230,4 +230,175 @@ function goMap(mapNumber) --command builds a map based on information from the t
 end
 
 --Object Functions
-
+--[[
+mapDiag = playdate.ui.gridview.new(0,20)
+function mapDiag:new(gType,name) -- creates grid object based on parameters passed to it
+    -- types can be: dialogue, twoChoices, menu
+        local o = o or {}
+        setmetatable(o,self)
+        self.__index=self
+        o.type = gType
+    
+        local menuX = 0 -- controls width of background box
+        local menuY = 0 -- controls height of background box
+        local xPos = 0
+        local yPos = 0
+    
+        if o.type == "menu" or o.type == "twoChoices" then
+            --options in menu list and menu orientation dependent on name variable
+            -- so like if name == y then o.options = option table 1, etc
+            o.options = {}
+            o.options = name
+    
+            gridview:setNumberOfColumns(1)
+            gridview:setNumberOfRows(#o.options)
+            menuY = (#o.options * 25) + 10
+            menuX = (100)
+            xPos, yPos = menuPosition(name)
+            --display menu
+            
+            function o:getOption() -- item selection in menu
+                local s = o:getSelectedRow()
+                for i,v in pairs(o.options) do
+                    if s==i then
+                        return v
+                    end
+                end
+            end
+    
+        elseif o.type == "dialogue" or o.type == "mapDialogue" then
+            menuY = (80)
+            menuX = (400)
+            o:setNumberOfRows(rows or 1)
+            o:setNumberOfColumns(columns or 1)
+            
+            o.location = name
+            o.key = 1
+            o.cText = "none"
+    
+            function o:text()
+                local qryText = nil
+                if o.type == "mapDialogue" then
+                    for i,v in pairs(o.location) do
+                        if v then
+                            for j,w in pairs(v) do
+                                if j=="text" then
+                                    qryText=w
+                                end
+                            end
+                        end
+                    end
+                    if #qryText >= o.key then
+                        print("trigOne")
+                        while type(qryText[o.key]) ~= "string" do
+                            if type(qryText[o.key]) == "function" then
+                                qryText[o.key]()
+                            end
+                            o.key = o.key + 1
+                        end
+                        o.cText = qryText[o.key]
+                        o.key = o.key + 1
+                    elseif #qryText < o.key then
+                        o:spriteKill()
+                        menuIndex = {}
+                        clearMenus()
+                        ctrlConSwi("off")
+                        return
+                    end
+                
+                elseif o.type == "dialogue" then
+                    for i,v in pairs(stories) do
+                        if o.location == i then
+                            while type(v[o.key]) ~= "string" do -- do something else with other triggers that might be for graphics or changes in scenery\characters
+                                if type(v[o.key]) == "function" then
+                                    v[o.key]()
+                                end
+                                o.key = o.key + 1
+                            end
+                            o.cText = v[o.key]
+                            o.key = o.key + 1
+                        end
+                    end
+                end
+            end
+        else
+            print("Error in o.type")
+        end
+    
+        local gridviewSprite = gfx.sprite.new()
+        gridviewSprite:setCenter(0, 0)
+    
+        function o:spriteKill()
+            gridviewSprite:remove()
+        end
+    
+        gridviewSprite:add()
+    
+        function o:menuUpdate()
+            if o.needsDisplay then
+                local gridviewImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+                if o.type == "menu" or o.type == "twoChoices" then
+                    if o.type == "menu" then
+                        gridviewSprite:moveTo(xPos, yPos) -- same location as where the grid is drawn
+                        gridviewSprite:setZIndex(130)
+                    elseif o.type == "twoChoices" then
+                        gridviewSprite:moveTo(100, 100)
+                    end
+                elseif o.type == "dialogue" or o.type == "mapDialogue" then
+    
+                    gridviewSprite:setZIndex(130)
+                    gridviewSprite:moveTo(0,160)
+                    o:setContentInset(5,20,0,0)
+                    o:setCellSize(380, 50)
+                end
+    
+                gfx.pushContext(gridviewImage)
+                if o.type=="mapDialogue" then 
+                    print("trigTwo")
+                    print(gridviewImage)
+                end
+                o:drawInRect(0,0,menuX,menuY)
+                gfx.popContext()
+                gridviewSprite:setImage(gridviewImage)
+            end
+        end
+    
+        function o:drawCell(section,row,column,selected,x,y,width,height)
+            local menuText={}
+            if o.type == "menu" then
+                if selected then
+                    gfx.drawRect(x,y,width+2,height+2)
+                    gfx.drawRect(x,y,width,height)
+                else
+                    gfx.drawRect(x,y,width,height)
+                end
+                menuText = o.options
+    
+            else-- for dialogue, etc
+                menuText[1] = o.cText
+            end
+    
+            local fontHeight = gfx.getSystemFont():getHeight()
+            local rCount = row
+    
+            for i,v in pairs(menuText) do
+                if rCount == i then
+                    gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, nil, kTextAlignment.left)
+                end
+            end
+        end
+    
+        function o:menuControl(direction) 
+            if o.type == "menu" or o.type == "twoChoices" then
+                if direction == "up" then
+                    o:selectPreviousRow(true)
+                elseif direction == "down" then
+                    o:selectNextRow(true)
+                end
+            elseif o.type == "dialogue" or o.type == "mapDialogue" then -- Iterates through all line items in a story.
+                if direction == "a" then
+                    o:text()
+                    o:selectNextRow(true)
+                end
+            end
+        end]]--

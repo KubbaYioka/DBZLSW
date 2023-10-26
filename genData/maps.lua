@@ -57,8 +57,7 @@ maps={
                 function() dTag("left", "Goku") end
                 ,"This is a test object."
                 , function() dTag("clear") end
-                ,"dumb test. while statement and text at end of map"
-                ,"text seems to fix this."
+                ," "
             }
             ,tag = "object"
         }
@@ -74,6 +73,7 @@ maps={
                 ,function() dTag("left", "Goku") end
                 ,"This is more text."
                 , function() dTag("clear") end
+                ," "
             }
             ,tag = "object"
         }   

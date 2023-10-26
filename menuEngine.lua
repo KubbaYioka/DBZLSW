@@ -48,7 +48,7 @@ function gameModeChange(mode, location, index)
     gameMode = mode
 end
 
-function clearMenus()
+function clearMenus(typ)
     for k,v in pairs(menuIndex) do
         menuIndex[k] = nil
     end

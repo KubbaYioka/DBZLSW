@@ -123,8 +123,9 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     end
                 end
                 if #qryText >= o.key then
-                    print("trigOne")
+
                     while type(qryText[o.key]) ~= "string" do
+                        print(o.key)
                         if type(qryText[o.key]) == "function" then
                             qryText[o.key]()
                         end
@@ -132,12 +133,10 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     end
                     o.cText = qryText[o.key]
                     o.key = o.key + 1
-                elseif #qryText < o.key then
+                else 
                     o:spriteKill()
                     menuIndex = {}
-                    clearMenus()
                     ctrlConSwi("off")
-                    return
                 end
             
             elseif o.type == "dialogue" then
@@ -187,10 +186,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             end
 
             gfx.pushContext(gridviewImage)
-            if o.type=="mapDialogue" then 
-                print("trigTwo")
-                print(gridviewImage)
-            end
             o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             gridviewSprite:setImage(gridviewImage)
