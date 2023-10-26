@@ -124,7 +124,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                 end
                 if #qryText >= o.key then
                     print("trigOne")
-                    if type(qryText[o.key]) ~= "string" then
+                    while type(qryText[o.key]) ~= "string" do
                         if type(qryText[o.key]) == "function" then
                             qryText[o.key]()
                         end
@@ -132,10 +132,11 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     end
                     o.cText = qryText[o.key]
                     o.key = o.key + 1
-                else
+                elseif #qryText < o.key then
                     o:spriteKill()
                     menuIndex = {}
                     clearMenus()
+                    ctrlConSwi("off")
                     return
                 end
             
