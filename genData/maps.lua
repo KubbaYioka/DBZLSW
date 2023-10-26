@@ -56,9 +56,12 @@ maps={
             ,text = {
                 function() dTag("left", "Goku") end
                 ,"This is a test object."
-                , function() dTag("clear") end
+                ,function() dTag("clear") end
+                ,function() mObjAppear(obj2,true) end
             }
             ,tag = "object"
+            ,name = "jarOne"
+            ,oVisible = true
         }
         ,obj2 = {
             x = 6
@@ -74,6 +77,8 @@ maps={
                 , function() dTag("clear") end
             }
             ,tag = "object"
+            ,name = "jarTwo"
+            ,oVisible = false
         }   
     }
     ,mapChr = "assets/images/mapSpr/kidGoku-table-16-16"-- Selects the character that the player will be in the overworld.
@@ -82,3 +87,12 @@ maps={
     },
     map01 = {}
 }
+-- Object Functions --
+
+function mObjAppear(objName,task) -- causes an object to be drawn and have a collision rect created or be removed.
+    if task == true then
+    end
+
+    if task == false then
+    end
+end

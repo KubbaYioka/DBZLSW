@@ -30,15 +30,16 @@ end
 class('ObjectSprite').extends(AnimatedSprite)
 
 function createMapObj(table)
-    
-    local obj = table.sprite
-    
-    local tempObj = ObjectSprite(obj)
-    tempObj.tag = table.tag
-    if table.text then
-        tempObj.text = table.text
+    if table.oVisible == true then
+        local obj = table.sprite
+        
+        local tempObj = ObjectSprite(obj)
+        tempObj.tag = table.tag
+        if table.text then
+            tempObj.text = table.text
+        end
+        tempObj:moveTo(GRID_SIZE*table.x,GRID_SIZE*table.y)
     end
-    tempObj:moveTo(GRID_SIZE*table.x,GRID_SIZE*table.y)
 end
 function ObjectSprite:init(image)
     local oTable = gfx.imagetable.new(image)
