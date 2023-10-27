@@ -49,6 +49,13 @@ function createMapObj(table)
         tempObj.tag = table.tag
 
         tempObj:moveTo(GRID_SIZE*table.x,GRID_SIZE*table.y)
+        local tempIndexNum = "none"
+        for i,v in pairs(tempObj.properties) do
+            if i == "name" then
+                tempIndexNum = v
+            end
+        end
+        mapObjIndex[tempIndexNum] = tempObj
     end
 end
 function ObjectSprite:init(image)
@@ -153,7 +160,6 @@ function queryObject(xPos,yPos,qryObj)
     local qryTag = nil
     for i,v in ipairs(qryObj) do
         if v then
-            printTable(v)
             for j,w in pairs(v) do
                 if j=="tag" then
                     qryTag=w
@@ -248,7 +254,28 @@ function mObjAppear(objName,task) -- causes an object to be drawn and have a col
     if task == false then
     end
 end
-function mNextText(objName,textField) -- causes an object's next text field to be read by o:text by iterating its text number or changing it entirely.
-    --for i,v in pairs()
-    print("placeholder")
+function mNextText(objName,iterNum) -- causes an object's next text field to be read by o:text by iterating its text number or changing it entirely.
+    local nameFound = false
+    for i,v in pairs(mapObjIndex) do
+        if v.tag == "object" then
+            print("tag found in mNextText. Remember that you need to figure out why j is not evaluating to objName on line 263 of mapEngine.lua.")
+            for j,k in pairs(v) do
+                if j == objName then
+                    print("name found")
+                    nameFound = true
+                end
+            end
+            if nameFound == true then
+                for j,k in pairs(v) do
+                    if j == "properties" then
+                        for l,h in pairs(k) do
+                            if l == "txtIter" then
+                                h = iterNum
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end    
 end

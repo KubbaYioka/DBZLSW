@@ -63,6 +63,7 @@ gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16
 menuIndex = {}
 portIndex = {}
 tagIndex = {}
+mapObjIndex = {}
 
 --Menu Object Classes
 
@@ -115,21 +116,26 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             local textRef = nil
             if o.type == "mapDialogue" then
                 for i,v in pairs(o.location) do
-                    if v then
-                        for j,w in pairs(v) do
-                            print(j)
-                            if j == "properties" then
-                                for k,b in pairs(j) do
-                                    if k=="txtIter" then
-                                        textRef = "text"..b
-                                        print(textRef)
-                                    end
-                                    if k==textRef then
-                                        qryText=b
-                                    end
+                    for g, q in pairs(v) do
+                        if g == "properties" then
+                            local foundQryText = false
+                            
+                            for j, w in pairs(q) do
+                                if j == "txtIter" then
+                                    textRef = "text" .. w
                                 end
-                            else
-                                print("Error. Properties Not Found in Object. You need to check o:text to fix the deeper iteration you had to do for text table iteration.")
+                            end
+                
+                            for j, w in pairs(q) do
+                                if j == textRef then
+                                    qryText = w
+                                    foundQryText = true
+                                    break
+                                end
+                            end
+                
+                            if not foundQryText then
+                                print("Error. Properties Not Found in Object.")
                                 return
                             end
                         end

@@ -61,7 +61,7 @@ maps={
                     ,"This is a test object."
                     ,"This object will make the second jar appear."
                     ,function() dTag("clear") end
-                    ,function() mNextText(obj1,2) end
+                    ,function() mNextText("jarOne",2) end
                     ,function() mObjAppear(obj2,true) end
                 }
                 ,text2 = {
