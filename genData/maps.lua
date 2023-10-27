@@ -53,15 +53,25 @@ maps={
             x = 4
             ,y = 5
             ,sprite = "assets/images/mapSpr/testObj-table-16-16"
-            ,text = {
-                function() dTag("left", "Goku") end
-                ,"This is a test object."
-                ,function() dTag("clear") end
-                ,function() mObjAppear(obj2,true) end
-            }
             ,tag = "object"
-            ,name = "jarOne"
-            ,oVisible = true
+            ,properties = {
+                txtIter = 1
+                ,text1 = {
+                    function() dTag("left", "Goku") end
+                    ,"This is a test object."
+                    ,"This object will make the second jar appear."
+                    ,function() dTag("clear") end
+                    ,function() mNextText(obj1,2) end
+                    ,function() mObjAppear(obj2,true) end
+                }
+                ,text2 = {
+                    function() dTag("left", "Goku") end
+                    ,"Since the second jar has already appeared, the next text field is being used in this object."
+                    ,function() dTag("clear") end
+                }
+                ,name = "jarOne"
+                ,oVisible = true
+            }
         }
         ,obj2 = {
             x = 6
@@ -89,10 +99,3 @@ maps={
 }
 -- Object Functions --
 
-function mObjAppear(objName,task) -- causes an object to be drawn and have a collision rect created or be removed.
-    if task == true then
-    end
-
-    if task == false then
-    end
-end

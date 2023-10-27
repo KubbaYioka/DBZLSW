@@ -76,9 +76,11 @@ end
                 fs:menuControl("a")
             end
         end
-        if playdate.buttonJustPressed("b") then
-            
-        end
+
+    end
+    if playdate.buttonJustPressed("b") then
+        local fhg = playdate.graphics.sprite.getAllSprites()
+        printTable(fhg)
     end
 end
 function ctrlConSwi(item)

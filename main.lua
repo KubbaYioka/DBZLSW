@@ -112,29 +112,42 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
         function o:text()
             local qryText = nil
+            local textRef = nil
             if o.type == "mapDialogue" then
                 for i,v in pairs(o.location) do
                     if v then
                         for j,w in pairs(v) do
-                            if j=="text" then
-                                qryText=w
+                            print(j)
+                            if j == "properties" then
+                                for k,b in pairs(j) do
+                                    if k=="txtIter" then
+                                        textRef = "text"..b
+                                        print(textRef)
+                                    end
+                                    if k==textRef then
+                                        qryText=b
+                                    end
+                                end
+                            else
+                                print("Error. Properties Not Found in Object. You need to check o:text to fix the deeper iteration you had to do for text table iteration.")
+                                return
                             end
                         end
                     end
                 end
-                if #qryText > o.key then
-
-                    while type(qryText[o.key]) ~= "string" do
-                        print(o.key)
+                if #qryText >= o.key then
+                    while type(qryText[o.key]) ~= "string" and o.key <= #qryText do
                         if type(qryText[o.key]) == "function" then
                             qryText[o.key]()
                         end
                         o.key = o.key + 1
                     end
-                    o.cText = qryText[o.key]
-                    o.key = o.key + 1
-                elseif #qryText == o.key then
-                    qryText[o.key]()
+                    if o.key <= #qryText then
+                        o.cText = qryText[o.key]
+                        o.key = o.key + 1
+                    end
+                end
+                if o.key > #qryText then
                     o:spriteKill()
                     menuIndex = {}
                     ctrlConSwi("off")
