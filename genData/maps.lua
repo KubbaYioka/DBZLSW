@@ -54,6 +54,7 @@ maps={
             ,y = 5
             ,sprite = "assets/images/mapSpr/testObj-table-16-16"
             ,tag = "object"
+
             ,properties = {
                 txtIter = 1
                 ,text1 = {
@@ -62,11 +63,12 @@ maps={
                     ,"This object will make the second jar appear."
                     ,function() dTag("clear") end
                     ,function() mNextText("jarOne",2) end
-                    ,function() mObjAppear(obj2,true) end
+                    ,function() mObjAppear("obj2",true) end
                 }
                 ,text2 = {
                     function() dTag("left", "Goku") end
-                    ,"Since the second jar has already appeared, the next text field is being used in this object."
+                    ,"Since the second jar has already appeared, the next text field is being used "
+                    ,"in this object."
                     ,function() dTag("clear") end
                 }
                 ,name = "jarOne"
@@ -77,18 +79,29 @@ maps={
             x = 6
             ,y = 8
             ,sprite = "assets/images/mapSpr/testObj-table-16-16"
-            ,text = {
-                function() dTag("left", "Goku") end
-                ,"This is another test object."
-                , function() dTag("clear") end
-                --,-- command to say that this is the end of this dialogue session, and that the next won't begin until a flag is triggered.
-                ,function() dTag("left", "Goku") end
-                ,"This is more text."
-                , function() dTag("clear") end
-            }
             ,tag = "object"
-            ,name = "jarTwo"
-            ,oVisible = false
+
+            ,properties = {
+                txtIter = 1
+                ,text1 = {
+                    function() dTag("left", "Goku") end
+                    ,"This is another test object."
+                    , function() dTag("clear") end
+                    --,-- command to say that this is the end of this dialogue session, and that the next won't begin until a flag is triggered.
+                    ,function() dTag("left", "Goku") end
+                    ,"This is more text."
+                    ,function() mNextText("jarTwo",2) end
+                    , function() dTag("clear") end
+                }
+                ,text2 = {
+                    function() dTag("left", "Goku") end
+                    ,"And now the second object will be deleted."
+                    ,function() mObjAppear("jarTwo",false) end
+                    ,function() dTag("clear") end
+                }
+                ,name = "jarTwo"
+                ,oVisible = false
+            }
         }   
     }
     ,mapChr = "assets/images/mapSpr/kidGoku-table-16-16"-- Selects the character that the player will be in the overworld.

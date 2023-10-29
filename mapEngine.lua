@@ -29,7 +29,7 @@ end
 
 class('ObjectSprite').extends(AnimatedSprite)
 
-function createMapObj(table)
+function createMapObj(table,visSkip)
     local visCheck = nil
     for i,v in pairs(table) do
         if i == "properties" then
@@ -40,10 +40,8 @@ function createMapObj(table)
             end
         end
     end
-    if visCheck == true then
+    if visCheck == true or visSkip == true then
         local obj = table.sprite
-
-        
         local tempObj = ObjectSprite(obj)
         tempObj.properties = table.properties
         tempObj.tag = table.tag
@@ -76,10 +74,10 @@ function ObjectSprite:init(image)
     end
     self:playAnimation()
 
-    function killObj(self)
+    function killObj()
         gfx.sprite.removeSprite(self)
     end
-
+    
     --Other Properties
     self:changeState("down",true)
     self:setZIndex(100)
@@ -208,9 +206,11 @@ function PlayerMSprite:updatePosition()
 end
 
 local currentMapImage = nil
-currentMap = nil
-currentPlrSprite = nil
+local currentMap = nil
+local currentPlrSprite = nil
+GlobalCurrentMapRef = nil
 function mapInit(map)
+    GlobalCurrentMapRef = map
     --creates new tilemap and image table from a mapTable containing all information for each map
     currentMapImage = gfx.imagetable.new(map.tileSet)
     currentMap = gfx.tilemap.new()
@@ -243,39 +243,56 @@ end
 
 function goMap(mapNumber) --command builds a map based on information from the table mapNumber
     mapInit(mapNumber)
-    --clear all menus, portraits, text, etc
 end
 
 --Object Functions
 function mObjAppear(objName,task) -- causes an object to be drawn and have a collision rect created or be removed.
+    local tempTableO
     if task == true then
-    end
-
-    if task == false then
-    end
-end
-function mNextText(objName,iterNum) -- causes an object's next text field to be read by o:text by iterating its text number or changing it entirely.
-    local nameFound = false
-    for i,v in pairs(mapObjIndex) do
-        if v.tag == "object" then
-            print("tag found in mNextText. Remember that you need to figure out why j is not evaluating to objName on line 263 of mapEngine.lua.")
-            for j,k in pairs(v) do
-                if j == objName then
-                    print("name found")
-                    nameFound = true
-                end
+        for i,v in pairs(GlobalCurrentMapRef.mObjLayout) do
+            if i == objName then
+                tempTableO = GlobalCurrentMapRef.mObjLayout[objName]
+                createMapObj(tempTableO,true)
             end
-            if nameFound == true then
-                for j,k in pairs(v) do
-                    if j == "properties" then
-                        for l,h in pairs(k) do
-                            if l == "txtIter" then
-                                h = iterNum
+        end
+    end
+    if task == false then
+        for i,v in pairs(mapObjIndex) do
+            if objName == i then
+                for j,k in pairs(gfx.sprite.getAllSprites()) do
+                    if k.tag == "object" then
+                        for l,m in pairs(k) do
+                            if l == "properties" then
+                                for n,p in pairs(m) do
+                                    if p == objName then
+                                        gfx.sprite:removeSprite(k)
+                                    end
+                                end
                             end
                         end
                     end
                 end
             end
         end
-    end    
+    end
+end
+
+function mNextText(objName,iterNum) -- causes an object's next text field to be read by o:text by iterating its text number or changing it entirely.
+    local nameFound = false
+    for i,v in pairs(mapObjIndex) do
+        if v.tag == "object" then
+            for j,k in pairs(v.properties) do
+                if k == objName then
+                    nameFound = true
+                end
+            end
+            if nameFound == true then
+                for h,l in pairs(v.properties) do
+                    if h == "txtIter" then
+                        v.properties[h] = iterNum
+                    end
+                end
+            end
+        end
+    end
 end
