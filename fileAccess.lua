@@ -36,9 +36,13 @@ end
 function initSaveFile() --creates the initial save file if none exists
     local chrDat ={}
     local storyDat = {}
+    local cardDat = {}
     storyDat.currentMode = GameMode.STORY
     storyDat.currentLocation = "storyLoc1"
     storyDat.completed = false
+    for i=1, 500, 1 do -- 500 card slots for now.
+        cardDat[i] = 0 -- starts with zero for each kind of card.
+    end
     for i=1, 300, 1 do -- 300 is a placeholder for now.
         chrDat[i] = "none" --create character slots for all potential characters. Indexes with value "none"
     end
@@ -47,8 +51,9 @@ function initSaveFile() --creates the initial save file if none exists
     chrDat[gok.roster] = gok --insert character into save file at prescribed index
     chrDat[kri.roster] = kri
     local savFil = {
-        chrDat,
-        storyDat
+        chrDat
+        ,cardDat
+        ,storyDat
     }
     playdate.datastore.write(savFil, "sav", true)
 end

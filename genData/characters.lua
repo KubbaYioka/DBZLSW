@@ -13,6 +13,36 @@ dbKrillin={02,"dbKrillin","Krillin",90,3,0,2,2,0,0,25,1}
 dbBulma={03,"dbBulma","Bulma",25,1,1,1,1,1,0,15,1}
 dbYamcha={04,"dbYamcha","Yamcha",80,2,1,2,2,0,0,25,1}
 
+characters = {
+
+"Kid Goku" = {
+    chrNum = 01
+    ,chrCode = "dbGoku"
+    ,chrName = "Goku"
+    ,chrHp = 80
+    ,chrStr = 2
+    ,chrKi = 0
+    ,chrSpd = 3
+    ,chrDef = 2
+    ,chrTrans = {
+        trans1 = "Oozaru"
+    }
+}
+,"Kid Krillin" = {
+    chrNum = 01
+    ,chrCode = "dbKrillin"
+    ,chrName = "Krillin"
+    ,chrHp = 90
+    ,chrStr = 3
+    ,chrKi = 0
+    ,chrSpd = 2
+    ,chrDef = 2
+    ,chrTrans = {
+        trans1 = "none"
+
+    }
+}
+}
 
 function chrRet(chrName) -- gets the character data from this location. Not for Save access.
     local t = {}
