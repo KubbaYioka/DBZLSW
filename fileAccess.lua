@@ -1,12 +1,26 @@
 --File Access Control
 --Contains the functions for accessing save files
 
-function clearOne() --checks to see if the game has been completed once
-    local check = playdate.datastore.read("sav")
+--FILE ACCESS ENUMERATION
+function saveCheck(location)
+    local SAVCHECK = playdate.datastore.read("sav")
+    if location == "chrs" then
+        return SAVCHECK[1]
+    elseif location == "cards" then
+        return SAVCHECK[2]
+    elseif location == "data" then 
+        return SAVCHECK[3]
+    elseif location == "all" then
+        return SAVCHECK
+    end
+end
 
-    local chkStor = check[2]
-    for k, v in pairs(chkStor) do
-        if k == "completed" then
+function clearOne() --checks to see if the game has been completed once
+    local check = saveCheck("data")
+    printTable(check)
+    for i,v in pairs(check) do
+        if i == "completed" then
+            printTable(v)
             return v
         end
     end
@@ -15,21 +29,20 @@ end
 function initLoadSav() --tests for save in game folder.
     if playdate.file.exists("sav.json") == false  then
         initSaveFile()
-        currentPlayerData = playdate.datastore.read("sav")
+        currentPlayerData = saveCheck("all")
         print("Save Created.")
         return false
     else
-        currentPlayerData = playdate.datastore.read("sav")
+        currentPlayerData = saveCheck("all")
         print("Save Loaded!")
         return true
     end
 end
 
 function gameContinue() -- returns the gamemode, story location
-    local inthe = playdate.datastore.read("sav")
-    local loc = inthe[2]
-    local mode = loc.currentMode
-    local location = loc.currentLocation
+    local dataS = saveCheck("data")
+    local mode = dataS.currentMode
+    local location = dataS.currentLocation
     return mode, location
 end
 
@@ -46,10 +59,8 @@ function initSaveFile() --creates the initial save file if none exists
     for i=1, 300, 1 do -- 300 is a placeholder for now.
         chrDat[i] = "none" --create character slots for all potential characters. Indexes with value "none"
     end
-    local gok = chrRet(dbGoku) --start with the default character. Kid Goku
-    local kri = chrRet(dbKrillin) 
-    chrDat[gok.roster] = gok --insert character into save file at prescribed index
-    chrDat[kri.roster] = kri
+    local gok = chrRet("dbGoku") --start with the default character. Kid Goku
+    chrDat[gok.chrNum] = gok --insert character into save file at prescribed index
     local savFil = {
         chrDat
         ,cardDat
@@ -60,7 +71,7 @@ end
 
 --Function for pulling the saved players portion of the save file. All blank indexes ignored.
 function loadSavedPlayers(mode, chr) -- Mode will change what kind of value is returned. full is full list. names is names only. ind requires a name to come after it. 
-    local tblInc = playdate.datastore.read("sav")
+    local tblInc = saveCheck("all")
     local tblMnf = tblInc[1]
     local tblJdf = {}
     for i, v in ipairs(tblMnf) do

@@ -51,9 +51,8 @@ None = "none"
 --Other Enumeration
 AllChrs = "all" -- all characters allowed to use card.
 
-cards =
-{
-"3 Stage Attack" =
+cards = {
+["3 Stage Attack"] =
   {
     cName = "3 Stage Attack"
     ,cNumber = 001
@@ -66,7 +65,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"4 Stage Attack" =
+,["4 Stage Attack"] =
   {
     cName = "4 Stage Attack"
     ,cNumber = 002
@@ -79,7 +78,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"5 Stage Attack" =
+,["5 Stage Attack"] =
   {
     cName = "5 Stage Attack"
     ,cNumber = 003
@@ -92,7 +91,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"6 Stage Attack" =
+,["6 Stage Attack"] =
   {
     cName = "6 Stage Attack"
     ,cNumber = 004
@@ -105,7 +104,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"7 Stage Attack" =
+,["7 Stage Attack"] =
   {
     cName = "7 Stage Attack"
     ,cNumber = 005
@@ -118,7 +117,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"Cont. Punch"=
+,["Cont. Punch"]=
   {
     cName = "Cont. Punch"
     ,cNumber = 006
@@ -131,7 +130,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"Cont. Kick"=
+,["Cont. Kick"]=
   {
     cName = "Cont. Kick"
     ,cNumber = 007
@@ -144,7 +143,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"Energy Blast"=
+,["Energy Blast"]=
   {
     cName = "Energy Blast"
     ,cNumber = 008
@@ -157,7 +156,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"Energy Wave"=
+,["Energy Wave"]=
   {
     cName = "Energy Wave"
     ,cNumber = 009
@@ -170,7 +169,7 @@ cards =
     ,cAbility = None
     ,cAllowed = AllChrs
   }
-,"Endurance"=
+,["Endurance"]=
   {
     cName = "Endurance"
     ,cNumber = 010

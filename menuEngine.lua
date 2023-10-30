@@ -110,4 +110,80 @@ function tablelength(T) --simple function to get length of table
     for _ in pairs(T) do count = count + 1 end
     return count
 end
+
+-- PAUSE MENU --
+
+pauseView = playdate.ui.gridview.new(0,20)
+pauseView:setNumberOfColumns(1)
+pauseView:setNumberOfRows(1)
+pauseView:setCellPadding(0,0,4,0)
+pauseView:setContentInset(5,5,5,5)
+
+--Set Menu\Text Border
+
+pauseView.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+function pauseView:new()
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    local menuX = 0 --size of background box
+    local menuY = 0
+    local yPos = 0
+    local xPos = 0
+
+    o.pauseRows = {}
+    o.statusRows = {}
+    o.deckRows = {}
+    o.teamRows = {}
+    o.listRows = {}
+    o.saveRows = {"Yes", "No"}
+    if gameMode == GameMode.BATTLE then
+        print("Placeholder")
+        o.pauseRows = {"Status","Deck","Team","List","Save","Exit"}
+    else
+        o.pauseRows = {"Status","Deck","List","Save","Exit"}
+    end
+    local currentPauseRow = o.pauseRows
+
+    pauseView:setNumberOfColumns(1)
+    pauseView:setNumberOfRows(#currentPauseRow)
+    menuY = (#currentPauseRow * 25) + 10
+    menuX = (100)
+    xPos, yPos = menuPosition(menuPause)
+
+    function o:getOption() -- item selection in menu
+        local s = o:getSelectedRow()
+        for i,v in pairs(currentPauseRow) do
+            if s==i then
+                return v
+            end
+        end
+    end
+
+    local pauseViewSprite = gfx.sprite.new()
+    pauseViewSprite:setCenter(0,0)
+    function o:spriteKill()
+        pauseViewSprite:remove()
+    end
+
+    pauseViewSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local pauseViewImage = gfx.image.new(menuU,menuY,gfx.kColorWhite)
+            pauseViewSprite:moveTo(xPos,yPos)
+            pauseViewSprite:setZIndex(130)
+            gfx.pushContext(pauseViewImage)
+            o:drawInRect(0,0,menuX,menuY)
+            gfx.popContext()
+            pauseViewSprite:setImage(pauseViewImage)
+        end
+    end
+
+end
   
+function pauseMenu()
+    controlContext = GameMode.MENU
+end

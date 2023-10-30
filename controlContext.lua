@@ -86,7 +86,7 @@ end
 function ctrlConSwi(item)
     if item ~= "off" then
         if item == "menu" then
-            controlContest = GameMode.MENU
+            controlContext = GameMode.MENU
         elseif item == "story" then
             controlContext = GameMode.STORY
         elseif item == "map" then

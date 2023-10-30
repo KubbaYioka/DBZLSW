@@ -332,8 +332,6 @@ function playdate.update()
         v:tagUpdate()
     end
 
-
-
     if gameMode == GameMode.MAP then
         if pMapSprite then
             if pMapSprite.hasContext then
