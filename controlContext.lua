@@ -1,5 +1,5 @@
 --This file contains the control schemes for button contexts.
-
+local buttonBitMask = playdate.getButtonState()
 function menuInputContext()
 --[[
 if playdate.buttonJustPressed("right") then
@@ -33,6 +33,7 @@ end
     if controlContext == GameMode.PAUSE  then
         if playdate.buttonJustPressed("b") then
             local fs = menuIndex[#menuIndex]
+            buttonBitMask = playdate.getButtonState()
             fs:menuControl("b")
             if #menuIndex == 0 then
                 controlContext = GameMode.MAP
@@ -61,10 +62,16 @@ end
 
     end
 
+   -- print("Checking control context:",controlContext)
+   -- print("Checking gameMode:",gameMode)
     if controlContext == GameMode.MAP then
         
         if playdate.buttonJustPressed("b") then
-            pauseMenu()
+            print("B button pressed in controlContext MAP mode")
+            local bStat = playdate.getButtonState()
+            if buttonBitMask ~= bStat then
+                pauseMenu()
+            end
         end
         if playdate.buttonJustPressed("a") then
             pMapSprite:handleInput("a")

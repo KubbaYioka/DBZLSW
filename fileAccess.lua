@@ -17,7 +17,6 @@ end
 
 function clearOne() --checks to see if the game has been completed once
     local check = saveCheck("data")
-    printTable(check)
     for i,v in pairs(check) do
         if i == "completed" then
             printTable(v)

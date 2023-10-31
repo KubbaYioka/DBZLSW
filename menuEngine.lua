@@ -130,7 +130,6 @@ function pauseView:new()
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
-    print("Menu Created")
 
     local menuX = 0 --size of background box
     local menuY = 0
@@ -208,10 +207,8 @@ function pauseView:new()
         elseif direction == "down" then
             o:selectNextRow(true)
         elseif direction == "b" then
-            print("Sprite Kill")
             o:spriteKill()
             menuIndex[o.index] = nil
-            printTable(menuIndex)
             ctrlConSwi("off")
         end
     end
