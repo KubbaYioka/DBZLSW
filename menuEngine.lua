@@ -182,6 +182,43 @@ function pauseView:new()
         end
     end
 
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        local menuText = {}
+        if selected then
+            gfx.drawRect(x,y,width+2,height+2)
+            gfx.drawRect(x,y,width,height)
+        else
+            gfx.drawRect(x,y,width,height)
+        end
+        local fontHeight = gfx.getSystemFont():getHeight()
+        local rCount = row
+        for i,v in pairs(menuText) do
+            if rCount == i then
+                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+            end
+        end
+    end
+
+    function o:menuControl(direction) 
+
+        if direction == "up" then
+            o:selectPreviousRow(true)
+        elseif direction == "down" then
+            o:selectNextRow(true)
+        elseif direction("b") then
+            o:spriteKill()
+        end
+    end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+
 end
   
 function pauseMenu()
