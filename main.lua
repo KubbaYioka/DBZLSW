@@ -320,6 +320,7 @@ function playdate.update()
     gfx.sprite.update()
 
     menuInputContext()
+    
     if #menuIndex > 0 then
         for i,v in pairs(menuIndex) do
             v:menuUpdate()

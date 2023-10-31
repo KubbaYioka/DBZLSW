@@ -130,13 +130,14 @@ function pauseView:new()
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
+    print("Menu Created")
 
     local menuX = 0 --size of background box
     local menuY = 0
     local yPos = 0
     local xPos = 0
 
-    o.pauseRows = {}
+    o.pauseRows = {"Status","Deck","List","Save","Exit"}
     o.statusRows = {}
     o.deckRows = {}
     o.teamRows = {}
@@ -145,20 +146,17 @@ function pauseView:new()
     if gameMode == GameMode.BATTLE then
         print("Placeholder")
         o.pauseRows = {"Status","Deck","Team","List","Save","Exit"}
-    else
-        o.pauseRows = {"Status","Deck","List","Save","Exit"}
     end
-    local currentPauseRow = o.pauseRows
 
     pauseView:setNumberOfColumns(1)
-    pauseView:setNumberOfRows(#currentPauseRow)
-    menuY = (#currentPauseRow * 25) + 10
+    pauseView:setNumberOfRows(#o.pauseRows)
+    menuY = (#o.pauseRows * 25) + 10
     menuX = (100)
     xPos, yPos = menuPosition(menuPause)
 
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
-        for i,v in pairs(currentPauseRow) do
+        for i,v in pairs(o.pauseRows) do
             if s==i then
                 return v
             end
@@ -193,6 +191,7 @@ function pauseView:new()
         else
             gfx.drawRect(x,y,width,height)
         end
+        menuText = o.pauseRows
         local fontHeight = gfx.getSystemFont():getHeight()
         local rCount = row
         for i,v in pairs(menuText) do
@@ -208,8 +207,12 @@ function pauseView:new()
             o:selectPreviousRow(true)
         elseif direction == "down" then
             o:selectNextRow(true)
-        elseif direction("b") then
+        elseif direction == "b" then
+            print("Sprite Kill")
             o:spriteKill()
+            menuIndex[o.index] = nil
+            printTable(menuIndex)
+            ctrlConSwi("off")
         end
     end
 
@@ -225,6 +228,6 @@ function pauseView:new()
 end
   
 function pauseMenu()
-    controlContext = GameMode.PAUSE
+    ctrlConSwi("pause")
     pauseView:new()
 end

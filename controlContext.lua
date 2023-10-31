@@ -34,6 +34,9 @@ end
         if playdate.buttonJustPressed("b") then
             local fs = menuIndex[#menuIndex]
             fs:menuControl("b")
+            if #menuIndex == 0 then
+                controlContext = GameMode.MAP
+            end
         end
         if playdate.buttonJustPressed("a") then
             local fs = menuIndex[#menuIndex]
@@ -113,6 +116,8 @@ function ctrlConSwi(item)
             controlContext = GameMode.MAP
         elseif item == "battle" then
             controlContext = GameMode.BATTLE
+        elseif item =="pause" then
+            controlContext = GameMode.PAUSE
         else 
             print("Error in controlContext function: ctrlConSwi")
         end
