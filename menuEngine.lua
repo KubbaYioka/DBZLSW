@@ -113,6 +113,9 @@ end
 
 -- PAUSE MENU --
 
+local dbFont = playdate.graphics.font.new('assets/fonts/DBLSW2')
+playdate.graphics.setFont(dbFont) 
+
 pauseView = playdate.ui.gridview.new(0,20)
 pauseView:setNumberOfColumns(1)
 pauseView:setNumberOfRows(1)
@@ -172,7 +175,7 @@ function pauseView:new()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local pauseViewImage = gfx.image.new(menuU,menuY,gfx.kColorWhite)
+            local pauseViewImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             pauseViewSprite:moveTo(xPos,yPos)
             pauseViewSprite:setZIndex(130)
             gfx.pushContext(pauseViewImage)
@@ -222,5 +225,6 @@ function pauseView:new()
 end
   
 function pauseMenu()
-    controlContext = GameMode.MENU
+    controlContext = GameMode.PAUSE
+    pauseView:new()
 end

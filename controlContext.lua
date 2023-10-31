@@ -30,6 +30,30 @@ end
         end
     end
 
+    if controlContext == GameMode.PAUSE  then
+        if playdate.buttonJustPressed("b") then
+            local fs = menuIndex[#menuIndex]
+            fs:menuControl("b")
+        end
+        if playdate.buttonJustPressed("a") then
+            local fs = menuIndex[#menuIndex]
+            goMenu(fs:getOption())
+        end
+
+        if playdate.buttonJustPressed("right") then
+        end
+
+        if playdate.buttonJustPressed("up") then
+            local fs = menuIndex[#menuIndex]
+            fs:menuControl("up")
+        end
+
+        if playdate.buttonJustPressed("down") then
+            local fs = menuIndex[#menuIndex]
+            fs:menuControl("down")
+        end
+    end
+
     if controlContext == GameMode.BATTLE then
 
     end
@@ -37,7 +61,7 @@ end
     if controlContext == GameMode.MAP then
         
         if playdate.buttonJustPressed("b") then
-
+            pauseMenu()
         end
         if playdate.buttonJustPressed("a") then
             pMapSprite:handleInput("a")
@@ -77,10 +101,6 @@ end
             end
         end
 
-    end
-    if playdate.buttonJustPressed("b") then
-        local fhg = playdate.graphics.sprite.getAllSprites()
-        printTable(fhg)
     end
 end
 function ctrlConSwi(item)
