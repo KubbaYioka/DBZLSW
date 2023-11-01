@@ -90,18 +90,32 @@ function clearAll()
     clearSprites()
 end
 
-function goMenu(item)       ------------change for new gamemode handler
-    if item == "Continue" then
+local menuFunc = {
+    ["Continue"] = function()
+        clearMenus()
+        local mode, loc = gameContinue()
+        gameModeChange(mode, loc)
+    end,
+    ["New Game"] = function()
         clearMenus()
         local mode, loc = gameContinue()
         gameModeChange(mode, loc) 
-    end
-    if item == "New Game" then
-        clearMenus()
-    end
-    if item == "Options" then
-    end
-    if item == "Battle" then
+    end,
+    ["Options"] = function()
+        -- Implement Options functionality
+    end,
+    ["Battle"] = function()
+        -- Implement Battle functionality
+    end,
+    -- Add more menu items and their corresponding functions here
+}
+
+function goMenu(item)
+    -- Check if the selected item has a corresponding function and call it
+    if menuActions[item] then
+        menuActions[item]()
+    else
+        print("No action defined for menu item:", item)
     end
 end
 
@@ -209,7 +223,8 @@ function pauseView:new()
         elseif direction == "b" then
             o:spriteKill()
             menuIndex[o.index] = nil
-            ctrlConSwi("off")
+
+            
         end
     end
 

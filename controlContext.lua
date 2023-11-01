@@ -1,12 +1,11 @@
 --This file contains the control schemes for button contexts.
-local buttonBitMask = playdate.getButtonState()
+
+local bounceProtect = false
+
 function menuInputContext()
---[[
-if playdate.buttonJustPressed("right") then
-    local SptCn = playdate.graphics.sprite.getAllSprites()
-    printTable(SptCn)
-end
---]]
+
+    
+
     if controlContext == GameMode.MENU  then
         if playdate.buttonJustPressed("b") then
 
@@ -33,10 +32,10 @@ end
     if controlContext == GameMode.PAUSE  then
         if playdate.buttonJustPressed("b") then
             local fs = menuIndex[#menuIndex]
-            buttonBitMask = playdate.getButtonState()
             fs:menuControl("b")
             if #menuIndex == 0 then
-                controlContext = GameMode.MAP
+                bounceProtect = true
+                ctrlConSwi("off")
             end
         end
         if playdate.buttonJustPressed("a") then
@@ -67,10 +66,13 @@ end
     if controlContext == GameMode.MAP then
         
         if playdate.buttonJustPressed("b") then
-            print("B button pressed in controlContext MAP mode")
-            local bStat = playdate.getButtonState()
-            if buttonBitMask ~= bStat then
+            if bounceProtect == false then
+                print("B button pressed in controlContext MAP mode")
                 pauseMenu()
+            elseif bounceProtect == true then
+                if playdate.buttonJustPressed("b") then
+                    bounceProtect = false
+                end
             end
         end
         if playdate.buttonJustPressed("a") then
@@ -120,6 +122,7 @@ function ctrlConSwi(item)
         elseif item == "story" then
             controlContext = GameMode.STORY
         elseif item == "map" then
+            buttonBitMask()
             controlContext = GameMode.MAP
         elseif item == "battle" then
             controlContext = GameMode.BATTLE
@@ -131,4 +134,8 @@ function ctrlConSwi(item)
     elseif item == "off" then
         controlContext = gameMode
     end
+end
+
+function buttonBitMask()
+    buttonBitMask = playdate.getButtonState()
 end
