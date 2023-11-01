@@ -57,6 +57,15 @@ function clearMenus(typ)
     gfx.setDrawOffset(0, 0)
 end
 
+function clearPauseMenu()
+    for i,v in pairs(menuIndex) do
+        v.spriteKill()
+        menuIndex[i]=nil
+        ctrlConSwi("off")
+        bounceProtectSwi("on")
+    end
+end
+
 function clearSprites()
     spriteIndex = {}
     gfx.sprite.removeAll()
@@ -90,6 +99,10 @@ function clearAll()
     clearSprites()
 end
 
+function debugMessage()
+    print("Function not yet implemented.")
+end
+
 local menuFunc = {
     ["Continue"] = function()
         clearMenus()
@@ -102,18 +115,40 @@ local menuFunc = {
         gameModeChange(mode, loc) 
     end,
     ["Options"] = function()
-        -- Implement Options functionality
+        debugMessage()
     end,
     ["Battle"] = function()
-        -- Implement Battle functionality
+        debugMessage()
     end,
+    ["Status"] = function()
+        dynaList:new(nestedMode.STATUS)
+    end,
+        ["nameHere"] = function()
+            clearPauseMenu()
+        end,
+    ["Deck"] = function()
+        debugMessage()
+    end,
+    ["Team"] = function()
+        debugMessage()
+    end,
+    ["List"] = function()
+        debugMessage()
+    end,
+    ["Save"] = function()
+        debugMessage()
+    end,
+    ["Exit"] = function()
+        clearPauseMenu()
+    end,
+    ["eof"] = 0
     -- Add more menu items and their corresponding functions here
 }
 
 function goMenu(item)
     -- Check if the selected item has a corresponding function and call it
-    if menuActions[item] then
-        menuActions[item]()
+    if menuFunc[item] then
+        menuFunc[item]()
     else
         print("No action defined for menu item:", item)
     end
@@ -151,10 +186,6 @@ function pauseView:new()
     local xPos = 0
 
     o.pauseRows = {"Status","Deck","List","Save","Exit"}
-    o.statusRows = {}
-    o.deckRows = {}
-    o.teamRows = {}
-    o.listRows = {}
     o.saveRows = {"Yes", "No"}
     if gameMode == GameMode.BATTLE then
         print("Placeholder")
@@ -223,8 +254,6 @@ function pauseView:new()
         elseif direction == "b" then
             o:spriteKill()
             menuIndex[o.index] = nil
-
-            
         end
     end
 
@@ -236,10 +265,120 @@ function pauseView:new()
     o.index = countI + 1
     menuIndex[o.index] = o
     return o
-
 end
   
 function pauseMenu()
     ctrlConSwi("pause")
     pauseView:new()
+end
+
+dynaList = playdate.ui.gridview.new(0,20)
+dynaList:setNumberOfColumns(1)
+dynaList:setNumberOfRows(1)
+dynaList:setCellPadding(0,0,4,0)
+dynaList:setContentInset(5,5,5,5)
+
+dynaList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+nestedMode = {
+    STATUS = "status"
+    ,LIST = "list"
+    ,DECK = "deck"
+    ,TEAM = "team"
+}
+
+function dynaList:new(mode)
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    local menuX = 0 --size of background box
+    local menuY = 0
+    local yPos = 0
+    local xPos = 0
+    o.listRows = {}
+    if mode == nestedMode.STATUS then
+        o.listRows = loadSavedPlayers("all")
+        printTable(o.listRows)
+    elseif mode == nestedMode.LIST then
+
+    elseif mode == nestedMode.DECK then
+        
+    elseif mode == nestedMode.TEAM then
+    
+    end
+
+    dynaList:setNumberOfColumns(1)
+    dynaList:setNumberOfRows(#o.listRows)
+    menuY = (#o.listRows * 25) + 10
+    menuX = (100)
+    xPos, yPos = menuPosition(menuPause)
+
+    function o:getOption() -- item selection in menu
+        local s = o:getSelectedRow()
+        for i,v in pairs(o.listRows) do
+            if s==i then
+                return v
+            end
+        end
+    end
+
+    local dynaListSprite = gfx.sprite.new()
+    dynaListSprite:setCenter(0,0)
+    function o:spriteKill()
+        dynaListSprite:remove()
+    end
+
+    dynaListSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local dynaListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            dynaListSprite:moveTo(xPos,yPos)
+            dynaListSprite:setZIndex(130)
+            gfx.pushContext(dynaListImage)
+            o:drawInRect(0,0,menuX,menuY)
+            gfx.popContext()
+            dynaListSprite:setImage(dynaListImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        local menuText = {}
+        if selected then
+            gfx.drawRect(x,y,width+2,height+2)
+            gfx.drawRect(x,y,width,height)
+        else
+            gfx.drawRect(x,y,width,height)
+        end
+        menuText = o.listRows
+        local fontHeight = gfx.getSystemFont():getHeight()
+        local rCount = row
+        for i,v in pairs(menuText) do
+            if rCount == i then
+                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+            end
+        end
+    end
+
+    function o:menuControl(direction) 
+
+        if direction == "up" then
+            o:selectPreviousRow(true)
+        elseif direction == "down" then
+            o:selectNextRow(true)
+        elseif direction == "b" then
+            o:spriteKill()
+            menuIndex[o.index] = nil
+        end
+    end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
 end

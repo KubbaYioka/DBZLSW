@@ -15,7 +15,7 @@ dbYamcha={04,"dbYamcha","Yamcha",80,2,1,2,2,0,0,25,1}
 
 characters = {
 
-["Kid Goku"] = {
+["dbGoku"] = {
     chrNum = 01
     ,chrCode = "dbGoku"
     ,chrName = "Goku"
@@ -29,7 +29,7 @@ characters = {
         trans1 = "Oozaru"
         }
     }
-,["Kid Krillin"] = {
+,["dbKrillin"] = {
     chrNum = 01
     ,chrCode = "dbKrillin"
     ,chrName = "Krillin"
@@ -44,7 +44,7 @@ characters = {
 
         }
     }
-,["Teen Bulma"] = {
+,["dbBulma"] = {
     chrNum = 03
     ,chrCode = "dbBulma"
     ,chrName = "Bulma"
@@ -59,7 +59,7 @@ characters = {
 
         }
     }
-,["Teen Yamcha"] = {
+,["dbYamcha"] = {
     chrNum = 04
     ,chrCode = "dbYamcha"
     ,chrName = "Yamcha"

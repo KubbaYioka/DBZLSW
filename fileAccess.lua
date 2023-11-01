@@ -52,10 +52,10 @@ function initSaveFile() --creates the initial save file if none exists
     storyDat.currentMode = GameMode.STORY
     storyDat.currentLocation = "storyLoc1"
     storyDat.completed = false
-    for i=1, 500, 1 do -- 500 card slots for now.
+    for i=1, 150, 1 do -- 1500 card slots for now.
         cardDat[i] = 0 -- starts with zero for each kind of card.
     end
-    for i=1, 300, 1 do -- 300 is a placeholder for now.
+    for i=1, 50, 1 do -- 50 is a placeholder for now.
         chrDat[i] = "none" --create character slots for all potential characters. Indexes with value "none"
     end
     local gok = chrRet("dbGoku") --start with the default character. Kid Goku
@@ -69,25 +69,17 @@ function initSaveFile() --creates the initial save file if none exists
 end
 
 --Function for pulling the saved players portion of the save file. All blank indexes ignored.
-function loadSavedPlayers(mode, chr) -- Mode will change what kind of value is returned. full is full list. names is names only. ind requires a name to come after it. 
-    local tblInc = saveCheck("all")
-    local tblMnf = tblInc[1]
-    local tblJdf = {}
-    for i, v in ipairs(tblMnf) do
-        if type(v) == "table" then
-            if mode=="names" then   --returns names of characters only
-                tblJdf[i] = v.name
-            elseif mode == "full" or mode == "ind" then
-            tblJdf[i]=v
-            end
-        end
-    end
-    if mode == "ind" then            -- returns unformatted data on single character specified by chr
-        for i,v in ipairs(tblJdf) do
-            if v.desig == chr then
+function loadSavedPlayers(chr) -- Returns the character specified from the save file. 
+    if chr == "all" then
+        local tempTab = saveCheck("chrs")
+        return tempTab
+    else
+        local tempTab = saveCheck("chrs")
+        for i,v in pairs(tempTab) do
+            if i == chr then
                 return v
             end
         end
     end
-    return tblJdf
+
 end

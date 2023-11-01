@@ -320,10 +320,12 @@ function playdate.update()
     gfx.sprite.update()
 
     menuInputContext()
-    
+
     if #menuIndex > 0 then
         for i,v in pairs(menuIndex) do
-            v:menuUpdate()
+            if i == #menuIndex then -- This ensures only the top-level menu has control context.
+                v:menuUpdate()
+            end
         end
     end
     for i,v in pairs(portIndex) do

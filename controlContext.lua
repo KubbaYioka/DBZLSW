@@ -34,7 +34,7 @@ function menuInputContext()
             local fs = menuIndex[#menuIndex]
             fs:menuControl("b")
             if #menuIndex == 0 then
-                bounceProtect = true
+                bounceProtectSwi("on")
                 ctrlConSwi("off")
             end
         end
@@ -67,17 +67,21 @@ function menuInputContext()
         
         if playdate.buttonJustPressed("b") then
             if bounceProtect == false then
-                print("B button pressed in controlContext MAP mode")
                 pauseMenu()
             elseif bounceProtect == true then
                 if playdate.buttonJustPressed("b") then
-                    bounceProtect = false
+                    bounceProtectSwi("off")
                 end
             end
         end
         if playdate.buttonJustPressed("a") then
-            pMapSprite:handleInput("a")
-
+            if bounceProtect == false then
+                pMapSprite:handleInput("a")
+            elseif bounceProtect == true then
+                if playdate.buttonJustPressed("a") then
+                    bounceProtect = false
+                end
+            end
         end
         if playdate.buttonIsPressed("right") then
 
@@ -122,7 +126,7 @@ function ctrlConSwi(item)
         elseif item == "story" then
             controlContext = GameMode.STORY
         elseif item == "map" then
-            buttonBitMask()
+            bounceProtectSwi("on")
             controlContext = GameMode.MAP
         elseif item == "battle" then
             controlContext = GameMode.BATTLE
@@ -136,6 +140,10 @@ function ctrlConSwi(item)
     end
 end
 
-function buttonBitMask()
-    buttonBitMask = playdate.getButtonState()
+function bounceProtectSwi(tog)
+    if tog == "on" then
+        bounceProtect = true
+    elseif tog == "off" then
+        bounceProtect = false
+    end
 end
