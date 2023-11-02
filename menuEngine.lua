@@ -149,15 +149,17 @@ function goMenu(item)
     -- Check if the selected item has a corresponding function and call it
     if menuFunc[item] then
         menuFunc[item]()
+    elseif not menuFunc[item] then
+        local oFat = loadSavedPlayers("all")
+        for i,v in pairs(oFat) do
+            if v.chrName == item then
+                chrStat(v)
+            end
+        end
+        --do it again for cards
     else
         print("No action defined for menu item:", item)
     end
-end
-
-function tablelength(T) --simple function to get length of table
-    local count = 0
-    for _ in pairs(T) do count = count + 1 end
-    return count
 end
 
 -- PAUSE MENU --
@@ -285,14 +287,14 @@ nestedMode = {
     ,LIST = "list"
     ,DECK = "deck"
     ,TEAM = "team"
+    ,CHAR = "character"
+    ,CARD = "card"
 }
 
-function dynaList:new(mode)
+function dynaList:new(mode,tableData)
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
-
-    
 
     local menuX = 0 --size of background box
     local menuY = 0
@@ -310,11 +312,35 @@ function dynaList:new(mode)
             end
         end
     elseif mode == nestedMode.LIST then
-
+        -- display all cards in inventory
     elseif mode == nestedMode.DECK then
-        
+        -- display all cards in the deck
     elseif mode == nestedMode.TEAM then
-    
+        -- display all characters in the team
+    elseif mode == nestedMode.CHAR then
+        -- display character info from save
+        for i,v in pairs(tableData) do
+            if v == ""
+
+--[[
+            "chrCode":"dbGoku",
+			"chrDef":2,
+			"chrExp":0,
+			"chrHp":80,
+			"chrKi":0,
+			"chrName":"Goku",
+			"chrNum":1,
+			"chrSpd":3,
+			"chrStr":2,
+			"chrTrans": {
+				"trans1":"Oozaru"
+			}]]
+            
+    elseif mode == nestedMode.CARD then
+        --display card info from save
+    else
+        print("Mode not recognized in menuEngine, dynaList.")
+        return
     end
 
     dynaList:setNumberOfColumns(1)
@@ -365,11 +391,14 @@ function dynaList:new(mode)
         local fontHeight = gfx.getSystemFont():getHeight()
         local rCount = row
         for i,v in pairs(o.listRows) do
-            local cName = " "
+            local cNum = i
+            local cNam = " "
+            local cName = nil
             if rCount == i then
                 if type(v) == "string" then
-                    cName = v
+                    cNam = v
                 end
+                cName = cNum..": "..cNam
                 gfx.drawTextInRect(cName, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
@@ -378,7 +407,7 @@ function dynaList:new(mode)
     function o:menuControl(direction) 
 
         if direction == "up" then
-            o:selectPreviousRow(true)
+            o:selectPreviousRow(true)        
         elseif direction == "down" then
             o:selectNextRow(true)
         elseif direction == "b" then
@@ -395,4 +424,9 @@ function dynaList:new(mode)
     o.index = countI + 1
     menuIndex[o.index] = o
     return o
+end
+
+function chrStat(chr)
+    printTable(chr)
+
 end
