@@ -273,9 +273,9 @@ function pauseMenu()
 end
 
 dynaList = playdate.ui.gridview.new(0,20)
-dynaList:setNumberOfColumns(1)
-dynaList:setNumberOfRows(1)
-dynaList:setCellPadding(0,0,4,0)
+dynaList:setNumberOfColumns(10)
+dynaList:setNumberOfRows(5,5,5,5,5,5,5,5,5,5)
+dynaList:setCellPadding(0,0,5,5)
 dynaList:setContentInset(5,5,5,5)
 
 dynaList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
@@ -292,14 +292,23 @@ function dynaList:new(mode)
     setmetatable(o,self)
     self.__index=self
 
+    
+
     local menuX = 0 --size of background box
     local menuY = 0
     local yPos = 0
     local xPos = 0
     o.listRows = {}
     if mode == nestedMode.STATUS then
-        o.listRows = loadSavedPlayers("all")
-        printTable(o.listRows)
+        dynaList:setNumberOfSections(10)
+        local oFat = loadSavedPlayers("all")
+        for i,v in pairs(oFat) do
+            if type(v) == "table" then
+                o.listRows[i] = v.chrName
+            else
+                o.listRows[i] = " "
+            end
+        end
     elseif mode == nestedMode.LIST then
 
     elseif mode == nestedMode.DECK then
@@ -310,7 +319,8 @@ function dynaList:new(mode)
 
     dynaList:setNumberOfColumns(1)
     dynaList:setNumberOfRows(#o.listRows)
-    menuY = (#o.listRows * 25) + 10
+
+    menuY = (6 * 25) + 10
     menuX = (100)
     xPos, yPos = menuPosition(menuPause)
 
@@ -354,9 +364,13 @@ function dynaList:new(mode)
         menuText = o.listRows
         local fontHeight = gfx.getSystemFont():getHeight()
         local rCount = row
-        for i,v in pairs(menuText) do
+        for i,v in pairs(o.listRows) do
+            local cName = " "
             if rCount == i then
-                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+                if type(v) == "string" then
+                    cName = v
+                end
+                gfx.drawTextInRect(cName, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
     end
