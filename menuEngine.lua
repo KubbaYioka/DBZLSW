@@ -275,8 +275,8 @@ function pauseMenu()
 end
 
 dynaList = playdate.ui.gridview.new(0,20)
-dynaList:setNumberOfColumns(10)
-dynaList:setNumberOfRows(5,5,5,5,5,5,5,5,5,5)
+dynaList:setNumberOfColumns(1)
+dynaList:setNumberOfRows(5)
 dynaList:setCellPadding(0,0,5,5)
 dynaList:setContentInset(5,5,5,5)
 
@@ -311,43 +311,77 @@ function dynaList:new(mode,tableData)
                 o.listRows[i] = " "
             end
         end
+        menuY = (6 * 25) + 10
+        menuX = (100)
+        dynaList:setNumberOfColumns(1)
+        dynaList:setNumberOfRows(#o.listRows)
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
+        menuY = (6 * 25) + 10
+        menuX = (100)
     elseif mode == nestedMode.DECK then
         -- display all cards in the deck
+        menuY = (6 * 25) + 10
+        menuX = (100)
     elseif mode == nestedMode.TEAM then
         -- display all characters in the team
+        menuY = (6 * 25) + 10
+        menuX = (100)
     elseif mode == nestedMode.CHAR then
         -- display character info from save
-        for i,v in pairs(tableData) do
-            if v == ""
 
---[[
-            "chrCode":"dbGoku",
-			"chrDef":2,
-			"chrExp":0,
-			"chrHp":80,
-			"chrKi":0,
-			"chrName":"Goku",
-			"chrNum":1,
-			"chrSpd":3,
-			"chrStr":2,
-			"chrTrans": {
-				"trans1":"Oozaru"
-			}]]
+        for i,v in pairs(tableData) do
+            if i == "chrHp" then
+                o.listRows["HP"] = v
+            end
+            if i == "chrStr" then
+                o.listRows["Strength"] = v
+            end
+            if i == "chrKi" then
+                o.listRows["Ki"] = v                
+            end
+            if i == "chrDef" then
+                o.listRows["Defense"] = v
+            end
+            if i == "chrSpd" then
+                o.listRows["Speed"] = v
+            end
+            if i == "chrExp" then
+                o.listRows["EXP"] = v
+            end
+            if i == "chrTrans" then
+                if v[1] == "none" then
+                    o.listRows["Transformations"] = "none"
+                else
+                    o.listRows["Transformations"] = v
+                end
+            end
+            
+        end
+
+        printTable(o.listRows)
+        print(#o.listRows)
+
+        o.category = {"HP","Strength","KI","Defense","Speed","EXP","Transformations"}
+        menuY = (#o.listRows) + 10
+        menuX = (100)
+        dynaList:setNumberOfColumns(1)
+
+        local count = 0
+        for _ in pairs(o.listRows) do
+            count = count + 1
+        end
+        dynaList:setNumberOfRows(count)
             
     elseif mode == nestedMode.CARD then
         --display card info from save
+        menuY = (6 * 25) + 10
+        menuX = (100)
     else
         print("Mode not recognized in menuEngine, dynaList.")
         return
     end
 
-    dynaList:setNumberOfColumns(1)
-    dynaList:setNumberOfRows(#o.listRows)
-
-    menuY = (6 * 25) + 10
-    menuX = (100)
     xPos, yPos = menuPosition(menuPause)
 
     function o:getOption() -- item selection in menu
@@ -369,9 +403,15 @@ function dynaList:new(mode,tableData)
 
     function o:menuUpdate()
         if o.needsDisplay then
+            local zInNew = 100
             local dynaListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             dynaListSprite:moveTo(xPos,yPos)
-            dynaListSprite:setZIndex(130)
+            for i,v in pairs(menuIndex) do
+                if i == #menuIndex then
+                    zInNew = v:getZIndex()
+                end
+            end
+            dynaListSprite:setZIndex(zInNew)
             gfx.pushContext(dynaListImage)
             o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
@@ -390,16 +430,22 @@ function dynaList:new(mode,tableData)
         menuText = o.listRows
         local fontHeight = gfx.getSystemFont():getHeight()
         local rCount = row
-        for i,v in pairs(o.listRows) do
-            local cNum = i
-            local cNam = " "
-            local cName = nil
-            if rCount == i then
-                if type(v) == "string" then
-                    cNam = v
+        if mode == nestedMode.STATUS then
+            for i,v in pairs(o.listRows) do
+                local cNum = i
+                local cNam = " "
+                local cName = nil
+                if rCount == i then
+                    if type(v) == "string" then
+                        cNam = v
+                    end
+                    cName = cNum..": "..cNam
+                    gfx.drawTextInRect(cName, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
                 end
-                cName = cNum..": "..cNam
-                gfx.drawTextInRect(cName, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+            end
+        elseif mode == nestedMode.CHAR then
+            for i,v in pairs(o.listRows) do
+                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
     end
@@ -427,6 +473,5 @@ function dynaList:new(mode,tableData)
 end
 
 function chrStat(chr)
-    printTable(chr)
-
+    dynaList:new(nestedMode.CHAR,chr)
 end
