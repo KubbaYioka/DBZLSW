@@ -403,14 +403,10 @@ function dynaList:new(mode,tableData)
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local zInNew = 100
+            local zInNew = 130
             local dynaListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             dynaListSprite:moveTo(xPos,yPos)
-            for i,v in pairs(menuIndex) do
-                if i == #menuIndex then
-                    zInNew = v:getZIndex()
-                end
-            end
+            zInNew = zInNew + #menuIndex
             dynaListSprite:setZIndex(zInNew)
             gfx.pushContext(dynaListImage)
             o:drawInRect(0,0,menuX,menuY)
