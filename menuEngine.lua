@@ -329,50 +329,51 @@ function dynaList:new(mode,tableData)
         menuX = (100)
     elseif mode == nestedMode.CHAR then
         -- display character info from save
-
+        local hp = nil
+        local str = nil
+        local ki = nil
+        local def = nil
+        local spd = nil
+        local exp = nil
+        local trans = {}
         for i,v in pairs(tableData) do
             if i == "chrHp" then
-                o.listRows[1] = v
+                hp = tostring(v)
             end
             if i == "chrStr" then
-                o.listRows[2] = v
+                str = tostring(v)
             end
             if i == "chrKi" then
-                o.listRows[3] = v                
+                ki = tostring(v)                
             end
             if i == "chrDef" then
-                o.listRows[3] = v
+                def = tostring(v)
             end
             if i == "chrSpd" then
-                o.listRows[4] = v
+                spd = tostring(v)
             end
             if i == "chrExp" then
-                o.listRows[5] = v
+                exp = tostring(v)
             end
             if i == "chrTrans" then
                 if v[1] == "none" then
-                    o.listRows[6] = "none"
+                    trans = "none"
                 else
-                    o.listRows[6] = v
+                    trans = v
                 end
             end
             
         end
-
+        o.listRows = {hp,str,ki,def,spd,exp,trans}
         --printTable(o.listRows)
         --print(#o.listRows)
 
         o.category = {"HP","Strength","KI","Defense","Speed","EXP","Transformations"}
         print("listrows: "..#o.listRows)
-        local cCount = 0
-        for _ in pairs(o.listRows) do
-            cCount = cCount + 1
-        end
-
-        menuY = (cCount * 25) + 10
+        menuY = (#o.listRows * 25) + 10
         menuX = (100)
         dynaList:setNumberOfColumns(1)
-        dynaList:setNumberOfRows(cCount)
+        dynaList:setNumberOfRows(#o.listRows)
             
     elseif mode == nestedMode.CARD then
         --display card info from save
@@ -441,9 +442,8 @@ function dynaList:new(mode,tableData)
                 end
             end
         elseif mode == nestedMode.CHAR then
-            local fStr = {}
             for i,v in pairs(o.listRows) do
-                printTable(v)
+                print(v)
                 gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
