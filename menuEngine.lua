@@ -442,9 +442,15 @@ function dynaList:new(mode,tableData)
                 end
             end
         elseif mode == nestedMode.CHAR then
+            local fEnum = nil
             for i,v in pairs(o.listRows) do
-                print(v)
-                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+                if type(v) == "table" then
+                    local cb = #v
+                    fEnum = cb
+                else
+                    fEnum = v
+                end
+                gfx.drawTextInRect(fEnum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
     end
