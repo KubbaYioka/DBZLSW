@@ -443,14 +443,20 @@ function dynaList:new(mode,tableData)
             end
         elseif mode == nestedMode.CHAR then
             local fEnum = nil
+            local cb = nil
             for i,v in pairs(o.listRows) do
-                if type(v) == "table" then
-                    local cb = #v
-                    fEnum = cb
-                else
-                    fEnum = v
+                if i==rCount then
+                    if type(v) == "table" then
+                        cb = tostring(#v)
+                    end
+                    for k,b in pairs (o.category) do
+                        if k==rCount then
+                            fEnum = b..": "..v
+                        end
+                    end
+
+                    gfx.drawTextInRect(fEnum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
                 end
-                gfx.drawTextInRect(fEnum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
     end
