@@ -15,6 +15,8 @@ function menuPosition(menuName)
         return 120, 120
     elseif menuName == menuBattle or menuName == menuPause then
         return 40,40
+    elseif menuName == zeroOut then
+        return 0,0
     else
         print("menuName not recognized in menuPosition - menuCat.lua")
         return 100,100

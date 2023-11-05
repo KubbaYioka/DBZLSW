@@ -311,20 +311,24 @@ function dynaList:new(mode,tableData)
                 o.listRows[i] = " "
             end
         end
+        xPos, yPos = menuPosition(menuPause)
         menuY = (6 * 25) + 10
         menuX = (100)
         dynaList:setNumberOfColumns(1)
         dynaList:setNumberOfRows(#o.listRows)
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
+        xPos, yPos = menuPosition(menuPause)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.DECK then
         -- display all cards in the deck
+        xPos, yPos = menuPosition(menuPause)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.TEAM then
         -- display all characters in the team
+        xPos, yPos = menuPosition(menuPause)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.CHAR then
@@ -370,8 +374,9 @@ function dynaList:new(mode,tableData)
 
         o.category = {"HP","Strength","KI","Defense","Speed","EXP","Transformations"}
         print("listrows: "..#o.listRows)
+        xPos, yPos = menuPosition(menuPause)
         menuY = (#o.listRows * 25) + 10
-        menuX = (100)
+        menuX = (200)
         dynaList:setNumberOfColumns(1)
         dynaList:setNumberOfRows(#o.listRows)
             
@@ -383,8 +388,6 @@ function dynaList:new(mode,tableData)
         print("Mode not recognized in menuEngine, dynaList.")
         return
     end
-
-    xPos, yPos = menuPosition(menuPause)
 
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
@@ -454,7 +457,6 @@ function dynaList:new(mode,tableData)
                             fEnum = b..": "..v
                         end
                     end
-
                     gfx.drawTextInRect(fEnum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
                 end
             end
@@ -462,7 +464,6 @@ function dynaList:new(mode,tableData)
     end
 
     function o:menuControl(direction) 
-
         if direction == "up" then
             o:selectPreviousRow(true)
         elseif direction == "down" then
@@ -483,6 +484,9 @@ function dynaList:new(mode,tableData)
     return o
 end
 
+menuBackground = gfx.sprite.new()
+
 function chrStat(chr)
+    --create background
     dynaList:new(nestedMode.CHAR,chr)
 end
