@@ -52,7 +52,6 @@ function nameTag:new(pos, name) -- create nametag at designated position
 end
 
 function ChrPort:new(image, pos)
-    print("portrait created")
     local o=o or {}
     setmetatable(o, self)
     self.__index=self

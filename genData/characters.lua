@@ -87,3 +87,14 @@ end
 function chrList() -- function that scans the save file for a list of available characters and returns those that are there
     
 end
+
+-- Chr Portrait Enum
+
+ChrPorts = {
+    dbGoku = 1
+    ,db = 2
+
+
+
+
+}

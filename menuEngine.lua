@@ -256,6 +256,13 @@ function pauseView:new()
         elseif direction == "b" then
             o:spriteKill()
             menuIndex[o.index] = nil
+            
+            for i,v in pairs(otherIndex) do
+                if v.menuObj then
+                    otherIndex.v = nil
+                    v:remove()
+                end
+            end
         end
     end
 
@@ -271,8 +278,12 @@ end
   
 function pauseMenu()
     ctrlConSwi("pause")
+    local menuBSpr = MenuBackground(0,0,"menuOne")
+    menuBSpr:add()
     pauseView:new()
 end
+
+
 
 dynaList = playdate.ui.gridview.new(0,20)
 dynaList:setNumberOfColumns(1)
@@ -296,6 +307,12 @@ function dynaList:new(mode,tableData)
     setmetatable(o,self)
     self.__index=self
 
+    if mode == nestedMode.STATUS or mode == nestedMode.DECK or mode == nestedMode.LIST or mode == nestedMode.TEAM then
+        o.bSpr = true
+        local menuBSpr = MenuBackground(0,0,"menuTwo")
+        menuBSpr:add()
+    end
+
     local menuX = 0 --size of background box
     local menuY = 0
     local yPos = 0
@@ -311,7 +328,7 @@ function dynaList:new(mode,tableData)
                 o.listRows[i] = " "
             end
         end
-        xPos, yPos = menuPosition(menuPause)
+        xPos, yPos = menuPosition(dynaMenu)
         menuY = (6 * 25) + 10
         menuX = (100)
         dynaList:setNumberOfColumns(1)
@@ -369,12 +386,9 @@ function dynaList:new(mode,tableData)
             
         end
         o.listRows = {hp,str,ki,def,spd,exp,trans}
-        --printTable(o.listRows)
-        --print(#o.listRows)
 
         o.category = {"HP","Strength","KI","Defense","Speed","EXP","Transformations"}
-        print("listrows: "..#o.listRows)
-        xPos, yPos = menuPosition(menuPause)
+        xPos, yPos = menuPosition(dynaMenu)
         menuY = (#o.listRows * 25) + 10
         menuX = (200)
         dynaList:setNumberOfColumns(1)
@@ -469,6 +483,14 @@ function dynaList:new(mode,tableData)
         elseif direction == "down" then
             o:selectNextRow(true)
         elseif direction == "b" then
+            if o.bSpr == true then
+                for i,v in pairs(otherIndex) do
+                    if v.menuWhi then
+                        otherIndex.v = nil
+                        v:remove()
+                    end
+                end
+            end
             o:spriteKill()
             menuIndex[o.index] = nil
         end
@@ -484,9 +506,84 @@ function dynaList:new(mode,tableData)
     return o
 end
 
-menuBackground = gfx.sprite.new()
+specialBox = playdate.ui.gridview.new(0,20)
+specialBox:setNumberOfColumns(1)
+specialBox:setNumberOfRows(1)
+specialBox:setCellPadding(0,0,0,0)
+specialBox:setContentInset(5,5,5,5)
 
-function chrStat(chr)
-    --create background
+function specialBox:new()
+
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    o.leftImage == nil
+    o.rightImage == nil
+    o.textBox = nil
+    o.tickerLeft = nil
+    o.tickerRight = nil
+
+
+end
+
+class('MenuBackground').extends(gfx.sprite)
+
+function MenuBackground:init(x,y,back)
+    MenuBackground.super.init(self)
+    if back == "menuOne" then
+        local menuImage = gfx.image.new('assets/images/background/menu.png')
+        self:setImage(menuImage)
+        self.menuObj = 1
+        self:setZIndex(60)
+    elseif back == "menuTwo" then
+        local menuImage = gfx.image.new('assets/images/background/400240.png')
+        self:setImage(menuImage)
+        self.menuWhi = 1
+        self:setZIndex(131)
+    end
+
+    -- Properties
+    self:setCenter(0,0)
+    self:moveTo(x, y)
+    local numberO = #otherIndex + 1
+    otherIndex[numberO] = self
+end
+
+class('MenuIcon').extends(gfx.sprite)
+function MenuIcon:init(x, y, image)
+    MenuBackground.super.init(self)
+    if image == "menuIcon" then
+        local iconTable = gfx.imagetable.new('assets/images/background/menuIcon-table-47-39')
+            -- Define sprite states
+        self:addState("chara",1)
+        self:addState("team",2)
+        self:addState("list",3)
+        self:addState("joint",4)
+    else
+        local iconTable = gfx.imagetable.new("assets/images/portraits/portRoster-table-47-47")
+    end
+
+    function getPort(ima)
+        for i,v in pairs(ChrPorts) then
+            if i == ima then
+                print("Found i")
+            elseif v == ima then
+                print("Found v")
+            end
+        end
+    end
+
+    self:setCenter(0, 0)
+    self:setZIndex(70)
+    self.menuIcon = 1
+    self:add()
+end
+
+function changeIcon(icon)
+
+end
+
+function chrStat(chr) -- Render character stat screen.
     dynaList:new(nestedMode.CHAR,chr)
 end

@@ -23,7 +23,7 @@ function PlayerMSprite:init(image)
     self:setCollideRect( 0, 0, self:getSize())
     self:collisionsEnabled()
     self:changeState("down",true)
-    self:setZIndex(100)
+    self:setZIndex(50)
     self:add()
 end
 
@@ -80,7 +80,7 @@ function ObjectSprite:init(image)
     
     --Other Properties
     self:changeState("down",true)
-    self:setZIndex(100)
+    self:setZIndex(50)
     self:setCollideRect( 0, 0, self:getSize() )
     self:collisionsEnabled()
     self:add()

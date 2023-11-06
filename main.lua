@@ -63,6 +63,7 @@ gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16
 menuIndex = {}
 portIndex = {}
 tagIndex = {}
+otherIndex = {}
 mapObjIndex = {}
 
 --Menu Object Classes
