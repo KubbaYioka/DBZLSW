@@ -64,6 +64,12 @@ function clearPauseMenu()
         ctrlConSwi("off")
         bounceProtectSwi("on")
     end
+    for i,v in pairs(otherIndex) do
+        if v.menuObj then
+            otherIndex.v = nil
+            v:remove()
+        end
+    end
 end
 
 function clearSprites()
@@ -256,13 +262,7 @@ function pauseView:new()
         elseif direction == "b" then
             o:spriteKill()
             menuIndex[o.index] = nil
-            
-            for i,v in pairs(otherIndex) do
-                if v.menuObj then
-                    otherIndex.v = nil
-                    v:remove()
-                end
-            end
+            clearPauseMenu()
         end
     end
 
@@ -282,8 +282,6 @@ function pauseMenu()
     menuBSpr:add()
     pauseView:new()
 end
-
-
 
 dynaList = playdate.ui.gridview.new(0,20)
 dynaList:setNumberOfColumns(1)
@@ -311,6 +309,7 @@ function dynaList:new(mode,tableData)
         o.bSpr = true
         local menuBSpr = MenuBackground(0,0,"menuTwo")
         menuBSpr:add()
+
     end
 
     local menuX = 0 --size of background box
@@ -383,7 +382,6 @@ function dynaList:new(mode,tableData)
                     trans = v
                 end
             end
-            
         end
         o.listRows = {hp,str,ki,def,spd,exp,trans}
 
@@ -518,8 +516,8 @@ function specialBox:new()
     setmetatable(o,self)
     self.__index=self
 
-    o.leftImage == nil
-    o.rightImage == nil
+    o.leftImage = nil
+    o.rightImage = nil
     o.textBox = nil
     o.tickerLeft = nil
     o.tickerRight = nil
@@ -550,22 +548,25 @@ function MenuBackground:init(x,y,back)
     otherIndex[numberO] = self
 end
 
-class('MenuIcon').extends(gfx.sprite)
-function MenuIcon:init(x, y, image)
+class('MenuIcon').extends(AnimatedSprite)
+function MenuIcon:init(x, y, image, menuI)
     MenuBackground.super.init(self)
-    if image == "menuIcon" then
-        local iconTable = gfx.imagetable.new('assets/images/background/menuIcon-table-47-39')
+    if menuI == "menuIcon" then
+        local iconTable = gfx.imagetable.new('assets/images/background/menuIcon-table-48-40')
             -- Define sprite states
-        self:addState("chara",1)
+        self:addState("character",1)
         self:addState("team",2)
         self:addState("list",3)
-        self:addState("joint",4)
+        self:addState("deck",4)
+        self.menuIcon = 1
+        self.changeState(image)
     else
-        local iconTable = gfx.imagetable.new("assets/images/portraits/portRoster-table-47-47")
+        local iconTable = gfx.imagetable.new("assets/images/portraits/portRoster-table-48-48")
+        self.menuPort = 1
     end
 
     function getPort(ima)
-        for i,v in pairs(ChrPorts) then
+        for i,v in pairs(ChrPorts) do
             if i == ima then
                 print("Found i")
             elseif v == ima then
@@ -575,9 +576,11 @@ function MenuIcon:init(x, y, image)
     end
 
     self:setCenter(0, 0)
-    self:setZIndex(70)
-    self.menuIcon = 1
-    self:add()
+    self:moveTo(x, y)
+    self:setZIndex(140)
+    
+    local numberO = #otherIndex + 1
+    otherIndex[numberO] = self
 end
 
 function changeIcon(icon)
@@ -586,4 +589,6 @@ end
 
 function chrStat(chr) -- Render character stat screen.
     dynaList:new(nestedMode.CHAR,chr)
+    local iconMenu = MenuIcon(344,0,nestedMode.CHAR, "menuIcon")
+    iconMenu:add()
 end
