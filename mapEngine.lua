@@ -56,6 +56,7 @@ function createMapObj(table,visSkip)
         mapObjIndex[tempIndexNum] = tempObj
     end
 end
+
 function ObjectSprite:init(image)
     local oTable = gfx.imagetable.new(image)
     ObjectSprite.super.init(self,oTable)

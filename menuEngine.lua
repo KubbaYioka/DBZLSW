@@ -128,18 +128,22 @@ local menuFunc = {
     end,
     ["Status"] = function()
         dynaList:new(nestedMode.STATUS)
+        createMenuIcon(nestedMode.STATUS)
     end,
         ["nameHere"] = function()
             clearPauseMenu()
         end,
     ["Deck"] = function()
         debugMessage()
+        createMenuIcon(nestedMode.DECK)
     end,
     ["Team"] = function()
         debugMessage()
+        createMenuIcon(nestedMode.TEAM)
     end,
     ["List"] = function()
         debugMessage()
+        createMenuIcon(nestedMode.LIST)
     end,
     ["Save"] = function()
         debugMessage()
@@ -489,6 +493,12 @@ function dynaList:new(mode,tableData)
                     end
                 end
             end
+            for k, c in pairs(otherIndex) do
+                if c.menuIcon then
+                    otherIndex.c = nil
+                    c:remove()
+                end
+            end
             o:spriteKill()
             menuIndex[o.index] = nil
         end
@@ -549,46 +559,42 @@ function MenuBackground:init(x,y,back)
 end
 
 class('MenuIcon').extends(AnimatedSprite)
-function MenuIcon:init(x, y, image, menuI)
-    MenuBackground.super.init(self)
-    if menuI == "menuIcon" then
-        local iconTable = gfx.imagetable.new('assets/images/background/menuIcon-table-48-40')
-            -- Define sprite states
-        self:addState("character",1)
-        self:addState("team",2)
-        self:addState("list",3)
-        self:addState("deck",4)
-        self.menuIcon = 1
-        self.changeState(image)
-    else
-        local iconTable = gfx.imagetable.new("assets/images/portraits/portRoster-table-48-48")
-        self.menuPort = 1
-    end
 
-    function getPort(ima)
-        for i,v in pairs(ChrPorts) do
-            if i == ima then
-                print("Found i")
-            elseif v == ima then
-                print("Found v")
-            end
-        end
-    end
+function MenuIcon:init(image)
+    print("menuIcon")
+
+    local oTable = gfx.imagetable.new(image)
+    MenuIcon.super.init(self, oTable)
+
+    -- Define sprite states
+    self:addState("status",1,1)
+    self:addState("team",2,2)
+    self:addState("list",3,3)
+    self:addState("deck",4,4)
+    self:playAnimation()
+
+    self.menuIcon = 1
+
+    self.changeState("character")
 
     self:setCenter(0, 0)
-    self:moveTo(x, y)
-    self:setZIndex(140)
+    self:moveTo(320, 0)
+    self:setZIndex(190)
     
     local numberO = #otherIndex + 1
     otherIndex[numberO] = self
+    self:add()
 end
 
 function changeIcon(icon)
 
 end
 
+function createMenuIcon(icon)
+    local iconMenu = MenuIcon('assets/images/background/menuIcon-table-48-40')
+    iconMenu:changeState(icon)
+end
+
 function chrStat(chr) -- Render character stat screen.
     dynaList:new(nestedMode.CHAR,chr)
-    local iconMenu = MenuIcon(344,0,nestedMode.CHAR, "menuIcon")
-    iconMenu:add()
 end
