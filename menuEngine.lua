@@ -313,7 +313,6 @@ function dynaList:new(mode,tableData)
         o.bSpr = true
         local menuBSpr = MenuBackground(0,0,"menuTwo")
         menuBSpr:add()
-
     end
 
     local menuX = 0 --size of background box
@@ -586,9 +585,6 @@ function MenuIcon:init(image)
     self:add()
 end
 
-function changeIcon(icon)
-
-end
 
 function createMenuIcon(icon)
     local iconMenu = MenuIcon('assets/images/background/menuIcon-table-48-40')
