@@ -319,21 +319,47 @@ function dynaList:new(mode,tableData)
     local menuY = 0
     local yPos = 0
     local xPos = 0
+
     o.listRows = {}
     if mode == nestedMode.STATUS then
-        dynaList:setNumberOfSections(10)
         local oFat = loadSavedPlayers("all")
+        local pol = {
+            [1] = {}
+            ,[2] = {}
+            ,[3] = {}
+            ,[4] = {}
+            ,[5] = {}
+            ,[6] = {}
+            ,[7] = {}
+            ,[8] = {}
+            ,[9] = {}
+            ,[10] = {}
+        }
+
+        local cIn = 1 
         for i,v in pairs(oFat) do
-            if type(v) == "table" then
-                o.listRows[i] = v.chrName
-            else
-                o.listRows[i] = " "
+            for k,b in pairs(v) do
+                if type(b) == "table" then
+                    local vnb = b.chrNum
+                    local hhj = b.chrName
+                    for u,r in pairs (pol[cIn]) do
+                        print(u)
+                        if b.chrNum == u then
+                            r = b.chrName
+                        end
+                    end
+                else 
+                    for u,r in pairs (pol[cIn]) do
+                        r = " "
+                    end
+                end
             end
         end
-        xPos, yPos = menuPosition(dynaMenu)
+
+        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
-        dynaList:setNumberOfColumns(1)
+        dynaList:setNumberOfColumns(#o.listRows)
         dynaList:setNumberOfRows(#o.listRows)
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
@@ -389,7 +415,7 @@ function dynaList:new(mode,tableData)
         o.listRows = {hp,str,ki,def,spd,exp,trans}
 
         o.category = {"HP","Strength","KI","Defense","Speed","EXP","Transformations"}
-        xPos, yPos = menuPosition(dynaMenu)
+        xPos, yPos = menuPosition(menuPosEnum.menuPosChr)
         menuY = (#o.listRows * 25) + 10
         menuX = (200)
         dynaList:setNumberOfColumns(1)
@@ -440,6 +466,7 @@ function dynaList:new(mode,tableData)
         if selected then
             gfx.drawRect(x,y,width+2,height+2)
             gfx.drawRect(x,y,width,height)
+
         else
             gfx.drawRect(x,y,width,height)
         end
@@ -517,20 +544,13 @@ specialBox = playdate.ui.gridview.new(0,20)
 specialBox:setNumberOfColumns(1)
 specialBox:setNumberOfRows(1)
 specialBox:setCellPadding(0,0,0,0)
-specialBox:setContentInset(5,5,5,5)
+specialBox:setContentInset(0,0,0,0)
 
-function specialBox:new()
-
+-- A basic and configurable black box with text inside. 
+function specialBox:new(x,y,w,h,text) -- text will be the result of a function
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
-
-    o.leftImage = nil
-    o.rightImage = nil
-    o.textBox = nil
-    o.tickerLeft = nil
-    o.tickerRight = nil
-
 
 end
 
@@ -560,7 +580,6 @@ end
 class('MenuIcon').extends(AnimatedSprite)
 
 function MenuIcon:init(image)
-    print("menuIcon")
 
     local oTable = gfx.imagetable.new(image)
     MenuIcon.super.init(self, oTable)

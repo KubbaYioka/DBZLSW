@@ -49,11 +49,13 @@ function menuInputContext()
         if playdate.buttonJustPressed("up") then
             local fs = menuIndex[#menuIndex]
             fs:menuControl("up")
+
         end
 
         if playdate.buttonJustPressed("down") then
             local fs = menuIndex[#menuIndex]
             fs:menuControl("down")
+
         end
     end
 
@@ -118,6 +120,7 @@ function menuInputContext()
         end
 
     end
+
 end
 function ctrlConSwi(item)
     if item ~= "off" then
