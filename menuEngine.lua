@@ -156,14 +156,19 @@ local menuFunc = {
 }
 
 function goMenu(item)
+    print(item)
     -- Check if the selected item has a corresponding function and call it
     if menuFunc[item] then
         menuFunc[item]()
     elseif not menuFunc[item] then
         local oFat = loadSavedPlayers("all")
         for i,v in pairs(oFat) do
-            if v.chrName == item then
-                chrStat(v)
+            printTable(v)
+            for k,c in pairs(v) do
+
+                if c.chrName == item then
+                    chrStat(c)
+                end
             end
         end
         --do it again for cards
@@ -336,26 +341,19 @@ function dynaList:new(mode,tableData)
             ,[10] = {}
         }
 
-        local cIn = 1 
         for i,v in pairs(oFat) do
             for k,b in pairs(v) do
                 if type(b) == "table" then
                     local vnb = b.chrNum
                     local hhj = b.chrName
-                    for u,r in pairs (pol[cIn]) do
-                        print(u)
-                        if b.chrNum == u then
-                            r = b.chrName
-                        end
-                    end
+                    pol[vnb] = b.chrName
                 else 
-                    for u,r in pairs (pol[cIn]) do
-                        r = " "
-                    end
+                    print("none")
                 end
             end
         end
-
+        printTable(pol)
+        o.listRows = pol
         xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
