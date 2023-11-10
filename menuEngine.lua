@@ -26,26 +26,26 @@ function gridviewRend()
     return gridview
 end
 
-function gameModeChange(mode, location, index)
-    if mode == GameMode.BATTLE then
+function gameModeChange(gMode, location, index)
+    if gMode == GameMode.BATTLE then
         controlContext = GameMode.BATTLE
         --display vs and transition
-    elseif mode == GameMode.MENU then
+    elseif gMode == GameMode.MENU then
         controlContext = GameMode.MENU
         -- gridview etc etc
         -- load appropriate menu
-    elseif mode == GameMode.MAP then
+    elseif gMode == GameMode.MAP then
         controlContext = GameMode.MAP
         clearAll()
         gfx.clear()
         goMap(location) -- loads map from appropriate dataset
-    elseif mode == GameMode.STORY then
+    elseif gMode == GameMode.STORY then
         controlContext = GameMode.STORY
        -- gridview:new(name, rows, columns, options, index, mType)
-        gridview:new(mode, location)
+        gridview:new(gMode, location)
         -- load appropriate story
     end
-    gameMode = mode
+    gameMode = gMode
 end
 
 function clearMenus(typ)
@@ -112,13 +112,13 @@ end
 local menuFunc = {
     ["Continue"] = function()
         clearMenus()
-        local mode, loc = gameContinue()
-        gameModeChange(mode, loc)
+        local nMode, loc = gameContinue()
+        gameModeChange(nMode, loc)
     end,
     ["New Game"] = function()
         clearMenus()
-        local mode, loc = gameContinue()
-        gameModeChange(mode, loc) 
+        local nMode, loc = gameContinue()
+        gameModeChange(nMode, loc) 
     end,
     ["Options"] = function()
         debugMessage()
@@ -156,14 +156,12 @@ local menuFunc = {
 }
 
 function goMenu(item)
-    print(item)
     -- Check if the selected item has a corresponding function and call it
     if menuFunc[item] then
         menuFunc[item]()
     elseif not menuFunc[item] then
         local oFat = loadSavedPlayers("all")
         for i,v in pairs(oFat) do
-            printTable(v)
             for k,c in pairs(v) do
 
                 if c.chrName == item then
@@ -310,9 +308,12 @@ nestedMode = {
 }
 
 function dynaList:new(mode,tableData)
+    print(mode)
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
+
+    o.mMode = mode
 
     if mode == nestedMode.STATUS or mode == nestedMode.DECK or mode == nestedMode.LIST or mode == nestedMode.TEAM then
         o.bSpr = true
@@ -327,45 +328,55 @@ function dynaList:new(mode,tableData)
 
     o.listRows = {}
     if mode == nestedMode.STATUS then
+        o.hasColumns = true
         local oFat = loadSavedPlayers("all")
-        local pol = {
-            [1] = {}
-            ,[2] = {}
-            ,[3] = {}
-            ,[4] = {}
-            ,[5] = {}
-            ,[6] = {}
-            ,[7] = {}
-            ,[8] = {}
-            ,[9] = {}
-            ,[10] = {}
-        }
-
+        printTable(oFat)
+        local pol = {}
+        for i=1,10,1 do -- create a nested table for comparison to all saved players
+            local keyIterate = i
+            local demoTabl = {}
+            for g=1,5,1 do
+                demoTabl[g] = "none"
+            end
+            pol[i] = demoTabl
+        end
+        --print("oFat: ")
+        --printTable(oFat)
         for i,v in pairs(oFat) do
             for k,b in pairs(v) do
                 if type(b) == "table" then
-                    local vnb = b.chrNum
-                    local hhj = b.chrName
-                    pol[vnb] = b.chrName
-                else 
-                    print("none")
+                    local tabLvlOne = {}
+                    for n,m in pairs(pol) do
+                        if i==n then
+                            print("i = ",i," n = ",n)
+                            for e,a in pairs(m) do
+                                print("e: ",e," a: ",a)
+                                if e==k then
+                                    [e]=b.chrName
+                                    print(a)
+                                end
+                            end
+                        end
+                    end
                 end
             end
         end
-        printTable(pol)
         o.listRows = pol
+        printTable(o.listRows)
         xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
         dynaList:setNumberOfColumns(#o.listRows)
-        dynaList:setNumberOfRows(#o.listRows)
+        dynaList:setNumberOfRows(5,5,5,5,5,5,5,5,5,5)
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
+        o.hasColumns = true
         xPos, yPos = menuPosition(menuPause)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.DECK then
         -- display all cards in the deck
+        o.hasColumns = true
         xPos, yPos = menuPosition(menuPause)
         menuY = (6 * 25) + 10
         menuX = (100)
@@ -468,10 +479,14 @@ function dynaList:new(mode,tableData)
         else
             gfx.drawRect(x,y,width,height)
         end
-        menuText = o.listRows
+        
         local fontHeight = gfx.getSystemFont():getHeight()
         local rCount = row
         if mode == nestedMode.STATUS then
+            
+            menuText = o.listRows
+            local cellText = tostring(row) .. "-" .. tostring(column)
+            print(cellText)
             for i,v in pairs(o.listRows) do
                 local cNum = i
                 local cNam = " "
@@ -485,6 +500,7 @@ function dynaList:new(mode,tableData)
                 end
             end
         elseif mode == nestedMode.CHAR then
+            menuText = o.listRows
             local fEnum = nil
             local cb = nil
             for i,v in pairs(o.listRows) do
@@ -508,6 +524,10 @@ function dynaList:new(mode,tableData)
             o:selectPreviousRow(true)
         elseif direction == "down" then
             o:selectNextRow(true)
+        elseif direction == "right" then
+            o:selectNextColumn(true)
+        elseif direction == "left" then
+            o:selectPreviousColumn(true)
         elseif direction == "b" then
             if o.bSpr == true then
                 for i,v in pairs(otherIndex) do

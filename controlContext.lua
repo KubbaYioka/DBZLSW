@@ -43,8 +43,20 @@ function menuInputContext()
             goMenu(fs:getOption())
         end
 
-        if playdate.buttonJustPressed("right") then
+        if playdate.buttonJustPressed("left") then
+            local fs = menuIndex[#menuIndex]
+            if fs.hasColumns == true then
+                fs:menuControl("left")
+            end
         end
+
+        if playdate.buttonJustPressed("right") then
+            local fs = menuIndex[#menuIndex]
+            if fs.hasColumns == true then
+                fs:menuControl("right")
+            end
+        end
+
 
         if playdate.buttonJustPressed("up") then
             local fs = menuIndex[#menuIndex]

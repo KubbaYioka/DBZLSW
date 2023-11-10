@@ -40,9 +40,9 @@ end
 
 function gameContinue() -- returns the gamemode, story location
     local dataS = saveCheck("data")
-    local mode = dataS.currentMode
+    local gCMode = dataS.currentMode
     local location = dataS.currentLocation
-    return mode, location
+    return gCMode, location
 end
 
 function initSaveFile() --creates the initial save file if none exists
@@ -56,28 +56,20 @@ function initSaveFile() --creates the initial save file if none exists
         cardDat[i] = 0 -- starts with zero for each kind of card.
     end
 
-    chrDat = {
-        sec1 = {}
-        ,sec2 = {}
-        ,sec3= {}
-        ,sec4 = {}
-        ,sec5 = {}
-        ,sec6 = {}
-        ,sec7 = {}
-        ,sec8 = {}
-        ,sec9 = {}
-        ,sec10 = {}
-    }
-    local s = 1
-for i,v in pairs(chrDat) do
-     
-    for c=1, 5, 1 do -- 50 is a placeholder for now.
-        v[c] = "none" --create character slots for all potential characters. Indexes with value "none"
+    for i=1,10,1 do -- create a nested table for comparison to all saved players
+        local keyIterate = i
+        local demoTabl = {}
+        for g=1,5,1 do
+            if i==1 and g==1 then
+                local gok = chrRet("dbGoku")--start with the default character. Kid Goku
+                demoTabl[g] = gok --insert character into save file at prescribed index
+            else
+                demoTabl[g] = "none"
+            end
+        end
+        chrDat[i] = demoTabl
     end
 
-end
-    local gok = chrRet("dbGoku") --start with the default character. Kid Goku
-    chrDat.sec1[gok.chrNum] = gok --insert character into save file at prescribed index
     local savFil = {
         chrDat
         ,cardDat
