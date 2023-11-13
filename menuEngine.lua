@@ -330,39 +330,30 @@ function dynaList:new(mode,tableData)
     if mode == nestedMode.STATUS then
         o.hasColumns = true
         local oFat = loadSavedPlayers("all")
-        printTable(oFat)
+        --printTable(oFat)
         local pol = {}
+
+
         for i=1,10,1 do -- create a nested table for comparison to all saved players
             local keyIterate = i
             local demoTabl = {}
             for g=1,5,1 do
-                demoTabl[g] = "none"
-            end
-            pol[i] = demoTabl
-        end
-        --print("oFat: ")
-        --printTable(oFat)
-        for i,v in pairs(oFat) do
-            for k,b in pairs(v) do
-                if type(b) == "table" then
-                    local tabLvlOne = {}
-                    for n,m in pairs(pol) do
-                        if i==n then
-                            print("i = ",i," n = ",n)
-                            for e,a in pairs(m) do
-                                print("e: ",e," a: ",a)
-                                if e==k then
-                                    [e]=b.chrName
-                                    print(a)
-                                end
+                for b,c in pairs(oFat) do
+                    for p,s in pairs(c) do
+                        if type(s) == "table" then
+                            if g == s.chrNum then
+                                demoTabl[g] = s.chrName
+                                print("demoTabl chr name for ",g," with ",s.chrName)
                             end
+                        elseif s == "none" then
+                            demoTabl[g] = s
                         end
                     end
                 end
             end
+            pol[i] = demoTabl
         end
         o.listRows = pol
-        printTable(o.listRows)
         xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
