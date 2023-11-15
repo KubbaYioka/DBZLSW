@@ -327,26 +327,27 @@ function dynaList:new(mode,tableData)
     o.listRows = {}
     if mode == nestedMode.STATUS then
         
+    local oFat = loadSavedPlayers("all")
+
         o:setNumberOfColumns(1)
-        o:setNumberOfRows(5)
-        
-        local oFat = loadSavedPlayers("all")
-        --printTable(oFat)
-        local pol = {}
-        for i=1,10,1 do -- create a nested table for comparison to all saved players
-            local keyIterate = i
-            local demoTabl = {}
-            local compTabl = oFat[i]
-            for g=1,5,1 do
-                if type(compTabl[g]) == "table" then
-                    demoTabl[g] = compTabl[g].chrName
-                else
-                    demoTabl[g] = "none"
-                end
+        local entryCount = 0
+        for i,v in pairs(oFat) do
+
+            if v then
+                entryCount = entryCount + 1
             end
-            pol[i] = demoTabl
+
         end
-        o.listRows = pol
+        o:setNumberOfRows(entryCount)
+        
+        for i,v in pairs(oFat) do
+            if type(v) == "table" then
+                o.listRows[v.chrNum] = v.chrName
+            else
+                o.listRows[i] = "None"
+            end
+        end
+        printTable(o.listRows)
         xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
@@ -431,52 +432,50 @@ function dynaList:new(mode,tableData)
         end
     end
 
-    local dynaListSprite = gfx.sprite.new()
-    dynaListSprite:setCenter(0,0)
-    function o:spriteKill()
-        dynaListSprite:remove()
-    end
-    dynaListSprite:add()
-
     function o:selSection(dir)
         local gSec, gRow, gCol = o:getSelection()
-        print("Old Section: ",gSec)
         if mode == nestedMode.STATUS then
             if dir == "next" then
                 if gSec == 10 then
-                    o:scrollToCell(1, 5, 1)
+                    o:scrollToCell(1, 5, 1, false)
                     o:setSelection(1, 1, 1)
                     
                 else
                     gSec = gSec + 1
-                    o:scrollToCell(gSec, 5, 1)
+                    o:scrollToCell(gSec, 5, 1, false)
                     o:setSelection(gSec, 1, 1)
                     
                 end
             elseif dir == "prev" then
                 if gSec == 1 then
-                    o:scrollToCell(10, 5, 1)
+                    o:scrollToCell(10, 5, 1, false)
                     o:setSelection(10, 1, 1)
                     
                 else
                     gSec = gSec - 1
-                    o:scrollToCell(gSec, 5, 1)
+                    o:scrollToCell(gSec, 5, 1, false)
                     o:setSelection(gSec, 1, 1)
                     
                 end
             end
         end
-        gSec, gRow, gCol = o:getSelection()
-        print("New Section: ",gSec)
     end
+
+    local dynaListSprite = gfx.sprite.new()
+    dynaListSprite:setCenter(0,0)
+    function o:spriteKill()
+        dynaListSprite:remove()
+    end
+
+    local zInNew = 130
+    zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
+    dynaListSprite:setZIndex(zInNew)
+    dynaListSprite:add()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local zInNew = 130
             local dynaListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             dynaListSprite:moveTo(xPos,yPos)
-            zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
-            dynaListSprite:setZIndex(zInNew)
             gfx.pushContext(dynaListImage)
             o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
@@ -495,7 +494,7 @@ function dynaList:new(mode,tableData)
 
         local fontHeight = gfx.getSystemFont():getHeight()
         if mode == nestedMode.STATUS then
-            o.menuText = o.listRows[section]
+            o.menuText = o.listRows
             for i,v in pairs(o.menuText) do
                 local concat = " "
                 if i==row then
@@ -504,11 +503,12 @@ function dynaList:new(mode,tableData)
                     else
                         concat = i..": "
                     end
+                    print("row ",row," equals index ",i)
                     gfx.drawTextInRect(concat, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
                 end
             end
         elseif mode == nestedMode.CHAR then
-            menuText = o.listRows
+            o.menuText = o.listRows
             local fEnum = nil
             local cb = nil
             for i,v in pairs(o.listRows) do
@@ -527,7 +527,6 @@ function dynaList:new(mode,tableData)
         end
     end
 
-
     function o:menuControl(direction) 
         if direction == "up" then
             o:selectPreviousRow(true)
@@ -535,8 +534,10 @@ function dynaList:new(mode,tableData)
             o:selectNextRow(true)
         elseif direction == "right" then
             o:selSection("next")
+            printTable(o.menuText)
         elseif direction == "left" then 
             o:selSection("prev")
+            printTable(o.menuText)
         elseif direction == "b" then
             if o.bSpr == true then
                 for i,v in pairs(otherIndex) do

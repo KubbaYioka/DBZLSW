@@ -56,19 +56,17 @@ function initSaveFile() --creates the initial save file if none exists
         cardDat[i] = 0 -- starts with zero for each kind of card.
     end
 
-    for i=1,10,1 do -- create a nested table for comparison to all saved players
-        local keyIterate = i
         local demoTabl = {}
-        for g=1,5,1 do
-            if i==1 and g==1 then
-                local gok = chrRet("dbGoku")--start with the default character. Kid Goku
+        for g=1,50,1 do
+            if g==1 then
+                local gok = chrRet("dbGoku")--start with the default character. Kid Goku                
                 demoTabl[g] = gok --insert character into save file at prescribed index
             else
                 demoTabl[g] = "none"
             end
         end
-        chrDat[i] = demoTabl
-    end
+        chrDat = demoTabl
+
 
     local savFil = {
         chrDat
