@@ -428,23 +428,61 @@ function dynaList:new(mode,tableData)
     function o:selSection(dir)
         local gSec, gRow, gCol = o:getSelection()
         if mode == nestedMode.STATUS then
-            print("Leaving Section: ",gSec)
-            if dir == "next" then
-                if gSec == 10 then
-                    gSec = 1   
-                else
-                    gSec = gSec + 1
+            if dir == "next" or dir =="prev" then
+                print("Leaving Section: ",gSec)
+                if dir == "next" then
+                    if gSec == 10 then
+                        gSec = 1   
+                        print("gSec round to 1")
+                    else
+                        gSec = gSec + 1
+                        print("gSec + 1")
+                    end
+                elseif dir == "prev" then
+                    if gSec == 1 then
+                        gSec = 10   
+                        print("gSec round to 10")  
+                    else
+                        gSec = gSec - 1
+                        print("gsec - 1")
+                    end
                 end
-            elseif dir == "prev" then
-                if gSec == 1 then
-                    gSec = 10     
-                else
-                    gSec = gSec - 1
+                o:scrollToCell(gSec, 1, 1, false)
+                o:setSelection(gSec, 1, 1)
+                print("Entering Section: ",gSec)
+            elseif dir == "rowNext" or dir == "rowPrev" then
+                if dir == "rowNext" then
+                    if gRow == 5 then
+                        gSec = gSec + 1
+                        if gSec > 10 then
+                            gSec = 1
+                        end
+                        gRow = 1
+                    else
+                        o:selectNextRow(true)
+                        return
+                    end
+                elseif dir == "rowPrev" then
+                    if gRow == 1 then
+                        gSec = gSec - 1
+                        if gSec < 1 then
+                            gSec = 10
+                        end
+                    else
+                        o:selectPreviousRow(true)
+                        return
+                    end
                 end
+                print("row scrolling")
+                o:scrollToCell(gSec, gRow, 1, false)
+                o:setSelection(gSec, gRow, 1)
             end
-            o:scrollToCell(gSec, 5, 1, false)
-            o:setSelection(gSec, 1, 1)
-            print("Entering Section: ",gSec)
+        else
+            if dir == "rowNext" then
+                o:selectNextRow(true)
+            elseif dir == "rowPrev" then
+                o:selectPreviousRow(true)
+            end
         end
     end
 
@@ -495,12 +533,9 @@ function dynaList:new(mode,tableData)
                     table.insert(o.menuText, o.listRows[i])
                 end
             end
-            print("section: ",section)
-            printTable(o.menuText) -- expect to only see five key-value pairs extracted from o.listRows
 
             for i,v in pairs(o.menuText) do
                 if i == row then
-
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
                 end
             end
@@ -527,9 +562,9 @@ function dynaList:new(mode,tableData)
 
     function o:menuControl(direction) 
         if direction == "up" then
-            o:selectPreviousRow(true)
+            o:selSection("rowPrev")
         elseif direction == "down" then
-            o:selectNextRow(true)
+            o:selSection("rowNext")
         elseif direction == "right" then
             o:selSection("next")
             printTable(o.menuText)
