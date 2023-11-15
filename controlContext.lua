@@ -45,16 +45,12 @@ function menuInputContext()
 
         if playdate.buttonJustPressed("left") then
             local fs = menuIndex[#menuIndex]
-            if fs.hasColumns == true then
-                fs:menuControl("left")
-            end
+            fs:menuControl("left")
         end
 
         if playdate.buttonJustPressed("right") then
             local fs = menuIndex[#menuIndex]
-            if fs.hasColumns == true then
-                fs:menuControl("right")
-            end
+            fs:menuControl("right")
         end
 
 

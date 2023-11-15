@@ -304,7 +304,6 @@ nestedMode = {
 }
 
 function dynaList:new(mode,tableData)
-    print(mode)
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
@@ -322,12 +321,15 @@ function dynaList:new(mode,tableData)
     local yPos = 0
     local xPos = 0
 
-    dynaList:setCellPadding(0,0,5,5)
-    dynaList:setContentInset(5,5,5,5)
+    o:setCellPadding(0,0,5,5)
+    o:setContentInset(5,5,5,5)
 
     o.listRows = {}
     if mode == nestedMode.STATUS then
-        o.hasColumns = true
+        
+        o:setNumberOfColumns(1)
+        o:setNumberOfRows(5)
+        
         local oFat = loadSavedPlayers("all")
         --printTable(oFat)
         local pol = {}
@@ -348,22 +350,7 @@ function dynaList:new(mode,tableData)
         xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
-        dynaList:setNumberOfSections(#o.listRows)
-        dynaList:setNumberOfColumns(1)
-        dynaList:setNumberOfRows(5)
-
-        function o:selSection(dir)
-            local gSec, gRow, gCol = o:getSelection()
-            if mode == nestedMode.STATUS then
-                if dir == "next" then
-                    if gSec == 10 then
-
-                    o:setSelection(1, 1, 1)
-                elseif dir == "prev" then
-                    print("o:setSelection(section, row, column)")
-                end
-            end
-        end
+        o:setNumberOfSections(#o.listRows)
 
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
@@ -419,13 +406,12 @@ function dynaList:new(mode,tableData)
             end
         end
         o.listRows = {hp,str,ki,def,spd,exp,trans}
-
         o.category = {"HP","Strength","KI","Defense","Speed","EXP","Transformations"}
         xPos, yPos = menuPosition(menuPosEnum.menuPosChr)
         menuY = (#o.listRows * 25) + 10
         menuX = (200)
-        dynaList:setNumberOfColumns(1)
-        dynaList:setNumberOfRows(#o.listRows)
+        o:setNumberOfColumns(1)
+        o:setNumberOfRows(#o.listRows)
             
     elseif mode == nestedMode.CARD then
         --display card info from save
@@ -450,8 +436,39 @@ function dynaList:new(mode,tableData)
     function o:spriteKill()
         dynaListSprite:remove()
     end
-
     dynaListSprite:add()
+
+    function o:selSection(dir)
+        local gSec, gRow, gCol = o:getSelection()
+        print("Old Section: ",gSec)
+        if mode == nestedMode.STATUS then
+            if dir == "next" then
+                if gSec == 10 then
+                    o:scrollToCell(1, 5, 1)
+                    o:setSelection(1, 1, 1)
+                    
+                else
+                    gSec = gSec + 1
+                    o:scrollToCell(gSec, 5, 1)
+                    o:setSelection(gSec, 1, 1)
+                    
+                end
+            elseif dir == "prev" then
+                if gSec == 1 then
+                    o:scrollToCell(10, 5, 1)
+                    o:setSelection(10, 1, 1)
+                    
+                else
+                    gSec = gSec - 1
+                    o:scrollToCell(gSec, 5, 1)
+                    o:setSelection(gSec, 1, 1)
+                    
+                end
+            end
+        end
+        gSec, gRow, gCol = o:getSelection()
+        print("New Section: ",gSec)
+    end
 
     function o:menuUpdate()
         if o.needsDisplay then
@@ -468,7 +485,7 @@ function dynaList:new(mode,tableData)
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        local menuText = {}
+        o.menuText = {}
         if selected then
             gfx.drawRect(x,y,width+2,height+2)
             gfx.drawRect(x,y,width,height)
@@ -478,13 +495,8 @@ function dynaList:new(mode,tableData)
 
         local fontHeight = gfx.getSystemFont():getHeight()
         if mode == nestedMode.STATUS then
-            o.currectSect = section
-            o.currentRow = row
-            print("Section #: "..section)
-            print("Row #: "..row)
-            menuText = o.listRows[section]
-            printTable(menuText)
-            for i,v in pairs(menuText) do
+            o.menuText = o.listRows[section]
+            for i,v in pairs(o.menuText) do
                 local concat = " "
                 if i==row then
                     if v ~= "none" then
