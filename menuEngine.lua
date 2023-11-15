@@ -328,30 +328,23 @@ function dynaList:new(mode,tableData)
     if mode == nestedMode.STATUS then
         
     local oFat = loadSavedPlayers("all")
-
-        o:setNumberOfColumns(1)
-        local entryCount = 0
-        for i,v in pairs(oFat) do
-
-            if v then
-                entryCount = entryCount + 1
-            end
-
+    o.chrRefNum = {} -- table for chr numbers according to their place in the table
+    o:setNumberOfColumns(1)
+    for i,v in pairs(oFat) do
+        if type(v) == "table" and i == v.chrNum then
+            o.listRows[v.chrNum] = v.chrName
+        else
+            o.listRows[i] = "None"
         end
-        o:setNumberOfRows(entryCount)
-        
-        for i,v in pairs(oFat) do
-            if type(v) == "table" then
-                o.listRows[v.chrNum] = v.chrName
-            else
-                o.listRows[i] = "None"
-            end
-        end
-        printTable(o.listRows)
-        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
-        menuY = (6 * 25) + 10
-        menuX = (100)
-        o:setNumberOfSections(#o.listRows)
+        o.chrRefNum[i] = tostring(i)
+    end
+    
+    xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
+    menuY = (6 * 25) + 10
+    menuX = (100)
+   
+    o:setNumberOfRows(5,5,5,5,5,5,5,5,5,5)
+    o:setNumberOfSections(#o.listRows / 5)
 
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
@@ -435,29 +428,23 @@ function dynaList:new(mode,tableData)
     function o:selSection(dir)
         local gSec, gRow, gCol = o:getSelection()
         if mode == nestedMode.STATUS then
+            print("Leaving Section: ",gSec)
             if dir == "next" then
                 if gSec == 10 then
-                    o:scrollToCell(1, 5, 1, false)
-                    o:setSelection(1, 1, 1)
-                    
+                    gSec = 1   
                 else
                     gSec = gSec + 1
-                    o:scrollToCell(gSec, 5, 1, false)
-                    o:setSelection(gSec, 1, 1)
-                    
                 end
             elseif dir == "prev" then
                 if gSec == 1 then
-                    o:scrollToCell(10, 5, 1, false)
-                    o:setSelection(10, 1, 1)
-                    
+                    gSec = 10     
                 else
                     gSec = gSec - 1
-                    o:scrollToCell(gSec, 5, 1, false)
-                    o:setSelection(gSec, 1, 1)
-                    
                 end
             end
+            o:scrollToCell(gSec, 5, 1, false)
+            o:setSelection(gSec, 1, 1)
+            print("Entering Section: ",gSec)
         end
     end
 
@@ -491,22 +478,33 @@ function dynaList:new(mode,tableData)
         else
             gfx.drawRect(x,y,width,height)
         end
-
         local fontHeight = gfx.getSystemFont():getHeight()
+
         if mode == nestedMode.STATUS then
-            o.menuText = o.listRows
-            for i,v in pairs(o.menuText) do
-                local concat = " "
-                if i==row then
-                    if v ~= "none" then
-                        concat = i..": "..v
-                    else
-                        concat = i..": "
-                    end
-                    print("row ",row," equals index ",i)
-                    gfx.drawTextInRect(concat, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+
+            o.menuText = {}
+            local sect = section -- variable that will be between 1 and 10
+            
+            -- Calculate the starting and ending indices for the slice of o.listRows
+            local startIndex = (sect - 1) * 5 + 1
+            local endIndex = sect * 5
+            
+            -- Iterate over o.listRows and insert the relevant slice into o.menuText
+            for i = startIndex, endIndex do
+                if o.listRows[i] then  -- Check if the element exists
+                    table.insert(o.menuText, o.listRows[i])
                 end
             end
+            print("section: ",section)
+            printTable(o.menuText) -- expect to only see five key-value pairs extracted from o.listRows
+
+            for i,v in pairs(o.menuText) do
+                if i == row then
+
+                    gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+                end
+            end
+
         elseif mode == nestedMode.CHAR then
             o.menuText = o.listRows
             local fEnum = nil
