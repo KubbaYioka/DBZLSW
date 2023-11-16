@@ -241,15 +241,15 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     function o:menuControl(direction) 
         if o.type == "menu" or o.type == "twoChoices" then
             if direction == "up" then
-                o:selectPreviousRow(true)
+                o:selectPreviousRow(true,true,false)
             elseif direction == "down" then
-                o:selectNextRow(true)
+                o:selectNextRow(true,true,false)
             end
         elseif o.type == "dialogue" or o.type == "mapDialogue" then -- Iterates through all line items in a story.
             if direction == "a" then
                 
                 o:text()
-                o:selectNextRow(true)
+                o:selectNextRow(true,true,false)
             end
         end
     end
