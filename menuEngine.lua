@@ -462,8 +462,11 @@ function dynaList:new(mode,tableData)
                             gSec = 1
                         end
                         gRow = 1
+                        o:setSelection(gSec, gRow, 1)
+                        o:scrollToCell(gSec, gRow, 1, false)
                     else
                         o:selectNextRow(false, false, false)
+                        
                         return
                     end
                 elseif dir == "rowPrev" then
@@ -472,14 +475,17 @@ function dynaList:new(mode,tableData)
                         if gSec < 1 then
                             gSec = 10
                         end
+                        gRow = 5
+                        o:setSelection(gSec, gRow, 1)
+                        o:scrollToCell(gSec, gRow, 1, false)
                     else
                         o:selectPreviousRow(false, false, false)
                         return
                     end
                 end
                 print("row scrolling")
-                o:setSelection(gSec, gRow, 1)
-                o:scrollToCell(gSec, gRow, 1, false)
+                
+                
             end
         else
             if dir == "rowNext" then
