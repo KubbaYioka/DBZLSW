@@ -60,11 +60,12 @@ gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16
 
 --Master Tables
 
-menuIndex = {}
-portIndex = {}
-tagIndex = {}
-otherIndex = {}
-mapObjIndex = {}
+menuIndex = {} -- for all menu objects. Cleared between gamemodes. 
+portIndex = {} -- for keeping track of portraits in story mode.
+tagIndex = {} -- for keeping track of dialogue tags
+otherIndex = {} -- for misc objects that will not be used at the same time as any other misc object (e.g, menu icons)
+mapObjIndex = {} -- for map objects
+numberBoxIndex = {} -- table for those little number boxes in the list views. 
 
 --Menu Object Classes
 

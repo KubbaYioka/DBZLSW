@@ -328,15 +328,15 @@ function dynaList:new(mode,tableData)
     if mode == nestedMode.STATUS then
         
     local oFat = loadSavedPlayers("all")
-    o.chrRefNum = {} -- table for chr numbers according to their place in the table
-    o:setNumberOfColumns(1)
+    o.menuNumberBox = {} -- table for chr numbers according to their place in the table for the numberbox object
+    o:setNumberOfColumns(1) 
     for i,v in pairs(oFat) do
         if type(v) == "table" and i == v.chrNum then
             o.listRows[v.chrNum] = v.chrName
         else
             o.listRows[i] = "None"
         end
-        o.chrRefNum[i] = tostring(i)
+        o.menuNumberBox[i] = tostring(i)
     end
     
     xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
@@ -406,7 +406,7 @@ function dynaList:new(mode,tableData)
         menuX = (200)
         o:setNumberOfColumns(1)
         o:setNumberOfRows(#o.listRows)
-            
+
     elseif mode == nestedMode.CARD then
         --display card info from save
         menuY = (6 * 25) + 10
@@ -423,6 +423,17 @@ function dynaList:new(mode,tableData)
                 return v
             end
         end
+    end
+
+    function o:createNumberBox(nX,nY,numberIndex)
+        print("createNumberBow activated")
+        if #numberBoxIndex > 0 then
+            for i,v in pairs(numberBoxIndex) do
+                v.spriteKill()
+                numberBoxIndex[i] = nil
+            end
+        end  
+        numberBox:new(nX-15,nY+1,numberIndex)
     end
 
     function o:selSection(dir)
@@ -452,7 +463,6 @@ function dynaList:new(mode,tableData)
                 print("Section: ",gSec)
                 o:setSelection(gSec, 1, 1)
                 o:scrollToCell(gSec, 1, 1, false)
-                
                 print("Entering Section: ",gSec)
             elseif dir == "rowNext" or dir == "rowPrev" then
                 if dir == "rowNext" then
@@ -483,9 +493,7 @@ function dynaList:new(mode,tableData)
                         return
                     end
                 end
-                print("row scrolling")
-                
-                
+                print("row scrolling")                
             end
         else
             if dir == "rowNext" then
@@ -494,11 +502,11 @@ function dynaList:new(mode,tableData)
                 o:selectPreviousRow(true)
             end
         end
-
     end
 
     local dynaListSprite = gfx.sprite.new()
     dynaListSprite:setCenter(0,0)
+
     function o:spriteKill()
         dynaListSprite:remove()
     end
@@ -548,6 +556,7 @@ function dynaList:new(mode,tableData)
             for i,v in pairs(o.menuText) do
                 if i == row then
                     gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+                    o:createNumberBox(x,y,i)
                 end
             end
 
@@ -590,6 +599,7 @@ function dynaList:new(mode,tableData)
                         v:remove()
                     end
                 end
+
             end
             for k, c in pairs(otherIndex) do
                 if c.menuIcon then
@@ -624,6 +634,55 @@ function specialBox:new(x,y,w,h,text) -- text will be the result of a function
     setmetatable(o,self)
     self.__index=self
 
+end
+
+numberBox = playdate.ui.gridview.new(0,0)
+
+function numberBox:new(x,y,listNum)
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+    numberBox:setNumberOfColumns(1)
+    numberBox:setNumberOfRows(5)
+    numberBox:setCellPadding(0,0,0,0)
+    numberBox:setContentInset(0,0,0,0)
+
+    local numBoxSprite = gfx.sprite.new()
+    numBoxSprite:setCenter(0, 0)
+    o.rowNum = listNum -- is a string
+    function o:spriteKill()
+        numBoxSprite:remove()
+    end
+    
+    numBoxSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local boxImage = gfx.image.new(x,y,gfx.kColorBlack)
+            numBoxSprite:setZIndex(133)
+            numBoxSprite:moveTo(x, y)
+            o:setCellSize(10, 20)
+            gfx.pushContext(boxImage)
+            o:drawInRect(0,0,x,y)
+            gfx.popContext()
+            self:setImage(boxImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        gfx.drawRect(x,y,width,height)
+        local fontHeight = gfx.getSystemFont():getHeight()
+        gfx.drawTextInRect(listNum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+    end
+
+    local countI = 0
+    for _ in pairs(numberBoxIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    numberBoxIndex[o.index] = o
+    return o
 end
 
 class('MenuBackground').extends(gfx.sprite)
