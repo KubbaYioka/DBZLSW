@@ -265,7 +265,7 @@ function pauseMenu()
     pauseView:new()
 end
 
-dynaList = playdate.ui.gridview.new(0,20)
+dynaList = playdate.ui.gridview.new(0,25)
 
 dynaList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
@@ -296,8 +296,8 @@ function dynaList:new(mode,tableData)
     local yPos = 0
     local xPos = 0
 
-    o:setCellPadding(0,0,5,5)
-    o:setContentInset(5,5,5,5)
+    o:setCellPadding(0,0,0,0)
+    o:setContentInset(5,5,7,7)
 
     o.listRows = {}
     if mode == nestedMode.STATUS then
@@ -315,7 +315,7 @@ function dynaList:new(mode,tableData)
     end
     
     xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
-    menuY = (6 * 25) + 10
+    menuY = (140)
     menuX = (100)
    
     o:setNumberOfRows(5,5,5,5,5,5,5,5,5,5)
@@ -432,42 +432,43 @@ function dynaList:new(mode,tableData)
                         gSec = gSec - 1
                     end
                 end
-                o:setSelection(gSec, 1, 1)
-                o:scrollToCell(gSec, 1, 1, false)
+                gRow = 1
+                o:setSelection(gSec, gRow, 1)
+                o:scrollToCell(gSec, gRow+4, 1, false)
             elseif dir == "rowNext" or dir == "rowPrev" then
                 if dir == "rowNext" then
                     gRow = gRow + 1
                     if gRow > 5 then
+                        gRow = 1
                         gSec = gSec + 1
                         if gSec > 10 then
                             gSec = 1
+                            o:scrollToCell(1, 1, 1, false) -- set manually since the scroll function will move up instead of roll over.
+                        else
+                            o:scrollToCell(gSec, gRow+4, 1, false)
                         end
-                        gRow = 1
                         o:setSelection(gSec, gRow, 1)
-                        o:scrollToCell(gSec, gRow, 1, false)
+
                     else
                         o:selectNextRow(false, false, false)
                     end
                 elseif dir == "rowPrev" then
                     gRow = gRow - 1
                     if gRow < 1 then
+                        gRow = 5
                         gSec = gSec - 1
                         if gSec < 1 then
                             gSec = 10
+                            o:scrollToCell(10, 5, 1, false)
+                        else 
+                            o:scrollToCell(gSec, gRow-4, 1, false)
                         end
-                        gRow = 5
                         o:setSelection(gSec, gRow, 1)
-                        o:scrollToCell(gSec, gRow, 1, false)
+                        
                     else
                         o:selectPreviousRow(false, false, false)
                     end
                 end            
-            end
-        else
-            if dir == "rowNext" then
-                o:selectNextRow(true)
-            elseif dir == "rowPrev" then
-                o:selectPreviousRow(true)
             end
         end
         print("Section: ",gSec, " | Row: ",gRow)
