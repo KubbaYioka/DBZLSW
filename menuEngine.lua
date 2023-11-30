@@ -1,31 +1,6 @@
 --Contains functions for menu rendering and modes
 local gfx = playdate.graphics
 
-function gridSprite(spriteType) -- sprite gen for menu\story
-    local gridviewSprite = gfx.sprite.new()
-    gridviewSprite:setCenter(0, 0)
-    if spriteType == "menu" then
-        gridviewSprite:moveTo(40, 40) -- same location as where the grid is drawn
-    elseif spriteType == "story" then
-        gridviewSprite:moveTo(0,180)
-        gridview:setCellSize(240, 40)
-    end
-    gridviewSprite:add()
-    return gridviewSprite
-end
-
-function gridviewRend()
-    gridview = playdate.ui.gridview.new(0,20) -- initial gridview object 
-    gridview:setNumberOfColumns(1)
-    gridview:setNumberOfRows(1)
-    gridview:setCellPadding(0,0,4,0)
-    --Set Menu\Text Border 
-
-    gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
-    gridview:setContentInset(5,5,5,5)
-    return gridview
-end
-
 function gameModeChange(gMode, location, index)
     if gMode == GameMode.BATTLE then
         controlContext = GameMode.BATTLE
@@ -334,7 +309,7 @@ function dynaList:new(mode,tableData)
         if type(v) == "table" and i == v.chrNum then
             o.listRows[v.chrNum] = v.chrName
         else
-            o.listRows[i] = "None"
+            o.listRows[i] = "None "..tostring(i)
         end
         o.menuNumberBox[i] = tostring(i)
     end
@@ -426,47 +401,43 @@ function dynaList:new(mode,tableData)
     end
 
     function o:createNumberBox(nX,nY,numberIndex)
-        print("createNumberBow activated")
+        local numberIndexStr = tostring(numberIndex)
+        numberBox:new(nX,nY,numberIndexStr)
+    end
+
+    function o:clearNumberBox()
         if #numberBoxIndex > 0 then
             for i,v in pairs(numberBoxIndex) do
                 v.spriteKill()
                 numberBoxIndex[i] = nil
             end
         end  
-        numberBox:new(nX-15,nY+1,numberIndex)
     end
 
     function o:selSection(dir)
         local gSec, gRow, gCol = o:getSelection()
-        gSec, gRow, gCol = o:getSelection()
-        print("row: ",gRow)
         if mode == nestedMode.STATUS then
-            if dir == "next" or dir =="prev" then
-                print("Leaving Section: ",gSec)
-                if dir == "next" then
+            if dir == "colNext" or dir =="colPrev" then
+                if dir == "colNext" then
                     if gSec == 10 then
                         gSec = 1
                         print("gSec round to 1")
                     else
                         gSec = gSec + 1
-
                     end
-                elseif dir == "prev" then
+                elseif dir == "colPrev" then
                     if gSec == 1 then
                         gSec = 10
-
                     else
                         gSec = gSec - 1
-
                     end
                 end
-                print("Section: ",gSec)
                 o:setSelection(gSec, 1, 1)
                 o:scrollToCell(gSec, 1, 1, false)
-                print("Entering Section: ",gSec)
             elseif dir == "rowNext" or dir == "rowPrev" then
                 if dir == "rowNext" then
-                    if o:getSelectedRow() == 5 then
+                    gRow = gRow + 1
+                    if gRow > 5 then
                         gSec = gSec + 1
                         if gSec > 10 then
                             gSec = 1
@@ -476,11 +447,10 @@ function dynaList:new(mode,tableData)
                         o:scrollToCell(gSec, gRow, 1, false)
                     else
                         o:selectNextRow(false, false, false)
-                        
-                        return
                     end
                 elseif dir == "rowPrev" then
-                    if gRow == 1 then
+                    gRow = gRow - 1
+                    if gRow < 1 then
                         gSec = gSec - 1
                         if gSec < 1 then
                             gSec = 10
@@ -490,10 +460,8 @@ function dynaList:new(mode,tableData)
                         o:scrollToCell(gSec, gRow, 1, false)
                     else
                         o:selectPreviousRow(false, false, false)
-                        return
                     end
-                end
-                print("row scrolling")                
+                end            
             end
         else
             if dir == "rowNext" then
@@ -502,6 +470,7 @@ function dynaList:new(mode,tableData)
                 o:selectPreviousRow(true)
             end
         end
+        print("Section: ",gSec, " | Row: ",gRow)
     end
 
     local dynaListSprite = gfx.sprite.new()
@@ -586,10 +555,10 @@ function dynaList:new(mode,tableData)
         elseif direction == "down" then
             o:selSection("rowNext")
         elseif direction == "right" then
-            o:selSection("next")
+            o:selSection("colNext")
             printTable(o.menuText)
         elseif direction == "left" then 
-            o:selSection("prev")
+            o:selSection("colPrev")
             printTable(o.menuText)
         elseif direction == "b" then
             if o.bSpr == true then
@@ -638,7 +607,7 @@ end
 
 numberBox = playdate.ui.gridview.new(0,0)
 
-function numberBox:new(x,y,listNum)
+function numberBox:new(bX,bY,listNum)
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
@@ -647,32 +616,35 @@ function numberBox:new(x,y,listNum)
     numberBox:setCellPadding(0,0,0,0)
     numberBox:setContentInset(0,0,0,0)
 
-    local numBoxSprite = gfx.sprite.new()
-    numBoxSprite:setCenter(0, 0)
+    o.numBoxSprite = gfx.sprite.new()
+    o.numBoxSprite:setCenter(0, 0)
     o.rowNum = listNum -- is a string
+    o.xPos = bX
+    o.yPos = bY
+    --print(o.rowNum.." at: ("..bX..", "..bY..")")
     function o:spriteKill()
-        numBoxSprite:remove()
+        o.numBoxSprite:remove()
     end
     
-    numBoxSprite:add()
+    o.numBoxSprite:setZIndex(145)
+    o.numBoxSprite:moveTo(bX, bY)
+    o.numBoxSprite:add()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local boxImage = gfx.image.new(x,y,gfx.kColorBlack)
-            numBoxSprite:setZIndex(133)
-            numBoxSprite:moveTo(x, y)
-            o:setCellSize(10, 20)
+            local boxImage = gfx.image.new(20,20,gfx.kColorBlack)
+            o:setCellSize(20, 20)
             gfx.pushContext(boxImage)
-            o:drawInRect(0,0,x,y)
+            o:drawInRect(0,0,20,20)
             gfx.popContext()
-            self:setImage(boxImage)
+            o.numBoxSprite:setImage(boxImage)
         end
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        gfx.drawRect(x,y,width,height)
+        gfx.drawRect(o.xPos,o.yPos,width,height)
         local fontHeight = gfx.getSystemFont():getHeight()
-        gfx.drawTextInRect(listNum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.drawTextInRect(o.rowNum, o.xPos+2, o.yPos + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
     end
 
     local countI = 0

@@ -330,6 +330,13 @@ function playdate.update()
             end
         end
     end
+
+    if #numberBoxIndex > 0 then
+        for i,v in pairs(numberBoxIndex) do
+            v:menuUpdate()
+        end
+    end
+
     for i,v in pairs(portIndex) do
         v:portUpdate()
     end
