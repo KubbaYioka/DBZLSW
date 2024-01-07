@@ -102,7 +102,7 @@ local menuFunc = {
         debugMessage()
     end,
     ["Status"] = function()
-        dynaList:new(nestedMode.STATUS)
+        statusList:new()
         createMenuIcon(nestedMode.STATUS)
     end,
         ["nameHere"] = function()
@@ -278,6 +278,150 @@ nestedMode = {
     ,CARD = "card"
 }
 
+statusList = playdate.ui.gridview.new(0,25)
+
+statusList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+function statusList:new()
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    o:setCellPadding(0,0,0,0)
+    o:setContentInset(5,5,7,7)
+
+    o.bSpr = true
+    local menuBSpr = MenuBackground(0,0,"menuTwo")
+    menuBSpr:add()
+
+    local menuX = 0 --size of background box and position to be set later
+    local menuY = 0
+    local yPos = 0
+    local xPos = 0
+
+    local oFat = loadSavedPlayers("all")
+    o.listRows = {}
+    o.menuNumberBox = {}
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(#oFat)
+
+    for i,v in pairs(oFat) do
+        if type(v) == "table" and i == v.chrNum then
+            o.listRows[v.chrNum] = v.chrName
+        else
+            o.listRows[i] = "None "..tostring(i)
+        end
+        o.menuNumberBox[i] = tostring(i)
+    end
+    
+    xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
+    menuY = (140)
+    menuX = (100)
+
+    function o:getOption() -- item selection in menu
+        local s = o:getSelectedRow()
+        for i,v in pairs(o.listRows) do
+            if s==i then
+                return v
+            end
+        end
+    end
+
+    function o:createNumberBox(nX,nY,numberIndex)
+        local numberIndexStr = tostring(numberIndex)
+        numberBox:new(nX,nY,numberIndexStr)
+    end
+
+    function o:clearNumberBox()
+        if #numberBoxIndex > 0 then
+            for i,v in pairs(numberBoxIndex) do
+                v.spriteKill()
+                numberBoxIndex[i] = nil
+            end
+        end  
+    end
+
+    local statusListSprite = gfx.sprite.new()
+    statusListSprite:setCenter(0,0)
+
+    function o:spriteKill()
+        statusListSprite:remove()
+    end
+
+    local zInNew = 130
+    zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
+    statusListSprite:setZIndex(zInNew)
+    statusListSprite:add()
+    statusListSprite:moveTo(xPos,yPos)
+    
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local statusListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            gfx.pushContext(statusListImage)
+                o:drawInRect(0,0,menuX,menuY)
+            gfx.popContext()
+            statusListSprite:setImage(statusListImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        if selected then
+            gfx.drawRect(x,y,width+2,height+2)
+            gfx.drawRect(x,y,width,height)
+        else
+            gfx.drawRect(x,y,width,height)
+        end
+
+        local fontHeight = gfx.getSystemFont():getHeight()
+
+        gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        o:createNumberBox(x,y,i)
+
+    end
+
+    function o:menuControl(direction) 
+        if direction == "up" then
+            o:selectPreviousRow(true,true,true)
+            print(playdate.ui.gridview:getSelectedRow())
+        elseif direction == "down" then
+            o:selectNextRow(true,true,true)
+            print(playdate.ui.gridview:getSelectedRow())
+        elseif direction == "right" then
+            printTable(o.menuText)
+        elseif direction == "left" then 
+            printTable(o.menuText)
+        elseif direction == "b" then
+            if o.bSpr == true then
+                for i,v in pairs(otherIndex) do
+                    if v.menuWhi then
+                        otherIndex.v = nil
+                        v:remove()
+                    end
+                end
+            end
+            for k, c in pairs(otherIndex) do
+                if c.menuIcon then
+                    otherIndex.c = nil
+                    c:remove()
+                end
+            end
+            o:spriteKill()
+            menuIndex[o.index] = nil
+        end
+        print(o:getSelection())
+    end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+
+end
+
 function dynaList:new(mode,tableData)
     local o = o or {}
     setmetatable(o,self)
@@ -291,7 +435,7 @@ function dynaList:new(mode,tableData)
         menuBSpr:add()
     end
 
-    local menuX = 0 --size of background box
+    local menuX = 0 --size of background box and position to be set later
     local menuY = 0
     local yPos = 0
     local xPos = 0
@@ -301,10 +445,11 @@ function dynaList:new(mode,tableData)
 
     o.listRows = {}
     if mode == nestedMode.STATUS then
-        
     local oFat = loadSavedPlayers("all")
     o.menuNumberBox = {} -- table for chr numbers according to their place in the table for the numberbox object
     o:setNumberOfColumns(1) 
+    o:setNumberOfRows(#oFat)
+
     for i,v in pairs(oFat) do
         if type(v) == "table" and i == v.chrNum then
             o.listRows[v.chrNum] = v.chrName
@@ -317,25 +462,22 @@ function dynaList:new(mode,tableData)
     xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
     menuY = (140)
     menuX = (100)
-   
-    o:setNumberOfRows(5,5,5,5,5,5,5,5,5,5)
-    o:setNumberOfSections(#o.listRows / 5)
 
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
         o.hasColumns = true
-        xPos, yPos = menuPosition(menuPause)
+        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.DECK then
         -- display all cards in the deck
         o.hasColumns = true
-        xPos, yPos = menuPosition(menuPause)
+        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.TEAM then
         -- display all characters in the team
-        xPos, yPos = menuPosition(menuPause)
+        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.CHAR then
@@ -414,66 +556,6 @@ function dynaList:new(mode,tableData)
         end  
     end
 
-    function o:selSection(dir)
-        local gSec, gRow, gCol = o:getSelection()
-        if mode == nestedMode.STATUS then
-            if dir == "colNext" or dir =="colPrev" then
-                if dir == "colNext" then
-                    if gSec == 10 then
-                        gSec = 1
-                        print("gSec round to 1")
-                    else
-                        gSec = gSec + 1
-                    end
-                elseif dir == "colPrev" then
-                    if gSec == 1 then
-                        gSec = 10
-                    else
-                        gSec = gSec - 1
-                    end
-                end
-                gRow = 1
-                o:setSelection(gSec, gRow, 1)
-                o:scrollToCell(gSec, gRow+4, 1, false)
-            elseif dir == "rowNext" or dir == "rowPrev" then
-                if dir == "rowNext" then
-                    gRow = gRow + 1
-                    if gRow > 5 then
-                        gRow = 1
-                        gSec = gSec + 1
-                        if gSec > 10 then
-                            gSec = 1
-                            o:scrollToCell(1, 1, 1, false) -- set manually since the scroll function will move up instead of roll over.
-                        else
-                            o:scrollToCell(gSec, gRow+4, 1, false)
-                        end
-                        o:setSelection(gSec, gRow, 1)
-
-                    else
-                        o:selectNextRow(false, false, false)
-                    end
-                elseif dir == "rowPrev" then
-                    gRow = gRow - 1
-                    if gRow < 1 then
-                        gRow = 5
-                        gSec = gSec - 1
-                        if gSec < 1 then
-                            gSec = 10
-                            o:scrollToCell(10, 5, 1, false)
-                        else 
-                            o:scrollToCell(gSec, gRow-4, 1, false)
-                        end
-                        o:setSelection(gSec, gRow, 1)
-                        
-                    else
-                        o:selectPreviousRow(false, false, false)
-                    end
-                end            
-            end
-        end
-        print("Section: ",gSec, " | Row: ",gRow)
-    end
-
     local dynaListSprite = gfx.sprite.new()
     dynaListSprite:setCenter(0,0)
 
@@ -485,50 +567,32 @@ function dynaList:new(mode,tableData)
     zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
     dynaListSprite:setZIndex(zInNew)
     dynaListSprite:add()
-
+    
+    
     function o:menuUpdate()
         if o.needsDisplay then
             local dynaListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             dynaListSprite:moveTo(xPos,yPos)
             gfx.pushContext(dynaListImage)
-            o:drawInRect(0,0,menuX,menuY)
+                o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             dynaListSprite:setImage(dynaListImage)
         end
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        o.menuText = {}
         if selected then
             gfx.drawRect(x,y,width+2,height+2)
             gfx.drawRect(x,y,width,height)
         else
             gfx.drawRect(x,y,width,height)
         end
+
         local fontHeight = gfx.getSystemFont():getHeight()
 
         if mode == nestedMode.STATUS then
-
-            o.menuText = {}
-            local sect = section -- variable that will be between 1 and 10
-            
-            -- Calculate the starting and ending indices for the slice of o.listRows
-            local startIndex = (sect - 1) * 5 + 1
-            local endIndex = sect * 5
-            
-            -- Iterate over o.listRows and insert the relevant slice into o.menuText
-            for i = startIndex, endIndex do
-                if o.listRows[i] then  -- Check if the element exists
-                    table.insert(o.menuText, o.listRows[i])
-                end
-            end
-
-            for i,v in pairs(o.menuText) do
-                if i == row then
-                    gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-                    o:createNumberBox(x,y,i)
-                end
-            end
+            gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+            --o:createNumberBox(x,y,i)
 
         elseif mode == nestedMode.CHAR then
             o.menuText = o.listRows
@@ -552,14 +616,12 @@ function dynaList:new(mode,tableData)
 
     function o:menuControl(direction) 
         if direction == "up" then
-            o:selSection("rowPrev")
+            o:selectPreviousRow(true,true,true)
         elseif direction == "down" then
-            o:selSection("rowNext")
+            o:selectNextRow(true,true,true)
         elseif direction == "right" then
-            o:selSection("colNext")
             printTable(o.menuText)
         elseif direction == "left" then 
-            o:selSection("colPrev")
             printTable(o.menuText)
         elseif direction == "b" then
             if o.bSpr == true then
@@ -569,7 +631,6 @@ function dynaList:new(mode,tableData)
                         v:remove()
                     end
                 end
-
             end
             for k, c in pairs(otherIndex) do
                 if c.menuIcon then
@@ -580,6 +641,7 @@ function dynaList:new(mode,tableData)
             o:spriteKill()
             menuIndex[o.index] = nil
         end
+        print(o:getSelection())
     end
 
     local countI = 0
@@ -603,7 +665,6 @@ function specialBox:new(x,y,w,h,text) -- text will be the result of a function
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
-
 end
 
 numberBox = playdate.ui.gridview.new(0,0)
