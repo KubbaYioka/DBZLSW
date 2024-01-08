@@ -44,7 +44,8 @@ local dbFont = playdate.graphics.font.new('assets/fonts/DBLSW2')
 playdate.graphics.setFont(dbFont) 
 
 --Basic graphics setup
-local gfx = playdate.graphics
+local gfx <const> = playdate.graphics
+local pd <const> = playdate
 
 --Initial Menu Settings
 
@@ -297,7 +298,6 @@ gameMode = GameMode.MENU
 controlContext = GameMode.MENU
 
 function playdate.update()
-
    while gameBoot == 0 do -- First thing the game does is check for a save
         --show opening animation
         local ver = initLoadSav()
@@ -314,12 +314,6 @@ function playdate.update()
         end
         gameBoot = 1
     end
-
-    --UPDATE TIMERS
-    playdate.timer.updateTimers()
-
-    --UPDATE SPRITES
-    gfx.sprite.update()
 
     menuInputContext()
 
@@ -351,4 +345,9 @@ function playdate.update()
             end
         end
     end
+
+    --UPDATE SPRITES
+    gfx.sprite.update()
+    --UPDATE TIMERS
+    pd.timer.updateTimers()
 end

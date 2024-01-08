@@ -211,7 +211,7 @@ function pauseView:new()
             pauseViewSprite:moveTo(xPos,yPos)
             pauseViewSprite:setZIndex(130)
             gfx.pushContext(pauseViewImage)
-            o:drawInRect(0,0,menuX,menuY)
+                o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             pauseViewSprite:setImage(pauseViewImage)
         end
@@ -236,7 +236,6 @@ function pauseView:new()
     end
 
     function o:menuControl(direction) 
-
         if direction == "up" then
             o:selectPreviousRow(true)
         elseif direction == "down" then
@@ -300,7 +299,7 @@ function statusList:new()
         end
         o.menuNumberBox[i] = tostring(i)
     end
-    
+
     xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
     menuY = (140)
     menuX = (100)
@@ -340,7 +339,7 @@ function statusList:new()
     statusListSprite:setZIndex(zInNew)
     statusListSprite:add()
     statusListSprite:moveTo(xPos,yPos)
-    
+
     function o:menuUpdate()
         if o.needsDisplay then
             local statusListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
@@ -348,6 +347,7 @@ function statusList:new()
                 o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             statusListSprite:setImage(statusListImage)
+            print("drawing Menu")
         end
     end
 
