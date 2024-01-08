@@ -265,19 +265,6 @@ function pauseMenu()
     pauseView:new()
 end
 
-dynaList = playdate.ui.gridview.new(0,25)
-
-dynaList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
-
-nestedMode = {
-    STATUS = "status"
-    ,LIST = "list"
-    ,DECK = "deck"
-    ,TEAM = "team"
-    ,CHAR = "character"
-    ,CARD = "card"
-}
-
 statusList = playdate.ui.gridview.new(0,25)
 
 statusList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
@@ -421,6 +408,19 @@ function statusList:new()
     return o
 
 end
+
+dynaList = playdate.ui.gridview.new(0,25)
+
+dynaList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+nestedMode = {
+    STATUS = "status"
+    ,LIST = "list"
+    ,DECK = "deck"
+    ,TEAM = "team"
+    ,CHAR = "character"
+    ,CARD = "card"
+}
 
 function dynaList:new(mode,tableData)
     local o = o or {}
@@ -568,7 +568,6 @@ function dynaList:new(mode,tableData)
     dynaListSprite:setZIndex(zInNew)
     dynaListSprite:add()
     
-    
     function o:menuUpdate()
         if o.needsDisplay then
             local dynaListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
@@ -652,19 +651,6 @@ function dynaList:new(mode,tableData)
     o.index = countI + 1
     menuIndex[o.index] = o
     return o
-end
-
-specialBox = playdate.ui.gridview.new(0,20)
-specialBox:setNumberOfColumns(1)
-specialBox:setNumberOfRows(1)
-specialBox:setCellPadding(0,0,0,0)
-specialBox:setContentInset(0,0,0,0)
-
--- A basic and configurable black box with text inside. 
-function specialBox:new(x,y,w,h,text) -- text will be the result of a function
-    local o = o or {}
-    setmetatable(o,self)
-    self.__index=self
 end
 
 numberBox = playdate.ui.gridview.new(0,0)
