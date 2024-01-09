@@ -334,15 +334,20 @@ function statusList:new()
         statusListSprite:remove()
     end
 
-    local zInNew = 130
-    zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
-    statusListSprite:setZIndex(zInNew)
+
+    
     statusListSprite:add()
-    statusListSprite:moveTo(xPos,yPos)
+    
 
     function o:menuUpdate()
         if o.needsDisplay then
             local statusListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            statusListSprite:moveTo(xPos,yPos)
+            
+            local zInNew = 130
+            zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
+            statusListSprite:setZIndex(zInNew)
+
             gfx.pushContext(statusListImage)
                 o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
@@ -362,17 +367,17 @@ function statusList:new()
         local fontHeight = gfx.getSystemFont():getHeight()
 
         gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-        o:createNumberBox(x,y,i)
+        --o:createNumberBox(x,y,i)
 
     end
 
     function o:menuControl(direction) 
         if direction == "up" then
             o:selectPreviousRow(true,true,true)
-            print(playdate.ui.gridview:getSelectedRow())
+
         elseif direction == "down" then
             o:selectNextRow(true,true,true)
-            print(playdate.ui.gridview:getSelectedRow())
+
         elseif direction == "right" then
             printTable(o.menuText)
         elseif direction == "left" then 
@@ -395,7 +400,7 @@ function statusList:new()
             o:spriteKill()
             menuIndex[o.index] = nil
         end
-        print(o:getSelection())
+
     end
 
     local countI = 0
@@ -640,7 +645,6 @@ function dynaList:new(mode,tableData)
             o:spriteKill()
             menuIndex[o.index] = nil
         end
-        print(o:getSelection())
     end
 
     local countI = 0

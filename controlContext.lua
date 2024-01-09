@@ -4,8 +4,6 @@ local bounceProtect = false
 
 function menuInputContext()
 
-    
-
     if controlContext == GameMode.MENU  then
         if playdate.buttonJustPressed("b") then
 

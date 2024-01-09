@@ -212,6 +212,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
             o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             gridviewSprite:setImage(gridviewImage)
+            print("drawing Menu")
         end
     end
 
