@@ -137,11 +137,8 @@ function goMenu(item)
     elseif not menuFunc[item] then
         local oFat = loadSavedPlayers("all")
         for i,v in pairs(oFat) do
-            for k,c in pairs(v) do
-
-                if c.chrName == item then
-                    chrStat(c)
-                end
+            if v.chrNum == item then
+                chrStat(v)
             end
         end
         --do it again for cards
@@ -269,7 +266,7 @@ statusList = playdate.ui.gridview.new(0,25)
 statusList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
 function statusList:new()
-    local o = o or {}
+    local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
 
@@ -308,7 +305,7 @@ function statusList:new()
         local s = o:getSelectedRow()
         for i,v in pairs(o.listRows) do
             if s==i then
-                return v
+                return i
             end
         end
     end
@@ -334,10 +331,7 @@ function statusList:new()
         statusListSprite:remove()
     end
 
-
-    
     statusListSprite:add()
-    
 
     function o:menuUpdate()
         if o.needsDisplay then
@@ -352,7 +346,6 @@ function statusList:new()
                 o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             statusListSprite:setImage(statusListImage)
-            print("drawing Menu")
         end
     end
 
@@ -382,6 +375,9 @@ function statusList:new()
             printTable(o.menuText)
         elseif direction == "left" then 
             printTable(o.menuText)
+        elseif direction == "a" then
+            printTable(loadsavedPlayers(getSelectedRow))
+
         elseif direction == "b" then
             if o.bSpr == true then
                 for i,v in pairs(otherIndex) do
@@ -400,7 +396,6 @@ function statusList:new()
             o:spriteKill()
             menuIndex[o.index] = nil
         end
-
     end
 
     local countI = 0
@@ -414,9 +409,9 @@ function statusList:new()
 
 end
 
-dynaList = playdate.ui.gridview.new(0,25)
+varList = playdate.ui.gridview.new(0,25)
 
-dynaList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+varList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
 nestedMode = {
     STATUS = "status"
@@ -427,7 +422,7 @@ nestedMode = {
     ,CARD = "card"
 }
 
-function dynaList:new(mode,tableData)
+function varList:new(mode,tableData)
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
@@ -534,7 +529,7 @@ function dynaList:new(mode,tableData)
         menuY = (6 * 25) + 10
         menuX = (100)
     else
-        print("Mode not recognized in menuEngine, dynaList.")
+        print("Mode not recognized in menuEngine, varList.")
         return
     end
 
@@ -660,7 +655,7 @@ end
 numberBox = playdate.ui.gridview.new(0,0)
 
 function numberBox:new(bX,bY,listNum)
-    local o = o or {}
+    local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
     numberBox:setNumberOfColumns(1)
@@ -766,5 +761,6 @@ function createMenuIcon(icon)
 end
 
 function chrStat(chr) -- Render character stat screen.
-    dynaList:new(nestedMode.CHAR,chr)
+    printTable(chr)
+    varList:new(nestedMode.CHAR,chr)
 end

@@ -5,6 +5,7 @@ import "CoreLibs/sprites"
 import "CoreLibs/timer"
 import "CoreLibs/ui"
 import "CoreLibs/nineSlice"
+import 'CoreLibs/ui/gridview.lua'
 
 --Other Libraries
 import "assets/secondlib/AnimatedSprite"
@@ -201,18 +202,15 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     gridviewSprite:moveTo(100, 100)
                 end
             elseif o.type == "dialogue" or o.type == "mapDialogue" then
-
                 gridviewSprite:setZIndex(130)
                 gridviewSprite:moveTo(0,160)
                 o:setContentInset(5,20,10,0)
                 o:setCellSize(380, 50)
             end
-
             gfx.pushContext(gridviewImage)
             o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             gridviewSprite:setImage(gridviewImage)
-            print("drawing Menu")
         end
     end
 
