@@ -117,7 +117,7 @@ local menuFunc = {
         createMenuIcon(nestedMode.TEAM)
     end,
     ["List"] = function()
-        debugMessage()
+        cardList:new()
         createMenuIcon(nestedMode.LIST)
     end,
     ["Save"] = function()
@@ -132,16 +132,30 @@ local menuFunc = {
 
 function goMenu(item)
     -- Check if the selected item has a corresponding function and call it
+    if item == nil then
+        print("goMenu: item is nil.")
+        return
+    end
     if menuFunc[item] then
         menuFunc[item]()
     elseif not menuFunc[item] then
-        local oFat = loadSavedPlayers("all")
-        for i,v in pairs(oFat) do
-            if v.chrNum == item then
-                chrStat(v)
+        if menuIndex[#menuIndex].menuType == "Status" then --iterates through characters is menu is Status
+            local oFat = loadSavedPlayers("all")
+            for i,v in pairs(oFat) do
+                if v.chrNum == item then
+                    chrStat(v)
+                end
+            end
+        elseif menuIndex[#menuIndex].menuType == "List" then --iterates through cards if menu is List
+            local oFav = loadSavedCards("all")
+            for i,v in pairs(oFav) do
+                if type(v) == "table" then    
+                    if v.cNumber == item then
+                        cardData(v)
+                    end
+                end
             end
         end
-        --do it again for cards
     else
         print("No action defined for menu item:", item)
     end
@@ -273,6 +287,8 @@ function statusList:new()
     o:setCellPadding(0,0,0,0)
     o:setContentInset(5,5,7,7)
 
+    o.menuType = "Status"
+
     o.bSpr = true
     local menuBSpr = MenuBackground(0,0,"menuTwo")
     menuBSpr:add()
@@ -297,7 +313,7 @@ function statusList:new()
         o.menuNumberBox[i] = tostring(i)
     end
 
-    xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
+    xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
     menuY = (140)
     menuX = (100)
 
@@ -376,7 +392,159 @@ function statusList:new()
         elseif direction == "left" then 
             printTable(o.menuText)
         elseif direction == "a" then
-            printTable(loadsavedPlayers(getSelectedRow))
+            printTable(loadSavedPlayers(getSelectedRow))
+
+        elseif direction == "b" then
+            if o.bSpr == true then
+                for i,v in pairs(otherIndex) do
+                    if v.menuWhi then
+                        otherIndex.v = nil
+                        v:remove()
+                    end
+                end
+            end
+            for k, c in pairs(otherIndex) do
+                if c.menuIcon then
+                    otherIndex.c = nil
+                    c:remove()
+                end
+            end
+            o:spriteKill()
+            menuIndex[o.index] = nil
+        end
+    end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+
+end
+
+cardList = playdate.ui.gridview.new(0,25)
+
+cardList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+function cardList:new()
+    local o = playdate.ui.gridview.new(0,25)
+    setmetatable(o,self)
+    self.__index=self
+
+    o.menuType = "List"
+
+    o:setCellPadding(0,0,0,0)
+    o:setContentInset(5,5,7,7)
+
+    o.bSpr = true
+    local menuBSpr = MenuBackground(0,0,"menuTwo")
+    menuBSpr:add()
+
+    local menuX = 0 --size of background box and position to be set later
+    local menuY = 0
+    local yPos = 0
+    local xPos = 0
+
+    local oFat = loadSavedCards("all")
+    o.listRows = {}
+    o.menuNumberBox = {}
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(#oFat)
+
+    for i,v in pairs(oFat) do
+        if type(v) == "table" and i == v.cNumber then
+            o.listRows[v.cNumber] = v.cName
+        else
+            o.listRows[i] = "  "..tostring(i)
+        end
+        o.menuNumberBox[i] = tostring(i)
+    end
+
+    xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
+    menuY = (140)
+    menuX = (100)
+
+    function o:getOption() -- item selection in menu
+        local s = o:getSelectedRow()
+        for i,v in pairs(o.listRows) do
+            if s==i then
+                return i
+            end
+        end
+    end
+
+    function o:createNumberBox(nX,nY,numberIndex)
+        local numberIndexStr = tostring(numberIndex)
+        numberBox:new(nX,nY,numberIndexStr)
+    end
+
+    function o:clearNumberBox()
+        if #numberBoxIndex > 0 then
+            for i,v in pairs(numberBoxIndex) do
+                v.spriteKill()
+                numberBoxIndex[i] = nil
+            end
+        end  
+    end
+
+    local cardListSprite = gfx.sprite.new()
+    cardListSprite:setCenter(0,0)
+
+    function o:spriteKill()
+        cardListSprite:remove()
+    end
+
+    cardListSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local cardListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            cardListSprite:moveTo(xPos,yPos)
+            
+            local zInNew = 130
+            zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
+            cardListSprite:setZIndex(zInNew)
+
+            gfx.pushContext(cardListImage)
+                o:drawInRect(0,0,menuX,menuY)
+            gfx.popContext()
+            cardListSprite:setImage(cardListImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        if selected then
+            gfx.drawRect(x,y,width+2,height+2)
+            gfx.drawRect(x,y,width,height)
+        else
+            gfx.drawRect(x,y,width,height)
+        end
+
+        local fontHeight = gfx.getSystemFont():getHeight()
+
+        gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        --o:createNumberBox(x,y,i)
+
+    end
+
+    function o:menuControl(direction) 
+        if direction == "up" then
+            o:selectPreviousRow(true,true,true)
+
+        elseif direction == "down" then
+            o:selectNextRow(true,true,true)
+
+        elseif direction == "right" then
+            printTable(o.menuText)
+        elseif direction == "left" then 
+            printTable(o.menuText)
+        elseif direction == "a" then
+            local gSR = o:getSelectedRow()
+            print("gSR is "..gSR)
+            printTable(loadSavedCards(gSR))
 
         elseif direction == "b" then
             if o.bSpr == true then
@@ -459,25 +627,25 @@ function varList:new(mode,tableData)
         o.menuNumberBox[i] = tostring(i)
     end
     
-    xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
+    xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
     menuY = (140)
     menuX = (100)
 
     elseif mode == nestedMode.LIST then
         -- display all cards in inventory
         o.hasColumns = true
-        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
+        xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.DECK then
         -- display all cards in the deck
         o.hasColumns = true
-        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
+        xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.TEAM then
         -- display all characters in the team
-        xPos, yPos = menuPosition(menuPosEnum.menuPosDyna)
+        xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
         menuY = (6 * 25) + 10
         menuX = (100)
     elseif mode == nestedMode.CHAR then
@@ -525,7 +693,8 @@ function varList:new(mode,tableData)
         o:setNumberOfRows(#o.listRows)
 
     elseif mode == nestedMode.CARD then
-        --display card info from save
+        --display card info from RAMSAVE
+        
         menuY = (6 * 25) + 10
         menuX = (100)
     else
@@ -556,26 +725,26 @@ function varList:new(mode,tableData)
         end  
     end
 
-    local dynaListSprite = gfx.sprite.new()
-    dynaListSprite:setCenter(0,0)
+    local varListSprite = gfx.sprite.new()
+    varListSprite:setCenter(0,0)
 
     function o:spriteKill()
-        dynaListSprite:remove()
+        varListSprite:remove()
     end
 
     local zInNew = 130
     zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
-    dynaListSprite:setZIndex(zInNew)
-    dynaListSprite:add()
+    varListSprite:setZIndex(zInNew)
+    varListSprite:add()
     
     function o:menuUpdate()
         if o.needsDisplay then
-            local dynaListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
-            dynaListSprite:moveTo(xPos,yPos)
-            gfx.pushContext(dynaListImage)
+            local varListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            varListSprite:moveTo(xPos,yPos)
+            gfx.pushContext(varListImage)
                 o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
-            dynaListSprite:setImage(dynaListImage)
+            varListSprite:setImage(varListImage)
         end
     end
 
@@ -769,4 +938,13 @@ end
 function chrStat(chr) -- Render character stat screen.
     printTable(chr)
     varList:new(nestedMode.CHAR,chr)
+end
+
+function cardData(selCard) -- Render card info screen.
+    if type(selCard) ~= "table" then
+        print("cardData: Data not in correct format.")
+    else
+        printTable(selCard)
+        varList:new(nestedMode.CARD,selCard)
+    end
 end

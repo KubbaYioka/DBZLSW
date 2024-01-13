@@ -299,18 +299,8 @@ controlContext = GameMode.MENU
 function playdate.update()
    while gameBoot == 0 do -- First thing the game does is check for a save
         --show opening animation
-        local ver = initLoadSav()
-        if ver == false then -- if save is not found
-            initSaveFile()
-            gridview:new("menu", startMenu)
-        elseif ver == true then
-            local sit = clearOne() -- check to see if the game has been beaten once
-            if sit == true then
-                gridview:new("menu",fullMenuMain)
-            elseif sit == false then
-                gridview:new("menu",intermMenu)
-            end
-        end
+        ramSave()
+
         gameBoot = 1
     end
 

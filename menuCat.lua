@@ -12,7 +12,7 @@ menuPause={"Characters","Deck","List","Save","Exit"} --all will read and write f
 
 menuPosEnum = {
     menuPosChr = "chr"
-    ,menuPosDyna = "dynaMenu"
+    ,menuPosvar = "varMenu"
     ,menuPosBattle = "battle"
     ,menuPosPause = "pause"
     ,menuPosStart = "start"
@@ -25,7 +25,7 @@ function menuPosition(menuName)
         return 120, 120
     elseif menuName == menuBattle or menuName == menuPause then
         return 0,0
-    elseif menuName == menuPosEnum.menuPosDyna then
+    elseif menuName == menuPosEnum.menuPosvar then
         return 40,75
     elseif menuName == menuPosEnum.menuPosChr then
         return 40,40

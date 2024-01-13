@@ -89,13 +89,16 @@ maps={
                     , function() dTag("clear") end
                     --,-- command to say that this is the end of this dialogue session, and that the next won't begin until a flag is triggered.
                     ,function() dTag("left", "Goku") end
-                    ,"This is more text."
+                    ,"This is more text and a card."
+                    ,function() cCardAdd("Dummy Card") end
                     ,function() mNextText("jarTwo",2) end
                     , function() dTag("clear") end
                 }
                 ,text2 = {
                     function() dTag("left", "Goku") end
                     ,"And now the second object will be deleted."
+                    ,"But first, here's a card."
+                    ,function() cCardAdd("Dummy Card") end
                     ,function() mObjAppear("jarTwo",false) end
                     ,function() dTag("clear") end
                 }
@@ -110,5 +113,3 @@ maps={
     },
     map01 = {}
 }
--- Object Functions --
-

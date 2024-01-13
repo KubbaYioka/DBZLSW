@@ -3,16 +3,32 @@
 
 --FILE ACCESS ENUMERATION
 function saveCheck(location)
-    local SAVCHECK = playdate.datastore.read("sav")
     if location == "chrs" then
-        return SAVCHECK[1]
+        return RAMSAVE[1]
     elseif location == "cards" then
-        return SAVCHECK[2]
+        return RAMSAVE[2]
     elseif location == "data" then 
-        return SAVCHECK[3]
+        return RAMSAVE[3]
     elseif location == "all" then
-        return SAVCHECK
+        return RAMSAVE
     end
+end
+
+function ramSave() -- loads all save data into RAM. This is modified instead of the Save itself
+    if playdate.file.exists("sav.json") == false then -- if save is not found
+        initSaveFile()
+        RAMSAVE = playdate.datastore.read("sav")
+        gridview:new("menu", startMenu)
+    elseif playdate.file.exists("sav.json") == true then
+        RAMSAVE = playdate.datastore.read("sav")
+        local sit = clearOne() -- check to see if the game has been beaten once
+        if sit == true then
+            gridview:new("menu",fullMenuMain)
+        elseif sit == false then
+            gridview:new("menu",intermMenu)
+        end
+    end
+    
 end
 
 function clearOne() --checks to see if the game has been completed once
@@ -22,19 +38,6 @@ function clearOne() --checks to see if the game has been completed once
             printTable(v)
             return v
         end
-    end
-end
-
-function initLoadSav() --tests for save in game folder.
-    if playdate.file.exists("sav.json") == false  then
-        initSaveFile()
-        currentPlayerData = saveCheck("all")
-        print("Save Created.")
-        return false
-    else
-        currentPlayerData = saveCheck("all")
-        print("Save Loaded!")
-        return true
     end
 end
 
@@ -49,10 +52,13 @@ function initSaveFile() --creates the initial save file if none exists
     local chrDat = {}
     local storyDat = {}
     local cardDat = {}
+    local teamDat = {} -- list of current fighters in a team
+    local deckDat = {} -- list of current cards in the player's deck
+
     storyDat.currentMode = GameMode.STORY
     storyDat.currentLocation = "storyLoc1"
     storyDat.completed = false
-    for i=1, 150, 1 do -- 1500 card slots for now.
+    for i=1, 150, 1 do -- 150 card slots for now.
         cardDat[i] = 0 -- starts with zero for each kind of card.
     end
 
@@ -66,7 +72,6 @@ function initSaveFile() --creates the initial save file if none exists
             end
         end
         chrDat = demoTabl
-
 
     local savFil = {
         chrDat
@@ -89,6 +94,24 @@ function loadSavedPlayers(chr) -- Returns the character specified from the save 
                 print(c)
                 if c.chrCode == chr then
                     print("chr found")
+                    return c
+                end
+            end
+        end
+    end
+end
+function loadSavedCards(card) -- Returns the character specified from the save file. 
+    if card == "all" then
+        local tempTab = saveCheck("cards")
+        return tempTab
+    else
+        local tempTab = saveCheck("cards")
+        for i,v in pairs(tempTab) do
+            for k,c in pairs(v) do
+                print(k)
+                print(c)
+                if c.cName == card then
+                    print("card found")
                     return c
                 end
             end

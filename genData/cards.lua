@@ -182,7 +182,28 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
   }
+  ,["Dummy Card"]=
+  {
+    cName = "Dummy Card"
+    ,cNumber = 020
+    ,cType = CEffect
+    ,cPower = function() enduranceCalc(pDef) end 
+    ,cAccuracy = 100 
+    ,cCost = 7
+    ,cDescription = "Dummy Card."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+  }
 }
+
+function cardRet(cardName) -- gets the card data from tthe above master table. Not for Save access.
+  for i,v in pairs (cards) do
+      if v.cName == cardName then
+        return v
+      end
+  end
+end
 
 --Card Calculations
 function enduranceCalc(def)
