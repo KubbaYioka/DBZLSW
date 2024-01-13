@@ -595,18 +595,24 @@ function varList:new(mode,tableData)
 
         elseif mode == nestedMode.CHAR then
             o.menuText = o.listRows
+            printTable(o.listRows)
             local fEnum = nil
             local cb = nil
             for i,v in pairs(o.listRows) do
-                if i==rCount then
+                if i==row then
                     if type(v) == "table" then
                         cb = tostring(#v)
                     end
                     for k,b in pairs (o.category) do
-                        if k==rCount then
-                            fEnum = b..": "..v
+                        if k==row then
+                            if type(v) == "table" then
+                                fEnum = b..": "..cb
+                            else
+                                fEnum = b..": "..v
+                            end
                         end
                     end
+                    --if a parameter has 0, it is not drawn
                     gfx.drawTextInRect(fEnum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
                 end
             end
