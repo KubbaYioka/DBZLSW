@@ -65,6 +65,7 @@ gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16
 menuIndex = {} -- for all menu objects. Cleared between gamemodes. 
 portIndex = {} -- for keeping track of portraits in story mode.
 tagIndex = {} -- for keeping track of dialogue tags
+dataBoxIndex = {} -- for individually drawn data boxes like fields for card info
 otherIndex = {} -- for misc objects that will not be used at the same time as any other misc object (e.g, menu icons)
 mapObjIndex = {} -- for map objects
 numberBoxIndex = {} -- table for those little number boxes in the list views. 
@@ -314,6 +315,12 @@ function playdate.update()
         end
     end
 
+    if #dataBoxIndex > 0 then
+        for i,v in pairs(dataBoxIndex) do
+            v:menuUpdate()
+        end
+    end
+    
     if #numberBoxIndex > 0 then
         for i,v in pairs(numberBoxIndex) do
             v:menuUpdate()

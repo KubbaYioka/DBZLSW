@@ -694,7 +694,9 @@ function varList:new(mode,tableData)
 
     elseif mode == nestedMode.CARD then
         --display card info from RAMSAVE
-        
+        o.cardInfo = tableData
+        print("CardInfo: ")
+        printTable(o.cardInfo)
         menuY = (6 * 25) + 10
         menuX = (100)
     else
@@ -893,6 +895,11 @@ function MenuBackground:init(x,y,back)
         self:setImage(menuImage)
         self.menuWhi = 1
         self:setZIndex(131)
+    elseif back == "menuThree" then
+        local menuImage = gfx.image.new('assets/images/background/400240.png')
+        self:setImage(menuImage)
+        self.menuWhi = 1
+        self:setZIndex(160)
     end
 
     -- Properties
@@ -944,7 +951,88 @@ function cardData(selCard) -- Render card info screen.
     if type(selCard) ~= "table" then
         print("cardData: Data not in correct format.")
     else
-        printTable(selCard)
-        varList:new(nestedMode.CARD,selCard)
+        for i,v in pairs(selCard) do
+            if i == "cNumber" then
+                local sRT = tostring(v)
+                local sRTT = "No. "..sRT
+                dataBox:new(180,0,250,25,sRTT,gfx.kColorBlack,nil)
+            elseif i == "cName" then
+                --print("cName: "..v)
+            elseif i == "cAccuracy" then
+                --print("cAccuracy: "..v)
+            elseif i == "cCost" then
+                --print("cCost: "..v)
+            elseif i == "cDescription" then
+                --print("cDescription: "..v)
+            elseif i == "cQuantity" then
+                --print("cQuantity: "..v)
+            elseif i == "cEffect" then
+                --print("cEffect: "..v)
+            end
+        end
     end
+end
+
+dataBox = playdate.ui.gridview.new(0,25)
+function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
+    local o = playdate.ui.gridview.new(0,25)
+    setmetatable(o,self)
+    self.__index=self
+    dataBox:setNumberOfColumns(1)
+    dataBox:setNumberOfRows(1)
+    dataBox:setCellPadding(0,0,0,0)
+    dataBox:setContentInset(0,0,0,0)
+
+    o.dataBoxSprite = gfx.sprite.new()
+    o.dataBoxSprite:setCenter(0, 0)
+
+    function o:spriteKill()
+        o.dataBoxSprite:remove()
+    end
+    if #dataBoxIndex == 0 then
+        o.bSpr = true
+        local menuBSpr = MenuBackground(0,0,"menuTwo")
+        menuBSpr:add()
+    end
+
+    --[[
+    if o.bSpr == true then
+        for i,v in pairs(otherIndex) do
+            if v.menuWhi then
+                otherIndex.v = nil
+                v:remove()
+            end
+        end
+    end
+    --]]
+    
+    o.dataBoxSprite:setZIndex(145)
+    o.dataBoxSprite:moveTo(xD, yD)
+    o.dataBoxSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local boxImage = gfx.image.new(wD,hD,gfx.kColorBlack)
+            o:setCellSize(wD, hD)
+            gfx.pushContext(boxImage)
+                o:drawInRect(0,0,20,20)
+            gfx.popContext()
+            o.dataBoxSprite:setImage(boxImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        gfx.drawRect(xD,yD,wD,hD)
+        local fontHeight = gfx.getSystemFont():getHeight()
+        gfx.drawTextInRect(dText, xD+2, yD + (hD/2 - fontHeight/2) + 2, wD, hD, nil, truncationString, kTextAlignment.left)
+    end
+
+    local countI = 0
+    for _ in pairs(dataBoxIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    dataBoxIndex[o.index] = o
+    return o
 end
