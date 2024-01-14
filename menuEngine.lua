@@ -974,7 +974,9 @@ function cardData(selCard) -- Render card info screen.
 end
 
 dataBox = playdate.ui.gridview.new(0,25)
+
 function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
+    print(dText)
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
@@ -982,6 +984,8 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
     dataBox:setNumberOfRows(1)
     dataBox:setCellPadding(0,0,0,0)
     dataBox:setContentInset(0,0,0,0)
+
+    o.bgD = bgD
 
     o.dataBoxSprite = gfx.sprite.new()
     o.dataBoxSprite:setCenter(0, 0)
@@ -991,7 +995,7 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
     end
     if #dataBoxIndex == 0 then
         o.bSpr = true
-        local menuBSpr = MenuBackground(0,0,"menuTwo")
+        local menuBSpr = MenuBackground(0,0,"menuThree")
         menuBSpr:add()
     end
 
@@ -1006,13 +1010,13 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
     end
     --]]
     
-    o.dataBoxSprite:setZIndex(145)
+    o.dataBoxSprite:setZIndex(200)
     o.dataBoxSprite:moveTo(xD, yD)
     o.dataBoxSprite:add()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local boxImage = gfx.image.new(wD,hD,gfx.kColorBlack)
+            local boxImage = gfx.image.new(wD,hD,o.bgD)
             o:setCellSize(wD, hD)
             gfx.pushContext(boxImage)
                 o:drawInRect(0,0,20,20)
@@ -1022,9 +1026,12 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        gfx.drawRect(xD,yD,wD,hD)
+        gfx.drawRect(x,y,width,height)
         local fontHeight = gfx.getSystemFont():getHeight()
-        gfx.drawTextInRect(dText, xD+2, yD + (hD/2 - fontHeight/2) + 2, wD, hD, nil, truncationString, kTextAlignment.left)
+        local original_draw_mode = gfx.getImageDrawMode()
+        gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
+        gfx.drawTextInRect(dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.setImageDrawMode( original_draw_mode )
     end
 
     local countI = 0
