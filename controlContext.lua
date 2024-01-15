@@ -28,40 +28,47 @@ function menuInputContext()
     end
 
     if controlContext == GameMode.PAUSE  then
-        if playdate.buttonJustPressed("b") then
-            local fs = menuIndex[#menuIndex]
-            fs:menuControl("b")
-            if #menuIndex == 0 then
-                bounceProtectSwi("on")
-                ctrlConSwi("off")
+        if #dataBoxIndex > 0 then 
+            if playdate.buttonJustPressed("b") then
+                local fs = dataBoxIndex[1] -- the first index will always have o.conTag == true, so it will have menuControl.
+                fs:menuControl("b")
             end
-        end
-        if playdate.buttonJustPressed("a") then
-            local fs = menuIndex[#menuIndex]
-            goMenu(fs:getOption())
-        end
+        else
+            if playdate.buttonJustPressed("b") then      
+                local fs = menuIndex[#menuIndex]
+                fs:menuControl("b")
+                if #menuIndex == 0 then
+                    bounceProtectSwi("on")
+                    ctrlConSwi("off")
+                end
+            end
+            if playdate.buttonJustPressed("a") then
+                local fs = menuIndex[#menuIndex]
+                goMenu(fs:getOption())
+            end
 
-        if playdate.buttonJustPressed("left") then
-            local fs = menuIndex[#menuIndex]
-            fs:menuControl("left")
-        end
+            if playdate.buttonJustPressed("left") then
+                local fs = menuIndex[#menuIndex]
+                fs:menuControl("left")
+            end
 
-        if playdate.buttonJustPressed("right") then
-            local fs = menuIndex[#menuIndex]
-            fs:menuControl("right")
-        end
+            if playdate.buttonJustPressed("right") then
+                local fs = menuIndex[#menuIndex]
+                fs:menuControl("right")
+            end
 
 
-        if playdate.buttonJustPressed("up") then
-            local fs = menuIndex[#menuIndex]
-            fs:menuControl("up")
+            if playdate.buttonJustPressed("up") then
+                local fs = menuIndex[#menuIndex]
+                fs:menuControl("up")
 
-        end
+            end
 
-        if playdate.buttonJustPressed("down") then
-            local fs = menuIndex[#menuIndex]
-            fs:menuControl("down")
+            if playdate.buttonJustPressed("down") then
+                local fs = menuIndex[#menuIndex]
+                fs:menuControl("down")
 
+            end
         end
     end
 

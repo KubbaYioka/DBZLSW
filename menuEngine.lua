@@ -881,7 +881,7 @@ function numberBox:new(bX,bY,listNum)
     return o
 end
 
-class('MenuBackground').extends(gfx.sprite)
+class('MenuBackground').extends(gfx.sprite) -- create menu backgrounds
 
 function MenuBackground:init(x,y,back)
     MenuBackground.super.init(self)
@@ -898,7 +898,7 @@ function MenuBackground:init(x,y,back)
     elseif back == "menuThree" then
         local menuImage = gfx.image.new('assets/images/background/400240.png')
         self:setImage(menuImage)
-        self.menuWhi = 1
+        self.menuWhi = 2
         self:setZIndex(160)
     end
 
@@ -955,30 +955,35 @@ function cardData(selCard) -- Render card info screen.
             if i == "cNumber" then
                 local sRT = tostring(v)
                 local sRTT = "No. "..sRT
-                dataBox:new(180,0,250,50,sRTT,gfx.kColorBlack,nil)
+                dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil,true)
             elseif i == "cName" then
-                --print("cName: "..v)
-                dataBox:new(90,120,100,50,v,gfx.kColorWhite,nil)
+                dataBox:new(180,40,200,20,v,gfx.kColorWhite,nil)
             elseif i == "cAccuracy" then
-                --print("cAccuracy: "..v)
+                local sRT = tostring(v)
+                local sRTT = "Accuracy: "..sRT
+                dataBox:new(60,140,200,20,sRTT,gfx.kColorWhite,nil)
             elseif i == "cCost" then
-                --print("cCost: "..v)
+                local sRT = tostring(v)
+                local sRTT = "CC: "..sRT
+                dataBox:new(60,160,200,20,sRTT,gfx.kColorWhite,nil)
             elseif i == "cDescription" then
-                --print("cDescription: "..v)
+                dataBox:new(40,190,400,60,v,gfx.kColorWhite,nil)
             elseif i == "cQuantity" then
-                --print("cQuantity: "..v)
+                local sRT = tostring(v)
+                local sRTT = "Available: "..sRT
+                dataBox:new(0,80,400,20,sRTT,gfx.kColorBlack,nil)
             elseif i == "cEffect" then
-                --print("cEffect: "..v)
+                dataBox:new(60,120,200,20,v,gfx.kColorWhite,nil)
             end
         end
     end
 end
 
-dataBox = playdate.ui.gridview.new(0,0)
+dataBox = playdate.ui.gridview.new(0,25)
 
-function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
+function dataBox:new(xD,yD,wD,hD,dText,bgD,image,conTag) -- where bgD is the background color
 
-    local o = playdate.ui.gridview.new(0,0)
+    local o = o or {}
     setmetatable(o,self)
     self.__index=self
 
@@ -993,9 +998,9 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
     o.y = yD
     o.w = wD
     o.h = hD
-    print(o.dText)
+    o.conTag = conTag --tag ensures menu control is only used by a single dataBox object 
 
-   local dataBoxSprite = gfx.sprite.new()
+    local dataBoxSprite = gfx.sprite.new()
     dataBoxSprite:setCenter(0, 0)
 
     function o:spriteKill()
@@ -1007,25 +1012,31 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
         menuBSpr:add()
     end
 
-    --[[
-    if o.bSpr == true then
-        for i,v in pairs(otherIndex) do
-            if v.menuWhi then
-                otherIndex.v = nil
-                v:remove()
+    dataBoxSprite:add()
+  
+    function o:menuControl(direction) 
+        if o.conTag == true then
+            if direction == "b" then
+                if o.bSpr == true then
+                    for i,v in pairs(otherIndex) do
+                        if v.menuWhi == 2 then
+                            otherIndex.v = nil
+                            v:remove()
+                        end
+                    end
+                end 
+                for i,v in pairs(dataBoxIndex) do
+                    v:spriteKill()
+                    dataBoxIndex[v.index] = nil
+                end
             end
         end
     end
-    --]]
-
-    
-    dataBoxSprite:add()
 
     function o:menuUpdate()
         if o.needsDisplay then
             local boxImage = gfx.image.new(o.w,o.h,o.bgD)
             dataBoxSprite:moveTo(o.x, o.y)
-
             local zInd = #dataBoxIndex + 220
             dataBoxSprite:setZIndex(zInd)
             gfx.pushContext(boxImage)
@@ -1036,14 +1047,21 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        if selected then
-            gfx.drawRect(x,y,width,height)
-        end
+
         local fontHeight = gfx.getSystemFont():getHeight()
-       -- local original_draw_mode = gfx.getImageDrawMode()
-        --gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
-        gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-        --gfx.setImageDrawMode( original_draw_mode )
+        if o.x == 0 and o.y == 80 then -- text alignment for quantity of cards available
+            o.align = kTextAlignment.right
+        else
+            o.align = kTextAlignment.left -- all other aligned left
+        end
+        if o.bgD == 0 then
+            local original_draw_mode = gfx.getImageDrawMode()
+            gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
+            gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, o.align)
+            gfx.setImageDrawMode( original_draw_mode )
+        else
+            gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, o.align)
+        end
     end
 
     local countI = 0
