@@ -929,7 +929,7 @@ function MenuIcon:init(image)
 
     self:setCenter(0, 0)
     self:moveTo(320, 0)
-    self:setZIndex(190)
+    self:setZIndex(140)
     
     local numberO = #otherIndex + 1
     otherIndex[numberO] = self
@@ -955,9 +955,10 @@ function cardData(selCard) -- Render card info screen.
             if i == "cNumber" then
                 local sRT = tostring(v)
                 local sRTT = "No. "..sRT
-                dataBox:new(180,0,250,25,sRTT,gfx.kColorBlack,nil)
+                dataBox:new(180,0,250,50,sRTT,gfx.kColorBlack,nil)
             elseif i == "cName" then
                 --print("cName: "..v)
+                dataBox:new(90,120,100,50,v,gfx.kColorWhite,nil)
             elseif i == "cAccuracy" then
                 --print("cAccuracy: "..v)
             elseif i == "cCost" then
@@ -973,25 +974,32 @@ function cardData(selCard) -- Render card info screen.
     end
 end
 
-dataBox = playdate.ui.gridview.new(0,25)
+dataBox = playdate.ui.gridview.new(0,0)
 
 function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
-    print(dText)
-    local o = playdate.ui.gridview.new(0,25)
+
+    local o = playdate.ui.gridview.new(0,0)
     setmetatable(o,self)
     self.__index=self
+
     dataBox:setNumberOfColumns(1)
     dataBox:setNumberOfRows(1)
     dataBox:setCellPadding(0,0,0,0)
     dataBox:setContentInset(0,0,0,0)
 
     o.bgD = bgD
+    o.dText = dText
+    o.x = xD
+    o.y = yD
+    o.w = wD
+    o.h = hD
+    print(o.dText)
 
-    o.dataBoxSprite = gfx.sprite.new()
-    o.dataBoxSprite:setCenter(0, 0)
+   local dataBoxSprite = gfx.sprite.new()
+    dataBoxSprite:setCenter(0, 0)
 
     function o:spriteKill()
-        o.dataBoxSprite:remove()
+        dataBoxSprite:remove()
     end
     if #dataBoxIndex == 0 then
         o.bSpr = true
@@ -1009,29 +1017,33 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
         end
     end
     --]]
+
     
-    o.dataBoxSprite:setZIndex(200)
-    o.dataBoxSprite:moveTo(xD, yD)
-    o.dataBoxSprite:add()
+    dataBoxSprite:add()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local boxImage = gfx.image.new(wD,hD,o.bgD)
-            o:setCellSize(wD, hD)
+            local boxImage = gfx.image.new(o.w,o.h,o.bgD)
+            dataBoxSprite:moveTo(o.x, o.y)
+
+            local zInd = #dataBoxIndex + 220
+            dataBoxSprite:setZIndex(zInd)
             gfx.pushContext(boxImage)
-                o:drawInRect(0,0,20,20)
+                o:drawInRect(0,0,o.w,o.h)
             gfx.popContext()
-            o.dataBoxSprite:setImage(boxImage)
+            dataBoxSprite:setImage(boxImage)
         end
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        gfx.drawRect(x,y,width,height)
+        if selected then
+            gfx.drawRect(x,y,width,height)
+        end
         local fontHeight = gfx.getSystemFont():getHeight()
-        local original_draw_mode = gfx.getImageDrawMode()
-        gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
-        gfx.drawTextInRect(dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-        gfx.setImageDrawMode( original_draw_mode )
+       -- local original_draw_mode = gfx.getImageDrawMode()
+        --gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
+        gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        --gfx.setImageDrawMode( original_draw_mode )
     end
 
     local countI = 0
