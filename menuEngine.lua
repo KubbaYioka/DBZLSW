@@ -284,7 +284,7 @@ function statusList:new()
     setmetatable(o,self)
     self.__index=self
 
-    o:setCellPadding(0,0,0,0)
+    o:setCellPadding(0,0,0,5)
     o:setContentInset(5,5,7,7)
 
     o.menuType = "Status"
@@ -314,8 +314,8 @@ function statusList:new()
     end
 
     xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-    menuY = (140)
-    menuX = (100)
+    menuY = (160)
+    menuX = (250)
 
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
@@ -367,10 +367,7 @@ function statusList:new()
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
         if selected then
-            gfx.drawRect(x,y,width+2,height+2)
-            gfx.drawRect(x,y,width,height)
-        else
-            gfx.drawRect(x,y,width,height)
+            gfx.fillTriangle(x-5,y,x+3,y+2,x,y+5)
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
@@ -955,7 +952,7 @@ function cardData(selCard) -- Render card info screen.
             if i == "cNumber" then
                 local sRT = tostring(v)
                 local sRTT = "No. "..sRT
-                dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil,true)
+                dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil)
             elseif i == "cName" then
                 dataBox:new(180,40,200,20,v,gfx.kColorWhite,nil)
             elseif i == "cAccuracy" then
@@ -981,7 +978,7 @@ end
 
 dataBox = playdate.ui.gridview.new(0,25)
 
-function dataBox:new(xD,yD,wD,hD,dText,bgD,image,conTag) -- where bgD is the background color
+function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
 
     local o = o or {}
     setmetatable(o,self)
@@ -998,7 +995,6 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image,conTag) -- where bgD is the bac
     o.y = yD
     o.w = wD
     o.h = hD
-    o.conTag = conTag --tag ensures menu control is only used by a single dataBox object 
 
     local dataBoxSprite = gfx.sprite.new()
     dataBoxSprite:setCenter(0, 0)
@@ -1015,20 +1011,18 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image,conTag) -- where bgD is the bac
     dataBoxSprite:add()
   
     function o:menuControl(direction) 
-        if o.conTag == true then
-            if direction == "b" then
-                if o.bSpr == true then
-                    for i,v in pairs(otherIndex) do
-                        if v.menuWhi == 2 then
-                            otherIndex.v = nil
-                            v:remove()
-                        end
+        if direction == "b" then
+            if o.bSpr == true then
+                for i,v in pairs(otherIndex) do
+                    if v.menuWhi == 2 then
+                        otherIndex.v = nil
+                        v:remove()
                     end
-                end 
-                for i,v in pairs(dataBoxIndex) do
-                    v:spriteKill()
-                    dataBoxIndex[v.index] = nil
                 end
+            end 
+            for i,v in pairs(dataBoxIndex) do
+                v:spriteKill()
+                dataBoxIndex[v.index] = nil
             end
         end
     end

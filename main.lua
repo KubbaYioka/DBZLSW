@@ -84,6 +84,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     local xPos = 0
     local yPos = 0
 
+
     if o.type == "menu" or o.type == "twoChoices" then
         --options in menu list and menu orientation dependent on name variable
         -- so like if name == y then o.options = option table 1, etc
@@ -219,7 +220,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         local menuText={}
         if o.type == "menu" then
             if selected then
-                gfx.drawRect(x,y,width+2,height+2)
+                
                 gfx.drawRect(x,y,width,height)
             else
                 gfx.drawRect(x,y,width,height)
