@@ -27,6 +27,8 @@ function menuPosition(menuName)
         return 0,0
     elseif menuName == menuPosEnum.menuPosvar then
         return 60,60
+    elseif menuName == menuPosEnum.numberBox then
+        return 10,60
     elseif menuName == menuPosEnum.menuPosChr then
         return 40,40
     else

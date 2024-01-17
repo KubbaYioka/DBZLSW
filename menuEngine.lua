@@ -103,11 +103,12 @@ local menuFunc = {
     end,
     ["Status"] = function()
         statusList:new()
+        numberBox:new("status")
         createMenuIcon(nestedMode.STATUS)
     end,
-        ["nameHere"] = function()
-            clearPauseMenu()
-        end,
+    ["nameHere"] = function()
+        clearPauseMenu()
+    end,
     ["Deck"] = function()
         debugMessage()
         createMenuIcon(nestedMode.DECK)
@@ -325,20 +326,6 @@ function statusList:new()
         end
     end
 
-    function o:createNumberBox(nX,nY,numberIndex)
-        local numberIndexStr = tostring(numberIndex)
-        numberBox:new(nX,nY,numberIndexStr)
-    end
-
-    function o:clearNumberBox()
-        if #numberBoxIndex > 0 then
-            for i,v in pairs(numberBoxIndex) do
-                v.spriteKill()
-                numberBoxIndex[i] = nil
-            end
-        end  
-    end
-
     local statusListSprite = gfx.sprite.new()
     statusListSprite:setCenter(0,0)
 
@@ -374,7 +361,6 @@ function statusList:new()
         local rowFin = " "..rowCom
 
         gfx.drawTextInRect(rowFin, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-        --o:createNumberBox(x,y,i)
 
     end
 
@@ -448,7 +434,6 @@ function cardList:new()
 
     local oFat = loadSavedCards("all")
     o.listRows = {}
-    o.menuNumberBox = {}
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#oFat)
 
@@ -458,10 +443,9 @@ function cardList:new()
         else
             o.listRows[i] = "  "..tostring(i)
         end
-        o.menuNumberBox[i] = tostring(i)
     end
 
-    xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
+    local xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
     menuY = (160)
     menuX = (250)
 
@@ -472,20 +456,6 @@ function cardList:new()
                 return i
             end
         end
-    end
-
-    function o:createNumberBox(nX,nY,numberIndex)
-        local numberIndexStr = tostring(numberIndex)
-        numberBox:new(nX,nY,numberIndexStr)
-    end
-
-    function o:clearNumberBox()
-        if #numberBoxIndex > 0 then
-            for i,v in pairs(numberBoxIndex) do
-                v.spriteKill()
-                numberBoxIndex[i] = nil
-            end
-        end  
     end
 
     local cardListSprite = gfx.sprite.new()
@@ -524,7 +494,6 @@ function cardList:new()
         local rowFin = " "..rowCom
 
         gfx.drawTextInRect(rowFin, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-        o:createNumberBox(x,y,i)
 
     end
 
@@ -711,20 +680,6 @@ function varList:new(mode,tableData)
         end
     end
 
-    function o:createNumberBox(nX,nY,numberIndex)
-        local numberIndexStr = tostring(numberIndex)
-        numberBox:new(nX,nY,numberIndexStr)
-    end
-
-    function o:clearNumberBox()
-        if #numberBoxIndex > 0 then
-            for i,v in pairs(numberBoxIndex) do
-                v.spriteKill()
-                numberBoxIndex[i] = nil
-            end
-        end  
-    end
-
     local varListSprite = gfx.sprite.new()
     varListSprite:setCenter(0,0)
 
@@ -760,11 +715,9 @@ function varList:new(mode,tableData)
 
         if mode == nestedMode.STATUS then
             gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-            --o:createNumberBox(x,y,i)
 
         elseif mode == nestedMode.CHAR then
             o.menuText = o.listRows
-            printTable(o.listRows)
             local fEnum = nil
             local cb = nil
             for i,v in pairs(o.listRows) do
@@ -827,61 +780,69 @@ function varList:new(mode,tableData)
     return o
 end
 
-numberBox = playdate.ui.gridview.new(0,0)
+numberBox = playdate.ui.gridview.new(0,20)
 
-function numberBox:new(table)
-    local o = playdate.ui.gridview.new(0,25)
+function numberBox:new(tableC)
+    local o = playdate.ui.gridview.new(0,20)
     setmetatable(o,self)
     self.__index=self
-    o.rowCont = {}
-    if table == "cards" then
-        o.rowCont = 150 --set number to total number of cards (150 atm)
-    elseif table == "status" then
-        o.rowCont = 50--same for characters
+
+    o:setCellPadding(0,0,0,5)
+    o:setContentInset(0,0,0,0)
+
+    local tCount = 0
+
+    if tableC == "cards" then
+        tCount = 150
+    elseif tableC == "status" then
+        tCount = 50
     end
-    for i=1, o.rowCont, 1 do -- all possible rows to match to 'i' below
-        o.rowQnt[i] = i
+
+    local rowCount = {}
+
+    for i=1, tCount, 1 do
+        rowCount[i] = tostring(i)
     end
 
-    numberBox:setNumberOfColumns(1)
-    numberBox:setNumberofRows(#o.rowQnt)
-    numberBox:setCellPadding(0,0,0,0)
-    numberBox:setContentInset(0,0,0,0)
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(#rowCount)
+    local menuX, menuY = 20, 20
 
-    o.numBoxSprite = gfx.sprite.new()
-    o.numBoxSprite:setCenter(0, 0)
-    o.xPos, o.yPos = menuPosition(menuPosEnum.menuPosvar)
-    o.menuY = (160)
-    o.menuX = (250)
+    local numBoxSprite = gfx.sprite.new()
+    numBoxSprite:setCenter(0,0)
+    local xPos, yPos = menuPosition(menuPosEnum.numberBox)
 
-    --print(o.rowNum.." at: ("..bX..", "..bY..")")
     function o:spriteKill()
-        o.numBoxSprite:remove()
+        numBoxSprite:remove()
     end
     
-    o.numBoxSprite:setZIndex(145)
-    o.numBoxSprite:moveTo(o.xPos, o.yPos)
-    o.numBoxSprite:add()
+    numBoxSprite:add()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local boxImage = gfx.image.new(20,20,gfx.kColorBlack)
-            o:setCellSize(20, 20)
-            gfx.pushContext(boxImage)
+            local numBoxImage = gfx.image.new(menuX,menuY,gfx.kColorBlack) --width and height of the image
+            numBoxSprite:moveTo(xPos,yPos)
+
+            numBoxSprite:setZIndex(145)
+            
+            gfx.pushContext(numBoxImage)
             o:drawInRect(0,0,20,20)
             gfx.popContext()
-            o.numBoxSprite:setImage(boxImage)
+            numBoxSprite:setImage(numBoxImage)
         end
     end
-
- 
-
+    
     function o:drawCell(section,row,column,selected,x,y,width,height)
+        local rCount = row
         local fontHeight = gfx.getSystemFont():getHeight()
-        for i,v in pairs(menuText) do
-            if rCount == i then
-                local rowCom = " "..v
-                gfx.drawTextInRect(rowCom, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        for i,v in pairs(rowCount) do
+            --print("row "..rCount.." | ".."i "..i.." | ".."v "..v.." |")
+            --print("___________")
+            if i==rCount then
+                local original_draw_mode = gfx.getImageDrawMode()
+                gfx.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+                gfx.setImageDrawMode(original_draw_mode)
             end
         end
     end
@@ -893,6 +854,98 @@ function numberBox:new(table)
 
     o.index = countI + 1
     numberBoxIndex[o.index] = o
+    return o
+end
+
+dataBox = playdate.ui.gridview.new(0,25)
+
+function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
+
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    dataBox:setNumberOfColumns(1)
+    dataBox:setNumberOfRows(1)
+    dataBox:setCellPadding(0,0,0,0)
+    dataBox:setContentInset(0,0,0,0)
+
+    o.bgD = bgD
+    o.dText = dText
+    o.x = xD
+    o.y = yD
+    o.w = wD
+    o.h = hD
+
+    local dataBoxSprite = gfx.sprite.new()
+    dataBoxSprite:setCenter(0, 0)
+
+    function o:spriteKill()
+        dataBoxSprite:remove()
+    end
+    if #dataBoxIndex == 0 then
+        o.bSpr = true
+        local menuBSpr = MenuBackground(0,0,"menuThree")
+        menuBSpr:add()
+    end
+
+    dataBoxSprite:add()
+  
+    function o:menuControl(direction) 
+        if direction == "b" then
+            if o.bSpr == true then
+                for i,v in pairs(otherIndex) do
+                    if v.menuWhi == 2 then
+                        otherIndex.v = nil
+                        v:remove()
+                    end
+                end
+            end 
+            for i,v in pairs(dataBoxIndex) do
+                v:spriteKill()
+                dataBoxIndex[v.index] = nil
+            end
+        end
+    end
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local boxImage = gfx.image.new(o.w,o.h,o.bgD)
+            dataBoxSprite:moveTo(o.x, o.y)
+            local zInd = #dataBoxIndex + 220
+            dataBoxSprite:setZIndex(zInd)
+            gfx.pushContext(boxImage)
+                o:drawInRect(0,0,o.w,o.h)
+            gfx.popContext()
+            dataBoxSprite:setImage(boxImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+
+        local fontHeight = gfx.getSystemFont():getHeight()
+        if o.x == 0 and o.y == 80 then -- text alignment for quantity of cards available
+            o.align = kTextAlignment.right
+        else
+            o.align = kTextAlignment.left -- all other aligned left
+        end
+        if o.bgD == 0 then
+            local original_draw_mode = gfx.getImageDrawMode()
+            gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
+            gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, o.align)
+            gfx.setImageDrawMode( original_draw_mode )
+        else
+            gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, o.align)
+        end
+    end
+
+    local countI = 0
+    for _ in pairs(dataBoxIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    dataBoxIndex[o.index] = o
     return o
 end
 
@@ -994,94 +1047,3 @@ function cardData(selCard) -- Render card info screen.
     end
 end
 
-dataBox = playdate.ui.gridview.new(0,25)
-
-function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
-
-    local o = o or {}
-    setmetatable(o,self)
-    self.__index=self
-
-    dataBox:setNumberOfColumns(1)
-    dataBox:setNumberOfRows(1)
-    dataBox:setCellPadding(0,0,0,0)
-    dataBox:setContentInset(0,0,0,0)
-
-    o.bgD = bgD
-    o.dText = dText
-    o.x = xD
-    o.y = yD
-    o.w = wD
-    o.h = hD
-
-    local dataBoxSprite = gfx.sprite.new()
-    dataBoxSprite:setCenter(0, 0)
-
-    function o:spriteKill()
-        dataBoxSprite:remove()
-    end
-    if #dataBoxIndex == 0 then
-        o.bSpr = true
-        local menuBSpr = MenuBackground(0,0,"menuThree")
-        menuBSpr:add()
-    end
-
-    dataBoxSprite:add()
-  
-    function o:menuControl(direction) 
-        if direction == "b" then
-            if o.bSpr == true then
-                for i,v in pairs(otherIndex) do
-                    if v.menuWhi == 2 then
-                        otherIndex.v = nil
-                        v:remove()
-                    end
-                end
-            end 
-            for i,v in pairs(dataBoxIndex) do
-                v:spriteKill()
-                dataBoxIndex[v.index] = nil
-            end
-        end
-    end
-
-    function o:menuUpdate()
-        if o.needsDisplay then
-            local boxImage = gfx.image.new(o.w,o.h,o.bgD)
-            dataBoxSprite:moveTo(o.x, o.y)
-            local zInd = #dataBoxIndex + 220
-            dataBoxSprite:setZIndex(zInd)
-            gfx.pushContext(boxImage)
-                o:drawInRect(0,0,o.w,o.h)
-            gfx.popContext()
-            dataBoxSprite:setImage(boxImage)
-        end
-    end
-
-    function o:drawCell(section,row,column,selected,x,y,width,height)
-
-        local fontHeight = gfx.getSystemFont():getHeight()
-        if o.x == 0 and o.y == 80 then -- text alignment for quantity of cards available
-            o.align = kTextAlignment.right
-        else
-            o.align = kTextAlignment.left -- all other aligned left
-        end
-        if o.bgD == 0 then
-            local original_draw_mode = gfx.getImageDrawMode()
-            gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
-            gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, o.align)
-            gfx.setImageDrawMode( original_draw_mode )
-        else
-            gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, o.align)
-        end
-    end
-
-    local countI = 0
-    for _ in pairs(dataBoxIndex) do 
-        countI = countI + 1 
-    end
-
-    o.index = countI + 1
-    dataBoxIndex[o.index] = o
-    return o
-end

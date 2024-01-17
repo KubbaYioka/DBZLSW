@@ -202,6 +202,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                     gridviewSprite:setZIndex(130)
                 elseif o.type == "twoChoices" then
                     gridviewSprite:moveTo(100, 100)
+                    gridviewSprite:setZIndex(130)
                 end
             elseif o.type == "dialogue" or o.type == "mapDialogue" then
                 gridviewSprite:setZIndex(130)
@@ -210,7 +211,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
                 o:setCellSize(380, 50)
             end
             gfx.pushContext(gridviewImage)
-            o:drawInRect(0,0,menuX,menuY)
+                o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             gridviewSprite:setImage(gridviewImage)
         end
@@ -229,10 +230,9 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
-        local rCount = row
 
         for i,v in pairs(menuText) do
-            if rCount == i then
+            if row == i then
                 if o.type == "menu" then
                     nN = " "..v
                 else 
@@ -333,6 +333,7 @@ function playdate.update()
     for i,v in pairs(portIndex) do
         v:portUpdate()
     end
+    
     for i,v in pairs(tagIndex) do
         v:tagUpdate()
     end
