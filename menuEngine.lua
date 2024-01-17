@@ -118,6 +118,7 @@ local menuFunc = {
     end,
     ["List"] = function()
         cardList:new()
+        numberBox:new("cards")
         createMenuIcon(nestedMode.LIST)
     end,
     ["Save"] = function()
@@ -196,7 +197,7 @@ function pauseView:new()
     pauseView:setNumberOfColumns(1)
     pauseView:setNumberOfRows(#o.pauseRows)
     menuY = (#o.pauseRows * 25) + 10
-    menuX = (100)
+    menuX = (120)
     xPos, yPos = menuPosition(menuPause)
 
     function o:getOption() -- item selection in menu
@@ -231,17 +232,15 @@ function pauseView:new()
     function o:drawCell(section,row,column,selected,x,y,width,height)
         local menuText = {}
         if selected then
-            gfx.drawRect(x,y,width+2,height+2)
-            gfx.drawRect(x,y,width,height)
-        else
-            gfx.drawRect(x,y,width,height)
+            gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
         end
         menuText = o.pauseRows
         local fontHeight = gfx.getSystemFont():getHeight()
         local rCount = row
         for i,v in pairs(menuText) do
             if rCount == i then
-                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+                local rowCom = " "..v
+                gfx.drawTextInRect(rowCom, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
     end
@@ -367,12 +366,14 @@ function statusList:new()
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
         if selected then
-            gfx.fillTriangle(x-5,y,x+3,y+2,x,y+5)
+            gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
+        local rowCom = o.listRows[row]
+        local rowFin = " "..rowCom
 
-        gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.drawTextInRect(rowFin, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
         --o:createNumberBox(x,y,i)
 
     end
@@ -433,7 +434,7 @@ function cardList:new()
 
     o.menuType = "List"
 
-    o:setCellPadding(0,0,0,0)
+    o:setCellPadding(0,0,0,5)
     o:setContentInset(5,5,7,7)
 
     o.bSpr = true
@@ -461,8 +462,8 @@ function cardList:new()
     end
 
     xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-    menuY = (140)
-    menuX = (100)
+    menuY = (160)
+    menuX = (250)
 
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
@@ -514,16 +515,16 @@ function cardList:new()
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
         if selected then
-            gfx.drawRect(x,y,width+2,height+2)
-            gfx.drawRect(x,y,width,height)
-        else
-            gfx.drawRect(x,y,width,height)
+            gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
 
-        gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-        --o:createNumberBox(x,y,i)
+        local rowCom = o.listRows[row]
+        local rowFin = " "..rowCom
+
+        gfx.drawTextInRect(rowFin, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        o:createNumberBox(x,y,i)
 
     end
 
@@ -828,27 +829,38 @@ end
 
 numberBox = playdate.ui.gridview.new(0,0)
 
-function numberBox:new(bX,bY,listNum)
+function numberBox:new(table)
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
+    o.rowCont = {}
+    if table == "cards" then
+        o.rowCont = 150 --set number to total number of cards (150 atm)
+    elseif table == "status" then
+        o.rowCont = 50--same for characters
+    end
+    for i=1, o.rowCont, 1 do -- all possible rows to match to 'i' below
+        o.rowQnt[i] = i
+    end
+
     numberBox:setNumberOfColumns(1)
-    numberBox:setNumberOfRows(5)
+    numberBox:setNumberofRows(#o.rowQnt)
     numberBox:setCellPadding(0,0,0,0)
     numberBox:setContentInset(0,0,0,0)
 
     o.numBoxSprite = gfx.sprite.new()
     o.numBoxSprite:setCenter(0, 0)
-    o.rowNum = listNum -- is a string
-    o.xPos = bX
-    o.yPos = bY
+    o.xPos, o.yPos = menuPosition(menuPosEnum.menuPosvar)
+    o.menuY = (160)
+    o.menuX = (250)
+
     --print(o.rowNum.." at: ("..bX..", "..bY..")")
     function o:spriteKill()
         o.numBoxSprite:remove()
     end
     
     o.numBoxSprite:setZIndex(145)
-    o.numBoxSprite:moveTo(bX, bY)
+    o.numBoxSprite:moveTo(o.xPos, o.yPos)
     o.numBoxSprite:add()
 
     function o:menuUpdate()
@@ -862,10 +874,16 @@ function numberBox:new(bX,bY,listNum)
         end
     end
 
+ 
+
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        gfx.drawRect(o.xPos,o.yPos,width,height)
         local fontHeight = gfx.getSystemFont():getHeight()
-        gfx.drawTextInRect(o.rowNum, o.xPos+2, o.yPos + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        for i,v in pairs(menuText) do
+            if rCount == i then
+                local rowCom = " "..v
+                gfx.drawTextInRect(rowCom, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+            end
+        end
     end
 
     local countI = 0

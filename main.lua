@@ -220,7 +220,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         local menuText={}
         if o.type == "menu" then
             if selected then
-                gfx.fillTriangle(x,y+5,x,y+10,x+7,y+7)
+                gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
             end
             menuText = o.options
 
