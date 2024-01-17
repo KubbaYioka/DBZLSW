@@ -94,7 +94,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         gridview:setNumberOfColumns(1)
         gridview:setNumberOfRows(#o.options)
         menuY = (#o.options * 25) + 10
-        menuX = (100)
+        menuX = (130)
         xPos, yPos = menuPosition(name)
         --display menu
         
@@ -220,10 +220,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         local menuText={}
         if o.type == "menu" then
             if selected then
-                
-                gfx.drawRect(x,y,width,height)
-            else
-                gfx.drawRect(x,y,width,height)
+                gfx.fillTriangle(x,y+5,x,y+10,x+7,y+7)
             end
             menuText = o.options
 
@@ -236,7 +233,12 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
         for i,v in pairs(menuText) do
             if rCount == i then
-                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+                if o.type == "menu" then
+                    nN = " "..v
+                else 
+                    nN = v
+                end
+                gfx.drawTextInRect(nN, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
             end
         end
     end

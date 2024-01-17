@@ -22,7 +22,7 @@ menuPosEnum = {
 
 function menuPosition(menuName)
     if menuName == startMenu or menuName == intermMenu or menuName == fullMenuMain then
-        return 120, 120
+        return 80, 120
     elseif menuName == menuBattle or menuName == menuPause then
         return 0,0
     elseif menuName == menuPosEnum.menuPosvar then
