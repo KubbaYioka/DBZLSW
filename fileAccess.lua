@@ -86,16 +86,11 @@ function loadSavedPlayers(chr) -- Returns the character specified from the save 
     if chr == "all" then
         local tempTab = saveCheck("chrs")
         return tempTab
-    else
+    elseif type(chr) == "number" then
         local tempTab = saveCheck("chrs")
         for i,v in pairs(tempTab) do
-            for k,c in pairs(v) do
-                print(k)
-                print(c)
-                if c.chrCode == chr then
-                    print("chr found")
-                    return c
-                end
+            if type(v) == "table" and v.chrNum == chr then
+                return v
             end
         end
     end

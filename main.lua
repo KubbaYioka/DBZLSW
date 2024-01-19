@@ -40,13 +40,28 @@ import '/genData/maps'
 --File Access
 import 'fileAccess'
 
---Font
-local dbFont = playdate.graphics.font.new('assets/fonts/DBLSW2')
-playdate.graphics.setFont(dbFont) 
-
 --Basic graphics setup
 local gfx <const> = playdate.graphics
 local pd <const> = playdate
+
+sysFNT = {} -- table that stores all fonts.
+
+--Font
+sysFNT.dbFont = gfx.font.new('assets/fonts/DBLSW2')
+sysFNT.smDBFont = gfx.font.new('assets/fonts/DBLSWSM')
+gfx.setFont(sysFNT.dbFont) 
+
+--Master Tables
+
+menuIndex = {} -- for all menu objects. Cleared between gamemodes. 
+portIndex = {} -- for keeping track of portraits in story mode.
+tagIndex = {} -- for keeping track of dialogue tags
+dataBoxIndex = {} -- for individually drawn data boxes like fields for card info
+otherIndex = {} -- for misc objects that will not be used at the same time as any other misc object (e.g, menu icons)
+mapObjIndex = {} -- for map objects
+numberBoxIndex = {} -- table for those little number boxes in the list views. 
+
+--Menu Object Class
 
 --Initial Menu Settings
 
@@ -60,18 +75,6 @@ gridview:setContentInset(5,5,5,5)
 
 gridview.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
---Master Tables
-
-menuIndex = {} -- for all menu objects. Cleared between gamemodes. 
-portIndex = {} -- for keeping track of portraits in story mode.
-tagIndex = {} -- for keeping track of dialogue tags
-dataBoxIndex = {} -- for individually drawn data boxes like fields for card info
-otherIndex = {} -- for misc objects that will not be used at the same time as any other misc object (e.g, menu icons)
-mapObjIndex = {} -- for map objects
-numberBoxIndex = {} -- table for those little number boxes in the list views. 
-
---Menu Object Classes
-
 function gridview:new(gType,name) -- creates grid object based on parameters passed to it
 -- types can be: dialogue, twoChoices, menu
     local o = o or {}
@@ -83,7 +86,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     local menuY = 0 -- controls height of background box
     local xPos = 0
     local yPos = 0
-
 
     if o.type == "menu" or o.type == "twoChoices" then
         --options in menu list and menu orientation dependent on name variable
@@ -333,7 +335,7 @@ function playdate.update()
     for i,v in pairs(portIndex) do
         v:portUpdate()
     end
-    
+
     for i,v in pairs(tagIndex) do
         v:tagUpdate()
     end

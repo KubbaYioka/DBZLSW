@@ -84,6 +84,18 @@ function debugMessage()
     print("Function not yet implemented.")
 end
 
+nestedMode= {
+    STATUS = "status"
+    ,LIST = "list"
+    ,TEAM = "team"
+    ,DECK = "deck"
+}
+
+function createMenuIcon(icon)
+    local iconMenu = MenuIcon('assets/images/background/menuIcon-table-48-40')
+    iconMenu:changeState(icon)
+end
+
 local menuFunc = {
     ["Continue"] = function()
         clearMenus()
@@ -141,14 +153,7 @@ function goMenu(item)
     if menuFunc[item] then
         menuFunc[item]()
     elseif not menuFunc[item] then
-        if menuIndex[#menuIndex].menuType == "Status" then --iterates through characters is menu is Status
-            local oFat = loadSavedPlayers("all")
-            for i,v in pairs(oFat) do
-                if v.chrNum == item then
-                    chrStat(v)
-                end
-            end
-        elseif menuIndex[#menuIndex].menuType == "List" then --iterates through cards if menu is List
+        if menuIndex[#menuIndex].menuType == "List" then --iterates through cards if menu is List
             local oFav = loadSavedCards("all")
             for i,v in pairs(oFav) do
                 if type(v) == "table" then    
@@ -187,6 +192,7 @@ function pauseView:new()
     local menuY = 0
     local yPos = 0
     local xPos = 0
+    o:setScrollDuration(0)
 
     o.pauseRows = {"Status","Deck","List","Save","Exit"}
     o.saveRows = {"Yes", "No"}
@@ -284,8 +290,10 @@ function statusList:new()
     setmetatable(o,self)
     self.__index=self
 
-    o:setCellPadding(0,0,0,5)
+    o:setCellPadding(0,0,1,5)
     o:setContentInset(5,5,7,7)
+    o:setScrollDuration(0)
+    o.scrollCellsToCenter = false
 
     o.menuType = "Status"
 
@@ -318,12 +326,7 @@ function statusList:new()
     menuX = (250)
 
     function o:getOption() -- item selection in menu
-        local s = o:getSelectedRow()
-        for i,v in pairs(o.listRows) do
-            if s==i then
-                return i
-            end
-        end
+        
     end
 
     local statusListSprite = gfx.sprite.new()
@@ -352,31 +355,40 @@ function statusList:new()
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
+        gfx.drawRect(x,y,width,height)
         if selected then
             gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
         end
-
         local fontHeight = gfx.getSystemFont():getHeight()
         local rowCom = o.listRows[row]
         local rowFin = " "..rowCom
-
         gfx.drawTextInRect(rowFin, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-
     end
 
     function o:menuControl(direction) 
+        local rSelected = o:getSelectedRow()
         if direction == "up" then
-            o:selectPreviousRow(true,true,true)
-
+            o:selectPreviousRow(true,true,false)
+            rSelected = o:getSelectedRow()
         elseif direction == "down" then
-            o:selectNextRow(true,true,true)
-
+            o:selectNextRow(true,true,false)
+            rSelected = o:getSelectedRow()
         elseif direction == "right" then
-            printTable(o.menuText)
+            rSelected = rSelected + 5
+            if rSelected >50 then
+                rSelected = 1
+            end
+            o:setSelectedRow(rSelected)
+            o:scrollToRow(rSelected)
         elseif direction == "left" then 
-            printTable(o.menuText)
+            rSelected = rSelected - 5
+            if rSelected < 1 then
+                rSelected = 50
+            end
+            o:setSelectedRow(rSelected)
+            o:scrollToRow(rSelected)
         elseif direction == "a" then
-            printTable(loadSavedPlayers(getSelectedRow))
+            
 
         elseif direction == "b" then
             if o.bSpr == true then
@@ -387,6 +399,12 @@ function statusList:new()
                     end
                 end
             end
+            if #numberBoxIndex > 0 then
+                for i,v in pairs(numberBoxIndex) do
+                    numberBoxIndex.v = nil
+                    v:spriteKill()
+                end
+            end
             for k, c in pairs(otherIndex) do
                 if c.menuIcon then
                     otherIndex.c = nil
@@ -395,6 +413,14 @@ function statusList:new()
             end
             o:spriteKill()
             menuIndex[o.index] = nil
+        end
+        if #numberBoxIndex > 0 then
+            for i,v in pairs(numberBoxIndex) do
+                if i==#numberBoxIndex then
+                    print(rSelected)
+                    v:scroll(rSelected)
+                end
+            end
         end
     end
 
@@ -422,6 +448,7 @@ function cardList:new()
 
     o:setCellPadding(0,0,0,5)
     o:setContentInset(5,5,7,7)
+    o:setScrollDuration(0)
 
     o.bSpr = true
     local menuBSpr = MenuBackground(0,0,"menuTwo")
@@ -484,6 +511,7 @@ function cardList:new()
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
+
         if selected then
             gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
         end
@@ -498,16 +526,27 @@ function cardList:new()
     end
 
     function o:menuControl(direction) 
+        local rSelected = o:getSelectedRow()
         if direction == "up" then
-            o:selectPreviousRow(true,true,true)
-
+            o:selectPreviousRow(true,true,false)
+            rSelected = o:getSelectedRow()
         elseif direction == "down" then
-            o:selectNextRow(true,true,true)
-
+            o:selectNextRow(true,true,false)
+            rSelected = o:getSelectedRow()
         elseif direction == "right" then
-            printTable(o.menuText)
+            rSelected = rSelected + 5
+            if rSelected >150 then
+                rSelected = 1
+            end
+            o:setSelectedRow(rSelected)
+            o:scrollToRow(rSelected)
         elseif direction == "left" then 
-            printTable(o.menuText)
+            rSelected = rSelected - 5
+            if rSelected < 1 then
+                rSelected = 150
+            end
+            o:setSelectedRow(rSelected)
+            o:scrollToRow(rSelected)
         elseif direction == "a" then
             local gSR = o:getSelectedRow()
             print("gSR is "..gSR)
@@ -522,6 +561,14 @@ function cardList:new()
                     end
                 end
             end
+
+            if #numberBoxIndex > 0 then
+                for i,v in pairs(numberBoxIndex) do
+                    numberBoxIndex.v = nil
+                    v:spriteKill()
+                end
+            end
+
             for k, c in pairs(otherIndex) do
                 if c.menuIcon then
                     otherIndex.c = nil
@@ -530,6 +577,14 @@ function cardList:new()
             end
             o:spriteKill()
             menuIndex[o.index] = nil
+        end
+        if #numberBoxIndex > 0 then
+            for i,v in pairs(numberBoxIndex) do
+                if i==#numberBoxIndex then
+                    print(rSelected)
+                    v:scroll(rSelected)
+                end
+            end
         end
     end
 
@@ -542,242 +597,6 @@ function cardList:new()
     menuIndex[o.index] = o
     return o
 
-end
-
-varList = playdate.ui.gridview.new(0,25)
-
-varList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
-
-nestedMode = {
-    STATUS = "status"
-    ,LIST = "list"
-    ,DECK = "deck"
-    ,TEAM = "team"
-    ,CHAR = "character"
-    ,CARD = "card"
-}
-
-function varList:new(mode,tableData)
-    local o = o or {}
-    setmetatable(o,self)
-    self.__index=self
-
-    o.mMode = mode
-
-    if mode == nestedMode.STATUS or mode == nestedMode.DECK or mode == nestedMode.LIST or mode == nestedMode.TEAM then
-        o.bSpr = true
-        local menuBSpr = MenuBackground(0,0,"menuTwo")
-        menuBSpr:add()
-    end
-
-    local menuX = 0 --size of background box and position to be set later
-    local menuY = 0
-    local yPos = 0
-    local xPos = 0
-
-    o:setCellPadding(0,0,0,0)
-    o:setContentInset(5,5,7,7)
-
-    o.listRows = {}
-    if mode == nestedMode.STATUS then
-    local oFat = loadSavedPlayers("all")
-    o.menuNumberBox = {} -- table for chr numbers according to their place in the table for the numberbox object
-    o:setNumberOfColumns(1) 
-    o:setNumberOfRows(#oFat)
-
-    for i,v in pairs(oFat) do
-        if type(v) == "table" and i == v.chrNum then
-            o.listRows[v.chrNum] = v.chrName
-        else
-            o.listRows[i] = "None "..tostring(i)
-        end
-        o.menuNumberBox[i] = tostring(i)
-    end
-    
-    xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-    menuY = (140)
-    menuX = (100)
-
-    elseif mode == nestedMode.LIST then
-        -- display all cards in inventory
-        o.hasColumns = true
-        xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-        menuY = (6 * 25) + 10
-        menuX = (100)
-    elseif mode == nestedMode.DECK then
-        -- display all cards in the deck
-        o.hasColumns = true
-        xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-        menuY = (6 * 25) + 10
-        menuX = (100)
-    elseif mode == nestedMode.TEAM then
-        -- display all characters in the team
-        xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-        menuY = (6 * 25) + 10
-        menuX = (100)
-    elseif mode == nestedMode.CHAR then
-        -- display character info from save
-        local hp = nil
-        local str = nil
-        local ki = nil
-        local def = nil
-        local spd = nil
-        local exp = nil
-        local trans = {}
-        for i,v in pairs(tableData) do
-            if i == "chrHp" then
-                hp = tostring(v)
-            end
-            if i == "chrStr" then
-                str = tostring(v)
-            end
-            if i == "chrKi" then
-                ki = tostring(v)                
-            end
-            if i == "chrDef" then
-                def = tostring(v)
-            end
-            if i == "chrSpd" then
-                spd = tostring(v)
-            end
-            if i == "chrExp" then
-                exp = tostring(v)
-            end
-            if i == "chrTrans" then
-                if v[1] == "none" then
-                    trans = "none"
-                else
-                    trans = v
-                end
-            end
-        end
-        o.listRows = {hp,str,ki,def,spd,exp,trans}
-        o.category = {"HP","Strength","KI","Defense","Speed","EXP","Transformations"}
-        xPos, yPos = menuPosition(menuPosEnum.menuPosChr)
-        menuY = (#o.listRows * 25) + 10
-        menuX = (200)
-        o:setNumberOfColumns(1)
-        o:setNumberOfRows(#o.listRows)
-
-    elseif mode == nestedMode.CARD then
-        --display card info from RAMSAVE
-        o.cardInfo = tableData
-        print("CardInfo: ")
-        printTable(o.cardInfo)
-        menuY = (6 * 25) + 10
-        menuX = (100)
-    else
-        print("Mode not recognized in menuEngine, varList.")
-        return
-    end
-
-    function o:getOption() -- item selection in menu
-        local s = o:getSelectedRow()
-        for i,v in pairs(o.listRows) do
-            if s==i then
-                return v
-            end
-        end
-    end
-
-    local varListSprite = gfx.sprite.new()
-    varListSprite:setCenter(0,0)
-
-    function o:spriteKill()
-        varListSprite:remove()
-    end
-
-    local zInNew = 130
-    zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
-    varListSprite:setZIndex(zInNew)
-    varListSprite:add()
-    
-    function o:menuUpdate()
-        if o.needsDisplay then
-            local varListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
-            varListSprite:moveTo(xPos,yPos)
-            gfx.pushContext(varListImage)
-                o:drawInRect(0,0,menuX,menuY)
-            gfx.popContext()
-            varListSprite:setImage(varListImage)
-        end
-    end
-
-    function o:drawCell(section,row,column,selected,x,y,width,height)
-        if selected then
-            gfx.drawRect(x,y,width+2,height+2)
-            gfx.drawRect(x,y,width,height)
-        else
-            gfx.drawRect(x,y,width,height)
-        end
-
-        local fontHeight = gfx.getSystemFont():getHeight()
-
-        if mode == nestedMode.STATUS then
-            gfx.drawTextInRect(o.listRows[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-
-        elseif mode == nestedMode.CHAR then
-            o.menuText = o.listRows
-            local fEnum = nil
-            local cb = nil
-            for i,v in pairs(o.listRows) do
-                if i==row then
-                    if type(v) == "table" then
-                        cb = tostring(#v)
-                    end
-                    for k,b in pairs (o.category) do
-                        if k==row then
-                            if type(v) == "table" then
-                                fEnum = b..": "..cb
-                            else
-                                fEnum = b..": "..v
-                            end
-                        end
-                    end
-                    --if a parameter has 0, it is not drawn
-                    gfx.drawTextInRect(fEnum, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-                end
-            end
-        end
-    end
-
-    function o:menuControl(direction) 
-        if direction == "up" then
-            o:selectPreviousRow(true,true,true)
-        elseif direction == "down" then
-            o:selectNextRow(true,true,true)
-        elseif direction == "right" then
-            printTable(o.menuText)
-        elseif direction == "left" then 
-            printTable(o.menuText)
-        elseif direction == "b" then
-            if o.bSpr == true then
-                for i,v in pairs(otherIndex) do
-                    if v.menuWhi then
-                        otherIndex.v = nil
-                        v:remove()
-                    end
-                end
-            end
-            for k, c in pairs(otherIndex) do
-                if c.menuIcon then
-                    otherIndex.c = nil
-                    c:remove()
-                end
-            end
-            o:spriteKill()
-            menuIndex[o.index] = nil
-        end
-    end
-
-    local countI = 0
-    for _ in pairs(menuIndex) do 
-        countI = countI + 1 
-    end
-
-    o.index = countI + 1
-    menuIndex[o.index] = o
-    return o
 end
 
 numberBox = playdate.ui.gridview.new(0,20)
@@ -787,8 +606,10 @@ function numberBox:new(tableC)
     setmetatable(o,self)
     self.__index=self
 
-    o:setCellPadding(0,0,0,5)
+    o:setCellPadding(0,10,6,5)
     o:setContentInset(0,0,0,0)
+    o:setScrollDuration(0)
+    o.scrollCellsToCenter = false
 
     local tCount = 0
 
@@ -798,15 +619,15 @@ function numberBox:new(tableC)
         tCount = 50
     end
 
-    local rowCount = {}
+    o.rowCount = {}
 
     for i=1, tCount, 1 do
-        rowCount[i] = tostring(i)
+        o.rowCount[i] = tostring(i)
     end
 
     o:setNumberOfColumns(1)
-    o:setNumberOfRows(#rowCount)
-    local menuX, menuY = 20, 20
+    o:setNumberOfRows(#o.rowCount)
+    local menuX, menuY = 40, 160
 
     local numBoxSprite = gfx.sprite.new()
     numBoxSprite:setCenter(0,0)
@@ -822,11 +643,9 @@ function numberBox:new(tableC)
         if o.needsDisplay then
             local numBoxImage = gfx.image.new(menuX,menuY,gfx.kColorBlack) --width and height of the image
             numBoxSprite:moveTo(xPos,yPos)
-
             numBoxSprite:setZIndex(145)
-            
             gfx.pushContext(numBoxImage)
-            o:drawInRect(0,0,20,20)
+                o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
             numBoxSprite:setImage(numBoxImage)
         end
@@ -834,17 +653,20 @@ function numberBox:new(tableC)
     
     function o:drawCell(section,row,column,selected,x,y,width,height)
         local rCount = row
-        local fontHeight = gfx.getSystemFont():getHeight()
-        for i,v in pairs(rowCount) do
-            --print("row "..rCount.." | ".."i "..i.." | ".."v "..v.." |")
-            --print("___________")
-            if i==rCount then
-                local original_draw_mode = gfx.getImageDrawMode()
-                gfx.setImageDrawMode(playdate.graphics.kDrawModeInverted)
-                gfx.drawTextInRect(v, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-                gfx.setImageDrawMode(original_draw_mode)
-            end
+        gfx.setFont(sysFNT.smDBFont)
+        local original_draw_mode = gfx.getImageDrawMode()
+        local fontHeight = gfx.getFont():getHeight()
+        gfx.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+        for i,v in pairs(o.rowCount) do
+            gfx.drawTextInRect(o.rowCount[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.right)
         end
+        gfx.setImageDrawMode(original_draw_mode)
+        gfx.setFont(sysFNT.dbFont)
+    end
+
+    function o:scroll(rSelected)
+        o:scrollToRow(rSelected)
+        o:setSelectedRow(rSelected)
     end
 
     local countI = 0
@@ -1004,17 +826,6 @@ function MenuIcon:init(image)
     self:add()
 end
 
-
-function createMenuIcon(icon)
-    local iconMenu = MenuIcon('assets/images/background/menuIcon-table-48-40')
-    iconMenu:changeState(icon)
-end
-
-function chrStat(chr) -- Render character stat screen.
-    printTable(chr)
-    varList:new(nestedMode.CHAR,chr)
-end
-
 function cardData(selCard) -- Render card info screen.
     if type(selCard) ~= "table" then
         print("cardData: Data not in correct format.")
@@ -1044,6 +855,78 @@ function cardData(selCard) -- Render card info screen.
                 dataBox:new(60,120,200,20,v,gfx.kColorWhite,nil)
             end
         end
+    end
+end
+
+function chrData(chr, mode) -- render character info screen where mode specifies whether to pull pause parameters or in-battle status
+    if mode == "battle" then
+        debugMessage() -- pulls info from character in the battle at the time, not the parameters from RAMSAVE
+    elseif mode == "pause" then
+        print(chr)
+        local chrTable = loadSavedPlayers(chr)
+        -- display character info from save
+        local hp = nil
+        local str = nil
+        local ki = nil
+        local def = nil
+        local spd = nil
+        local exp = nil
+        local trans = {}
+        for i,v in pairs(chrTable) do
+            if i == "chrHp" then
+               hp = tostring(v)
+            end
+            if i == "chrStr" then
+               str = tostring(v)
+            end
+            if i == "chrKi" then
+               ki = tostring(v)                
+            end
+            if i == "chrDef" then
+               def = tostring(v)
+            end
+            if i == "chrSpd" then
+               spd = tostring(v)
+            end
+            if i == "chrExp" then
+                exp = tostring(v)
+            end
+            if i == "chrTrans" then
+                if v[1] == "none" then
+                    trans = "none"
+                else
+                    trans = v
+                end
+            end
+        end
+        local rendTbl = {hp,str,ki,def,spd,exp,trans}
+        printTable(rendTbl)
+        --[[
+        for i,v in pairs(rendTbl) do
+            if i == "cNumber" then
+                local sRT = tostring(v)
+                local sRTT = "No. "..sRT
+                dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil)
+            elseif i == "cName" then
+                dataBox:new(180,40,200,20,v,gfx.kColorWhite,nil)
+            elseif i == "cAccuracy" then
+                local sRT = tostring(v)
+                local sRTT = "Accuracy: "..sRT
+                dataBox:new(60,140,200,20,sRTT,gfx.kColorWhite,nil)
+            elseif i == "cCost" then
+                local sRT = tostring(v)
+                local sRTT = "CC: "..sRT
+                dataBox:new(60,160,200,20,sRTT,gfx.kColorWhite,nil)
+            elseif i == "cDescription" then
+                dataBox:new(40,190,400,60,v,gfx.kColorWhite,nil)
+            elseif i == "cQuantity" then
+                local sRT = tostring(v)
+                local sRTT = "Available: "..sRT
+                dataBox:new(0,80,400,20,sRTT,gfx.kColorBlack,nil)
+            elseif i == "cEffect" then
+                dataBox:new(60,120,200,20,v,gfx.kColorWhite,nil)
+            end
+        end]]
     end
 end
 

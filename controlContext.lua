@@ -2,6 +2,22 @@
 
 local bounceProtect = false
 
+function getInput()
+    if playdate.buttonJustPressed("b") then
+        menuInputContext("b")
+    elseif playdate.buttonJustPressed("a") then
+        menuInputContext("a")
+    elseif playdate.buttonJustPressed("right") then
+        menuInputContext("right")
+    elseif playdate.buttonJustPressed("up") then
+        menuInputContext("up")
+    elseif playdate.buttonJustPressed("down") then
+        menuInputContext("down")
+    elseif playdate.buttonJustPressed("left") then
+        menuInputContext("left")
+    end
+end
+
 function menuInputContext()
 
     if controlContext == GameMode.MENU  then
@@ -37,14 +53,18 @@ function menuInputContext()
             if playdate.buttonJustPressed("b") then      
                 local fs = menuIndex[#menuIndex]
                 fs:menuControl("b")
-                if #menuIndex == 0 then
+                if #menuIndex == 0 then -- if this is 0, then there are no more menus to be rendered and control should be relinquished to the previous game mode
                     bounceProtectSwi("on")
                     ctrlConSwi("off")
                 end
             end
             if playdate.buttonJustPressed("a") then
                 local fs = menuIndex[#menuIndex]
-                goMenu(fs:getOption())
+                if fs.menuType == "Status" then
+                    chrData(fs:getSelectedRow(),"pause")
+                else
+                    goMenu(fs:getOption())
+                end
             end
 
             if playdate.buttonJustPressed("left") then
