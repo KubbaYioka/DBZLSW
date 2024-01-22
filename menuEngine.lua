@@ -320,7 +320,7 @@ function statusList:new()
     end
 
     xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-    menuY = (160)
+    menuY = (165)
     menuX = (250)
 
     local statusListSprite = gfx.sprite.new()
@@ -349,8 +349,13 @@ function statusList:new()
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
+
+
+        gfx.fillRect(x, y+5, 30, 20)
+
+
         if selected then
-            gfx.fillTriangle(x+25,y+5,x+25,y+20,x+35,y+12)
+            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
@@ -369,7 +374,7 @@ function statusList:new()
 
         gfx.setFont(sysFNT.dbFont)
 
-        gfx.drawTextInRect(o.listRows[row], x+35, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.drawTextInRect(o.listRows[row], x+50, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
     end
 
     function o:menuControl(direction) 
@@ -519,17 +524,30 @@ function cardList:new()
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
 
+        gfx.fillRect(x, y+5, 30, 20)
+
+
         if selected then
-            gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
+            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
-
         local rowCom = o.listRows[row]
-        local rowFin = " "..rowCom
+        local rowFin = tostring(row).."  "..rowCom
 
-        gfx.drawTextInRect(rowFin, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.setFont(sysFNT.smDBFont)
 
+        local original_draw_mode = gfx.getImageDrawMode()
+        local fontHeight = gfx.getFont():getHeight()
+
+        gfx.setImageDrawMode(playdate.graphics.kDrawModeNXOR)
+  
+        gfx.drawTextInRect(tostring(row), x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.setImageDrawMode(original_draw_mode)
+
+        gfx.setFont(sysFNT.dbFont)
+
+        gfx.drawTextInRect(o.listRows[row], x+50, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
     end
 
     function o:menuControl(direction) 
@@ -606,89 +624,9 @@ function cardList:new()
 
 end
 
-numberBox = playdate.ui.gridview.new(0,20)
-
-function numberBox:new(tableC)
-    local o = playdate.ui.gridview.new(0,20)
-    setmetatable(o,self)
-    self.__index=self
-
-    o:setCellPadding(0,10,6,5)
-    o:setContentInset(0,0,0,0)
-    o:setScrollDuration(0)
-    o.scrollCellsToCenter = false
-
-    local tCount = 0
-
-    if tableC == "cards" then
-        tCount = 150
-    elseif tableC == "status" then
-        tCount = 50
-    end
-
-    o.rowCount = {}
-
-    for i=1, tCount, 1 do
-        o.rowCount[i] = tostring(i)
-    end
-
-    o:setNumberOfColumns(1)
-    o:setNumberOfRows(#o.rowCount)
-    local menuX, menuY = 40, 160
-
-    local numBoxSprite = gfx.sprite.new()
-    numBoxSprite:setCenter(0,0)
-    local xPos, yPos = menuPosition(menuPosEnum.numberBox)
-
-    function o:spriteKill()
-        numBoxSprite:remove()
-    end
-    
-    numBoxSprite:add()
-
-    function o:menuUpdate()
-        if o.needsDisplay then
-            local numBoxImage = gfx.image.new(menuX,menuY,gfx.kColorBlack) --width and height of the image
-            numBoxSprite:moveTo(xPos,yPos)
-            numBoxSprite:setZIndex(145)
-            gfx.pushContext(numBoxImage)
-                o:drawInRect(0,0,menuX,menuY)
-            gfx.popContext()
-            numBoxSprite:setImage(numBoxImage)
-        end
-    end
-    
-    function o:drawCell(section,row,column,selected,x,y,width,height)
-        local rCount = row
-        gfx.setFont(sysFNT.smDBFont)
-        local original_draw_mode = gfx.getImageDrawMode()
-        local fontHeight = gfx.getFont():getHeight()
-        gfx.setImageDrawMode(playdate.graphics.kDrawModeInverted)
-        for i,v in pairs(o.rowCount) do
-            gfx.drawTextInRect(o.rowCount[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.right)
-        end
-        gfx.setImageDrawMode(original_draw_mode)
-        gfx.setFont(sysFNT.dbFont)
-    end
-
-    function o:scroll(rSelected)
-        o:scrollToRow(rSelected)
-        o:setSelectedRow(rSelected)
-    end
-
-    local countI = 0
-    for _ in pairs(numberBoxIndex) do 
-        countI = countI + 1 
-    end
-
-    o.index = countI + 1
-    numberBoxIndex[o.index] = o
-    return o
-end
-
 dataBox = playdate.ui.gridview.new(0,25)
 
-function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background color
+function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the background color
 
     local o = o or {}
     setmetatable(o,self)
@@ -758,6 +696,9 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
         else
             o.align = kTextAlignment.left -- all other aligned left
         end
+        if fntSize == "small" then
+            gfx.setFont(sysFNT.smDBFont)
+        end
         if o.bgD == 0 then
             local original_draw_mode = gfx.getImageDrawMode()
             gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
@@ -765,6 +706,9 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image) -- where bgD is the background
             gfx.setImageDrawMode( original_draw_mode )
         else
             gfx.drawTextInRect(o.dText, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, o.align)
+        end
+        if gfx.getFont() == sysFNT.smDBFont then
+            gfx.setFont(sysFNT.dbFont)
         end
     end
 
@@ -866,74 +810,75 @@ function cardData(selCard) -- Render card info screen.
 end
 
 function chrData(chr, mode) -- render character info screen where mode specifies whether to pull pause parameters or in-battle status
+    menuArt("typeOne")
     if mode == "battle" then
         debugMessage() -- pulls info from character in the battle at the time, not the parameters from RAMSAVE
     elseif mode == "pause" then
         print(chr)
         local chrTable = loadSavedPlayers(chr)
-        -- display character info from save
-        local hp = nil
-        local str = nil
-        local ki = nil
-        local def = nil
-        local spd = nil
-        local exp = nil
-        local trans = {}
+        printTable(chrTable)
+
         for i,v in pairs(chrTable) do
-            if i == "chrHp" then
-               hp = tostring(v)
-            end
-            if i == "chrStr" then
-               str = tostring(v)
-            end
-            if i == "chrKi" then
-               ki = tostring(v)                
-            end
-            if i == "chrDef" then
-               def = tostring(v)
-            end
-            if i == "chrSpd" then
-               spd = tostring(v)
-            end
-            if i == "chrExp" then
-                exp = tostring(v)
-            end
-            if i == "chrTrans" then
-                if v[1] == "none" then
-                    trans = "none"
-                else
-                    trans = v
-                end
-            end
-        end
-        local rendTbl = {hp,str,ki,def,spd,exp,trans}
-        printTable(rendTbl)
-        --[[
-        for i,v in pairs(rendTbl) do
-            if i == "cNumber" then
+            if i == "chrNum" then
                 local sRT = tostring(v)
                 local sRTT = "No. "..sRT
                 dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil)
-            elseif i == "cName" then
-                dataBox:new(180,40,200,20,v,gfx.kColorWhite,nil)
-            elseif i == "cAccuracy" then
+            elseif i == "chrName" then
+                dataBox:new(180,40,120,20,v,gfx.kColorWhite,nil)
+            elseif i == "chrTrans" then
+                if type(v) == "table" then
+                    local sRT = v.trans1
+                    dataBox:new(180,55,120,20,sRT,gfx.kColorWhite,nil,"small")
+                end
+            elseif i == "chrHp" then
                 local sRT = tostring(v)
-                local sRTT = "Accuracy: "..sRT
-                dataBox:new(60,140,200,20,sRTT,gfx.kColorWhite,nil)
-            elseif i == "cCost" then
+                local sRTT = "HP  "..sRT
+                dataBox:new(60,100,120,20,sRTT,gfx.kColorWhite,nil)
+            elseif i == "chrStr" then
                 local sRT = tostring(v)
-                local sRTT = "CC: "..sRT
-                dataBox:new(60,160,200,20,sRTT,gfx.kColorWhite,nil)
-            elseif i == "cDescription" then
-                dataBox:new(40,190,400,60,v,gfx.kColorWhite,nil)
-            elseif i == "cQuantity" then
+                local sRTT = "Str  "..sRT
+                dataBox:new(60,120,120,20,sRTT,gfx.kColorWhite,nil)
+            elseif i == "chrKi" then
                 local sRT = tostring(v)
-                local sRTT = "Available: "..sRT
-                dataBox:new(0,80,400,20,sRTT,gfx.kColorBlack,nil)
-            elseif i == "cEffect" then
-                dataBox:new(60,120,200,20,v,gfx.kColorWhite,nil)
+                local sRTT = "Ki  "..sRT
+                dataBox:new(60,140,120,20,sRTT,gfx.kColorWhite,nil)
+            elseif i == "chrDef" then
+                local sRT = tostring(v)
+                local sRTT = "Def  "..sRT
+                dataBox:new(180,100,120,20,sRTT,gfx.kColorWhite,nil)
+            elseif i == "chrSpd" then
+                local sRT = tostring(v)
+                local sRTT = "Spd  "..sRT
+                dataBox:new(180,120,120,20,sRTT,gfx.kColorWhite,nil)
+            elseif i == "chrExp" then
+                local sRT = tostring(v)
+                local sRTT = "Exp  "..sRT
+                dataBox:new(180,160,120,20,sRTT,gfx.kColorWhite,nil)
             end
-        end]]
+        end
     end
 end
 
+class('RectangleBox').extends(gfx.sprite)
+
+function RectangleBox:init(bX,bY,bW,bH)
+    RectangleBox.super.init(self)
+    self:moveTo(bX,bY)
+    local rectanImage = gfx.image.new(bW,bH)
+    gfx.pushContext(rectanImage)
+        gfx.fillRect(bX,bY,bW,bH)
+    gfx.popContext()
+    self:setImage(rectanImage)
+    self:add()
+end
+
+function menuArt(artType) -- function to draw all the boxes in the menu that are decorative
+    if artType == "typeOne" then
+       --box at (190,85,220,20)
+
+        --draw box at (190,85) with (220x20)
+        --draw triangle at (190,85), (180,85), (190,105)
+        --draw box at (200,0) with (400x20)
+
+    end
+end
