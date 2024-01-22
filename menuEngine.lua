@@ -115,7 +115,7 @@ local menuFunc = {
     end,
     ["Status"] = function()
         statusList:new()
-        numberBox:new("status")
+        --numberBox:new("status")
         createMenuIcon(nestedMode.STATUS)
     end,
     ["nameHere"] = function()
@@ -131,7 +131,7 @@ local menuFunc = {
     end,
     ["List"] = function()
         cardList:new()
-        numberBox:new("cards")
+        --numberBox:new("cards")
         createMenuIcon(nestedMode.LIST)
     end,
     ["Save"] = function()
@@ -308,7 +308,6 @@ function statusList:new()
 
     local oFat = loadSavedPlayers("all")
     o.listRows = {}
-    o.menuNumberBox = {}
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#oFat)
 
@@ -316,18 +315,13 @@ function statusList:new()
         if type(v) == "table" and i == v.chrNum then
             o.listRows[v.chrNum] = v.chrName
         else
-            o.listRows[i] = "None "..tostring(i)
+            o.listRows[i] = "   "
         end
-        o.menuNumberBox[i] = tostring(i)
     end
 
     xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
     menuY = (160)
     menuX = (250)
-
-    function o:getOption() -- item selection in menu
-        
-    end
 
     local statusListSprite = gfx.sprite.new()
     statusListSprite:setCenter(0,0)
@@ -355,14 +349,27 @@ function statusList:new()
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        gfx.drawRect(x,y,width,height)
         if selected then
-            gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
+            gfx.fillTriangle(x+25,y+5,x+25,y+20,x+35,y+12)
         end
+
         local fontHeight = gfx.getSystemFont():getHeight()
         local rowCom = o.listRows[row]
-        local rowFin = " "..rowCom
-        gfx.drawTextInRect(rowFin, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        local rowFin = tostring(row).."  "..rowCom
+
+        gfx.setFont(sysFNT.smDBFont)
+
+        local original_draw_mode = gfx.getImageDrawMode()
+        local fontHeight = gfx.getFont():getHeight()
+
+        gfx.setImageDrawMode(playdate.graphics.kDrawModeNXOR)
+  
+        gfx.drawTextInRect(tostring(row), x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.setImageDrawMode(original_draw_mode)
+
+        gfx.setFont(sysFNT.dbFont)
+
+        gfx.drawTextInRect(o.listRows[row], x+35, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
     end
 
     function o:menuControl(direction) 
