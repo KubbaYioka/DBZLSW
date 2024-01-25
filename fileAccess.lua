@@ -31,6 +31,10 @@ function ramSave() -- loads all save data into RAM. This is modified instead of 
     
 end
 
+function saveGame()
+    playdate.datastore.write(RAMSAVE, "sav", true)
+end
+
 function clearOne() --checks to see if the game has been completed once
     local check = saveCheck("data")
     for i,v in pairs(check) do
@@ -54,6 +58,7 @@ function initSaveFile() --creates the initial save file if none exists
     local cardDat = {}
     local teamDat = {} -- list of current fighters in a team
     local deckDat = {} -- list of current cards in the player's deck
+    local mapInfo = {} -- used to track map state
 
     storyDat.currentMode = GameMode.STORY
     storyDat.currentLocation = "storyLoc1"
@@ -73,10 +78,21 @@ function initSaveFile() --creates the initial save file if none exists
         end
         chrDat = demoTabl
 
+        local deckTabl = {}
+        for g=1,20,1 do
+            deckTabl[i] = 0
+        end
+        deckDat = deckTabl
+        
+        teamDat = {0,0,0,0,0}
+
     local savFil = {
         chrDat
         ,cardDat
         ,storyDat
+        ,deckDat
+        ,teamDat
+        ,mapInfo
     }
     playdate.datastore.write(savFil, "sav", true)
 end

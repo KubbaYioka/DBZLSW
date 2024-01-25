@@ -92,7 +92,7 @@ nestedMode= {
 }
 
 function createMenuIcon(icon)
-    local iconMenu = MenuIcon('assets/images/background/menuIcon-table-48-40')
+    local iconMenu = MenuIcon('assets/images/background/menuIcon-table-96-80')
     iconMenu:changeState(icon)
 end
 
@@ -114,8 +114,8 @@ local menuFunc = {
         debugMessage()
     end,
     ["Status"] = function()
+        menuArt("typeOne")
         statusList:new()
-        --numberBox:new("status")
         createMenuIcon(nestedMode.STATUS)
     end,
     ["nameHere"] = function()
@@ -124,18 +124,21 @@ local menuFunc = {
     ["Deck"] = function()
         debugMessage()
         createMenuIcon(nestedMode.DECK)
+        menuArt("typeOne")
     end,
     ["Team"] = function()
         debugMessage()
         createMenuIcon(nestedMode.TEAM)
+        menuArt("typeOne")
     end,
     ["List"] = function()
         cardList:new()
-        --numberBox:new("cards")
         createMenuIcon(nestedMode.LIST)
+        menuArt("typeOne")
     end,
     ["Save"] = function()
-        debugMessage()
+        saveGame()
+        print("Game Saved")
     end,
     ["Exit"] = function()
         clearPauseMenu()
@@ -283,14 +286,14 @@ end
 
 statusList = playdate.ui.gridview.new(0,25)
 
-statusList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+--statusList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
 function statusList:new()
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
 
-    o:setCellPadding(0,0,1,5)
+    o:setCellPadding(0,0,1,3)
     o:setContentInset(5,5,7,7)
     o:setScrollDuration(0)
     o.scrollCellsToCenter = false
@@ -310,6 +313,7 @@ function statusList:new()
     o.listRows = {}
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#oFat)
+    o:removeHorizontalDividers()
 
     for i,v in pairs(oFat) do
         if type(v) == "table" and i == v.chrNum then
@@ -320,7 +324,7 @@ function statusList:new()
     end
 
     xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-    menuY = (165)
+    menuY = (155)
     menuX = (250)
 
     local statusListSprite = gfx.sprite.new()
@@ -458,7 +462,7 @@ function cardList:new()
 
     o.menuType = "List"
 
-    o:setCellPadding(0,0,0,5)
+    o:setCellPadding(0,0,1,3)
     o:setContentInset(5,5,7,7)
     o:setScrollDuration(0)
 
@@ -485,7 +489,7 @@ function cardList:new()
     end
 
     local xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-    menuY = (160)
+    menuY = (155)
     menuX = (250)
 
     function o:getOption() -- item selection in menu
@@ -769,7 +773,39 @@ function MenuIcon:init(image)
     self.changeState("character")
 
     self:setCenter(0, 0)
-    self:moveTo(320, 0)
+    self:moveTo(305, 0)
+    self:setZIndex(140)
+    
+    local numberO = #otherIndex + 1
+    otherIndex[numberO] = self
+    self:add()
+end
+
+class('CardIcon').extends(AnimatedSprite)
+
+function CardIcon:init(cardNum, change)
+
+    local oTable = gfx.imagetable.new('assets/images/cardtemplates-96-80.png')
+    CardIcon.super.init(self, oTable)
+
+    -- Define sprite states
+    self:addState("cardIcon",cardNum,cardNum)
+
+    self:playAnimation()
+
+    self.cardIcon = 1
+
+    self.changeState("cardIcon")
+
+    function changeIcon(cardNum)
+        if change == true then
+            self:addState("cardIcon",cardNum,cardNum)
+            self.changeState("cardIcon")
+        end
+    end
+
+    self:setCenter(0, 0)
+    self:moveTo(0, 0)
     self:setZIndex(140)
     
     local numberO = #otherIndex + 1
@@ -810,14 +846,12 @@ function cardData(selCard) -- Render card info screen.
 end
 
 function chrData(chr, mode) -- render character info screen where mode specifies whether to pull pause parameters or in-battle status
-    menuArt("typeOne")
+    
     if mode == "battle" then
         debugMessage() -- pulls info from character in the battle at the time, not the parameters from RAMSAVE
     elseif mode == "pause" then
         print(chr)
-        local chrTable = loadSavedPlayers(chr)
-        printTable(chrTable)
-
+        local chrTable = loadSavedPlayers(chr)        
         for i,v in pairs(chrTable) do
             if i == "chrNum" then
                 local sRT = tostring(v)
@@ -828,7 +862,7 @@ function chrData(chr, mode) -- render character info screen where mode specifies
             elseif i == "chrTrans" then
                 if type(v) == "table" then
                     local sRT = v.trans1
-                    dataBox:new(180,55,120,20,sRT,gfx.kColorWhite,nil,"small")
+                    dataBox:new(185,60,120,20,sRT,gfx.kColorWhite,nil,"small")
                 end
             elseif i == "chrHp" then
                 local sRT = tostring(v)
@@ -863,18 +897,44 @@ class('RectangleBox').extends(gfx.sprite)
 
 function RectangleBox:init(bX,bY,bW,bH)
     RectangleBox.super.init(self)
+    self:setCenter(0,0)
     self:moveTo(bX,bY)
-    local rectanImage = gfx.image.new(bW,bH)
+    self:setZIndex(200)
+    local rectanImage = gfx.image.new(bW,bH,gfx.kColorBlack)
     gfx.pushContext(rectanImage)
         gfx.fillRect(bX,bY,bW,bH)
     gfx.popContext()
     self:setImage(rectanImage)
-    self:add()
+    self.rectBox = true
+    local selfIndex = #otherIndex + 1
+    otherIndex[selfIndex] = self
+end
+
+class('TriangleBlock').extends(gfx.sprite)
+
+function TriangleBlock:init(x1,y1,x2,y2,x3,y3,tW,tH) -- where tW and tH are the width and height of the 'image'
+    TriangleBlock.super.init(self)
+    self:setCenter(0,0)
+    self:moveTo(x1,y1)
+    self:setZIndex(200)
+    local triImage = gfx.image.new(tW,tH,gfx.kColorBlack)
+    gfx.pushContext(triImage)
+        gfx.drawTriangle(x1,y1,x2,y2,x3,y3)
+    gfx.popContext()
+    self:setImage(triImage)
+    self.rectBox = true
+    local selfIndex = #otherIndex + 1
+    otherIndex[selfIndex] = self
 end
 
 function menuArt(artType) -- function to draw all the boxes in the menu that are decorative
     if artType == "typeOne" then
-       --box at (190,85,220,20)
+       local midRect = RectangleBox(200,80,200,20)
+       midRect:add()
+       local midTri = TriangleBlock(180,80,200,110,200,80,20,20)
+       midTri:add()
+       local midLine = RectangleBox(0,80,200,5)
+       midLine:add()
 
         --draw box at (190,85) with (220x20)
         --draw triangle at (190,85), (180,85), (190,105)
