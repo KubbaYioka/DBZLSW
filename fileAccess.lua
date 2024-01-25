@@ -9,6 +9,12 @@ function saveCheck(location)
         return RAMSAVE[2]
     elseif location == "data" then 
         return RAMSAVE[3]
+    elseif location == "deck" then
+        return RAMSAVE[4]
+    elseif location == "team" then
+        return RAMSAVE[5] 
+    elseif location == "mapInfo" then
+        return RAMSAVE[6]
     elseif location == "all" then
         return RAMSAVE
     end
@@ -112,9 +118,15 @@ function loadSavedPlayers(chr) -- Returns the character specified from the save 
     end
 end
 function loadSavedCards(card) -- Returns the character specified from the save file. 
+    local tempTab = nil
     if card == "all" then
-        local tempTab = saveCheck("cards")
-        return tempTab
+        tempTab = saveCheck("cards")
+    elseif card == "deck" then
+        tempTab = saveCheck("deck")
+    elseif card == "team" then
+        tempTab = saveCheck("team")
+    elseif card == "mapInfo" then
+        tempTab = saveCheck("mapInfo")
     else
         local tempTab = saveCheck("cards")
         for i,v in pairs(tempTab) do
@@ -127,5 +139,8 @@ function loadSavedCards(card) -- Returns the character specified from the save f
                 end
             end
         end
+    end
+    if tempTab ~= nil then
+        return tempTab
     end
 end

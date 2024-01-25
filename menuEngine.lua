@@ -122,9 +122,9 @@ local menuFunc = {
         clearPauseMenu()
     end,
     ["Deck"] = function()
-        debugMessage()
         createMenuIcon(nestedMode.DECK)
         menuArt("typeOne")
+        cardList:new("deck")
     end,
     ["Team"] = function()
         debugMessage()
@@ -455,7 +455,7 @@ cardList = playdate.ui.gridview.new(0,25)
 
 cardList.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
-function cardList:new()
+function cardList:new(mnType)
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
@@ -475,16 +475,30 @@ function cardList:new()
     local yPos = 0
     local xPos = 0
 
-    local oFat = loadSavedCards("all")
+    local oFat = nil
+
+    if mnType == "deck" then
+        oFat = loadSavedCards("deck")
+    else
+        oFat = loadSavedCards("all")
+    end
     o.listRows = {}
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#oFat)
 
-    for i,v in pairs(oFat) do
-        if type(v) == "table" and i == v.cNumber then
-            o.listRows[v.cNumber] = v.cName
-        else
-            o.listRows[i] = "  "..tostring(i)
+    if mnType == "deck" then
+        for i,v in pairs(oFat) do
+            if type(v) == "table" then
+                o.listRows[i] = v.cName
+            end
+        end
+    else
+        for i,v in pairs(oFat) do
+            if type(v) == "table" and i == v.cNumber then
+                o.listRows[v.cNumber] = v.cName
+            else
+                o.listRows[i] = "  "..tostring(i)
+            end
         end
     end
 
