@@ -86,7 +86,7 @@ function initSaveFile() --creates the initial save file if none exists
 
         local deckTabl = {}
         for g=1,20,1 do
-            deckTabl[i] = 0
+            deckTabl[g] = 0
         end
         deckDat = deckTabl
         

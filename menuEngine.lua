@@ -354,9 +354,7 @@ function statusList:new()
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
 
-
         gfx.fillRect(x, y+5, 30, 20)
-
 
         if selected then
             gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
@@ -460,8 +458,6 @@ function cardList:new(mnType)
     setmetatable(o,self)
     self.__index=self
 
-    o.menuType = "List"
-
     o:setCellPadding(0,0,1,3)
     o:setContentInset(5,5,7,7)
     o:setScrollDuration(0)
@@ -474,7 +470,6 @@ function cardList:new(mnType)
     local menuY = 0
     local yPos = 0
     local xPos = 0
-
     local oFat = nil
 
     if mnType == "deck" then
@@ -482,17 +477,22 @@ function cardList:new(mnType)
     else
         oFat = loadSavedCards("all")
     end
+
     o.listRows = {}
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#oFat)
 
     if mnType == "deck" then
+        o.menuType = "deck"
         for i,v in pairs(oFat) do
             if type(v) == "table" then
                 o.listRows[i] = v.cName
+            else
+                o.listRows[i] = "  "
             end
         end
     else
+        o.menuType = "List"
         for i,v in pairs(oFat) do
             if type(v) == "table" and i == v.cNumber then
                 o.listRows[v.cNumber] = v.cName
@@ -508,9 +508,19 @@ function cardList:new(mnType)
 
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
-        for i,v in pairs(o.listRows) do
-            if s==i then
-                return i
+        if o.menuType == "deck" then
+            print(o.listRows[o:getSelectedRow()])
+            if o.listRows[o:getSelectedRow()] ~= "  " then
+                menuSelect:new("vertical","cardpres")
+            else
+                print("No Content Detected.")
+                menuSelect:new("vertical","cardpres")
+            end
+        else
+            for i,v in pairs(o.listRows) do
+                if s==i then
+                    return i
+                end
             end
         end
     end
@@ -591,10 +601,7 @@ function cardList:new(mnType)
             o:setSelectedRow(rSelected)
             o:scrollToRow(rSelected)
         elseif direction == "a" then
-            local gSR = o:getSelectedRow()
-            print("gSR is "..gSR)
-            printTable(loadSavedCards(gSR))
-
+            print("a")
         elseif direction == "b" then
             if o.bSpr == true then
                 for i,v in pairs(otherIndex) do
@@ -629,6 +636,86 @@ function cardList:new(mnType)
                 end
             end
         end
+    end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+
+end
+
+menuSelect = playdate.ui.gridview.new(0,0)
+
+menuSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+function menuSelect:new(direction, optionTable) -- where direction determines rows or columns and optionTable is the option list to load
+    local o = playdate.ui.gridview.new(0,25)
+    setmetatable(o,self)
+    self.__index=self
+
+    o.menuTable = {}
+
+    if optionTable == "nocard" then
+        print("Present List View")
+    elseif optionTable == "cardpres" then
+        print("Card Menu")
+        o.menuTable = {"Remove","Details","Sort"}
+    elseif optionTable == "nochr" then
+        print("Present Status view for Chr list")
+    elseif optionTable == "chrpres" then
+        o.menuTable = {"Limit","Switch","Remove"}
+    end
+
+    local rNum = 0
+    local cNum = 0
+    if direction == "vertical" then
+        o:setNumberOfRows(#o.menuTable)
+        o:setNumberOfColumns(1)
+        o.mX, o.mY, o.mW, o.mH = 240,130,130,90
+    elseif direction == "horizontal" then
+        o:setNumberOfRows(1)
+        o:setNumberOfColumns(#o.menuTable)
+        o.mX, o.mY, o.mW, o.mH = 200,130,120,60
+    end
+
+    local menuSprite = gfx.sprite.new()
+    menuSprite:setCenter(0, 0)
+
+    function o:spriteKill()
+        menuSprite:remove()
+    end
+
+    menuSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local menuImage = gfx.image.new(o.mW,o.mH,gfx.kColorWhite)
+            menuSprite:moveTo(o.mX, o.mY)
+            local zInd = #menuIndex + 200
+            menuSprite:setZIndex(zInd)
+            gfx.pushContext(menuImage)
+                o:drawInRect(0,0,o.mW,o.mH)
+            gfx.popContext()
+            menuSprite:setImage(menuImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+
+        if selected then
+            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+        else
+            gfx.drawRect(x,y,width,height)
+        end
+
+        local fontHeight = gfx.getFont():getHeight()
+  
+        gfx.drawTextInRect(o.menuTable[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
     end
 
     local countI = 0
