@@ -708,14 +708,14 @@ function menuSelect:new(direction, optionTable) -- where direction determines ro
     function o:drawCell(section,row,column,selected,x,y,width,height)
 
         if selected then
-            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+            gfx.fillTriangle(x+15,y+8,x+15,y+23,x+25,y+15)
         else
-            gfx.drawRect(x,y,width,height)
+           
         end
 
         local fontHeight = gfx.getFont():getHeight()
   
-        gfx.drawTextInRect(o.menuTable[row], x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.drawTextInRect(o.menuTable[row], x+50, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
     end
 
     local countI = 0
