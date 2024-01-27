@@ -658,6 +658,8 @@ function menuSelect:new(direction, optionTable) -- where direction determines ro
     setmetatable(o,self)
     self.__index=self
 
+    o.menuType = "menuSelect"
+
     o.menuTable = {}
 
     if optionTable == "nocard" then
@@ -681,6 +683,11 @@ function menuSelect:new(direction, optionTable) -- where direction determines ro
         o:setNumberOfRows(1)
         o:setNumberOfColumns(#o.menuTable)
         o.mX, o.mY, o.mW, o.mH = 200,130,120,60
+    end
+
+    function getOption()
+        local rSelected = o:getSelectedRow()
+        print(rSelected)
     end
 
     local menuSprite = gfx.sprite.new()
@@ -716,6 +723,26 @@ function menuSelect:new(direction, optionTable) -- where direction determines ro
         local fontHeight = gfx.getFont():getHeight()
   
         gfx.drawTextInRect(o.menuTable[row], x+50, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+    end
+
+    function o:menuControl(direction) 
+        local rSelected = o:getSelectedRow()
+        if direction == "up" then
+            o:selectPreviousRow(true,true,false)
+            rSelected = o:getSelectedRow()
+        elseif direction == "down" then
+            o:selectNextRow(true,true,false)
+            rSelected = o:getSelectedRow()
+        elseif direction == "a" then
+            print(o.menuTable[rSelected])
+        elseif direction == "b" then
+            for i,v in pairs(menuIndex) do
+                if i == #menuIndex then
+                    v:spriteKill()
+                    menuIndex[i] = nil
+                end
+            end
+        end
     end
 
     local countI = 0

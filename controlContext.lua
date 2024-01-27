@@ -62,6 +62,8 @@ function menuInputContext()
                 local fs = menuIndex[#menuIndex]
                 if fs.menuType == "Status" then
                     chrData(fs:getSelectedRow(),"pause")
+                elseif fs.menuType == "menuSelect" then
+                    fs:menuControl("a")
                 else
                     goMenu(fs:getOption())
                 end
