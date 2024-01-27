@@ -612,6 +612,8 @@ function cardList:new(mnType)
                 end
             end
 
+
+
             if #numberBoxIndex > 0 then
                 for i,v in pairs(numberBoxIndex) do
                     numberBoxIndex.v = nil
@@ -620,7 +622,7 @@ function cardList:new(mnType)
             end
 
             for k, c in pairs(otherIndex) do
-                if c.menuIcon then
+                if c.menuIcon or c.rectBox then
                     otherIndex.c = nil
                     c:remove()
                 end
