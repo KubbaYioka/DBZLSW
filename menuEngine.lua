@@ -623,8 +623,9 @@ function cardList:new(mnType)
 
             for k, c in pairs(otherIndex) do
                 if c.menuIcon or c.rectBox then
-                    otherIndex.c = nil
                     c:remove()
+                    otherIndex[k] = nil
+                    
                 end
             end
             o:spriteKill()
