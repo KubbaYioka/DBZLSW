@@ -59,7 +59,7 @@ tagIndex = {} -- for keeping track of dialogue tags
 dataBoxIndex = {} -- for individually drawn data boxes like fields for card info
 otherIndex = {} -- for misc objects that will not be used at the same time as any other misc object (e.g, menu icons)
 mapObjIndex = {} -- for map objects
-numberBoxIndex = {} -- table for those little number boxes in the list views. 
+rectBoxIndex = {} -- table for the UI elements in the menu
 
 --Menu Object Class
 
@@ -296,6 +296,9 @@ function bgChange(bgImage)
 end
 
 --DEBUG BLOCK
+function callRam()
+    printTable(RAMSAVE)
+end
 --END DEBUG BLOCK
 
 gameBoot = 0
@@ -322,12 +325,6 @@ function playdate.update()
 
     if #dataBoxIndex > 0 then
         for i,v in pairs(dataBoxIndex) do
-            v:menuUpdate()
-        end
-    end
-    
-    if #numberBoxIndex > 0 then
-        for i,v in pairs(numberBoxIndex) do
             v:menuUpdate()
         end
     end

@@ -1,1 +1,0 @@
-otherIndex not being cleared properly upon termination of menus. Table still populated

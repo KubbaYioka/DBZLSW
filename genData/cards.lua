@@ -216,6 +216,37 @@ function cardRet(cardName) -- gets the card data from tthe above master table. N
   end
 end
 
+function cardInsert(location,mode,card)
+  print("Card= "..card)
+  if location == "deck" then -- for inserting\removing from joint deck
+    if mode == "insert" then -- insertion uses reference to the deck index number
+      local cList = RAMSAVE[2]
+      local cardDetail = nil
+      for i,v in pairs(cList) do
+        if type(v) == "table" then
+          if card == v.cName then
+            v.cAvailable = v.cAvailable - 1
+            cardDetail = v.cName
+          end
+        end
+      end
+      RAMSAVE[2] = cList
+      return cardDetail
+    elseif mode == "remove" then -- removal uses reference to card name string "cName"
+      local dList = RAMSAVE[4]
+      for i,v in pairs(dList) do
+        if v == card then
+          v = 0
+        end
+      end
+    end
+  elseif location == "limit" then -- for inserting\removing from limit
+    if mode == "insert" then
+    elseif mode == "remove" then
+    end
+  end
+end
+
 --Card Calculations
 function enduranceCalc(def)
   --takes the user's current defense and increases it by half

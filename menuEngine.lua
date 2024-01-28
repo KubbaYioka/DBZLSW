@@ -41,8 +41,9 @@ function clearPauseMenu()
     end
     for i,v in pairs(otherIndex) do
         if v.menuObj then
-            otherIndex.v = nil
             v:remove()
+            otherIndex.v = nil
+            otherIndex[i] = nil
         end
     end
 end
@@ -401,40 +402,17 @@ function statusList:new()
             end
             o:setSelectedRow(rSelected)
             o:scrollToRow(rSelected)
-        elseif direction == "a" then
-            
-
         elseif direction == "b" then
-            if o.bSpr == true then
-                for i,v in pairs(otherIndex) do
-                    if v.menuWhi then
-                        otherIndex.v = nil
-                        v:remove()
-                    end
-                end
-            end
-            if #numberBoxIndex > 0 then
-                for i,v in pairs(numberBoxIndex) do
-                    numberBoxIndex.v = nil
-                    v:spriteKill()
-                end
-            end
             for k, c in pairs(otherIndex) do
-                if c.menuIcon then
-                    otherIndex.c = nil
+                print(k)
+                if c.menuIcon or c.menuWhi or c.rectBox then
                     c:remove()
+                    otherIndex.c = nil
+                    otherIndex[k] = nil
                 end
             end
             o:spriteKill()
             menuIndex[o.index] = nil
-        end
-        if #numberBoxIndex > 0 then
-            for i,v in pairs(numberBoxIndex) do
-                if i==#numberBoxIndex then
-                    print(rSelected)
-                    v:scroll(rSelected)
-                end
-            end
         end
     end
 
@@ -463,7 +441,9 @@ function cardList:new(mnType)
     o:setScrollDuration(0)
 
     o.bSpr = true
-    local menuBSpr = MenuBackground(0,0,"menuTwo")
+    local menuBSpr = 0
+    menuBSpr = MenuBackground(0,0,"menuTwo")
+    
     menuBSpr:add()
 
     local menuX = 0 --size of background box and position to be set later
@@ -485,8 +465,8 @@ function cardList:new(mnType)
     if mnType == "deck" then
         o.menuType = "deck"
         for i,v in pairs(oFat) do
-            if type(v) == "table" then
-                o.listRows[i] = v.cName
+            if type(v) == "string" then
+                o.listRows[i] = v
             else
                 o.listRows[i] = "  "
             end
@@ -506,15 +486,29 @@ function cardList:new(mnType)
     menuY = (155)
     menuX = (250)
 
+    function o:reList()
+        local oFut = loadSavedCards("deck")
+        for i,v in pairs(oFut) do
+            if type(v) == "string" then
+                o.listRows[i] = v
+            else
+                o.listRows[i] = "  "
+            end
+        end
+        o:selectNextRow()
+        o:selectPreviousRow() -- stand-in until I can figure out how to update the list another way.
+    end
+
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
         if o.menuType == "deck" then
-            print(o.listRows[o:getSelectedRow()])
             if o.listRows[o:getSelectedRow()] ~= "  " then
-                menuSelect:new("vertical","cardpres")
+                menuSelect:new("vertical","cardpres",o.listRows[o:getSelectedRow()])
             else
                 print("No Content Detected.")
-                menuSelect:new("vertical","cardpres")
+                local sel = o:getSelectedRow()
+                print("sel= "..sel)
+                cardSelect:new(sel)
             end
         else
             for i,v in pairs(o.listRows) do
@@ -553,7 +547,6 @@ function cardList:new(mnType)
     function o:drawCell(section,row,column,selected,x,y,width,height)
 
         gfx.fillRect(x, y+5, 30, 20)
-
 
         if selected then
             gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
@@ -600,44 +593,17 @@ function cardList:new(mnType)
             end
             o:setSelectedRow(rSelected)
             o:scrollToRow(rSelected)
-        elseif direction == "a" then
-            print("a")
         elseif direction == "b" then
-            if o.bSpr == true then
-                for i,v in pairs(otherIndex) do
-                    if v.menuWhi then
-                        otherIndex.v = nil
-                        v:remove()
-                    end
-                end
-            end
-
-
-
-            if #numberBoxIndex > 0 then
-                for i,v in pairs(numberBoxIndex) do
-                    numberBoxIndex.v = nil
-                    v:spriteKill()
-                end
-            end
-
             for k, c in pairs(otherIndex) do
-                if c.menuIcon or c.rectBox then
+                print(k)
+                if c.menuIcon or c.menuWhi or c.rectBox then
                     c:remove()
+                    otherIndex.c = nil
                     otherIndex[k] = nil
-                    
                 end
             end
             o:spriteKill()
             menuIndex[o.index] = nil
-        end
-        if #numberBoxIndex > 0 then
-            for i,v in pairs(numberBoxIndex) do
-                if i==#numberBoxIndex then
-                    print(rSelected)
-                    v:scroll(rSelected)
-                end
-            end
         end
     end
 
@@ -652,23 +618,167 @@ function cardList:new(mnType)
 
 end
 
+cardSelect = playdate.ui.gridview.new(0,25)
+
+function cardSelect:new(selectedRow)
+    local o = playdate.ui.gridview.new(0,25)
+    setmetatable(o,self)
+    self.__index=self
+    o:setCellPadding(0,0,1,3)
+    o:setContentInset(5,5,7,7)
+    o:setScrollDuration(0)
+
+    o.bSpr = true
+    local menuBSpr = 0
+    menuBSpr = MenuBackground(0,0,"menuThree")
+    menuBSpr:add()
+
+    o.menuType = "cardSelect"
+
+    local menuX, menuY = 250, 155
+    local xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
+    local oFat = loadSavedCards("all")
+
+    o.listRows = {}
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(#oFat)
+
+    for i,v in pairs(oFat) do
+        if type(v) == "table" and i == v.cNumber and v.cAvailable > 0 then
+            o.listRows[v.cNumber] = v.cName
+        else
+            o.listRows[i] = "  "..tostring(i)
+        end
+    end
+
+    local cardSelectSprite = gfx.sprite.new()
+    cardSelectSprite:setCenter(0,0)
+    function o:spriteKill()
+        cardSelectSprite:remove()
+    end
+    cardSelectSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local cardSelectImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            cardSelectSprite:moveTo(xPos,yPos)
+            
+            local zInNew = 160
+            zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
+            cardSelectSprite:setZIndex(zInNew)
+
+            gfx.pushContext(cardSelectImage)
+                o:drawInRect(0,0,menuX,menuY)
+            gfx.popContext()
+            cardSelectSprite:setImage(cardSelectImage)
+        end
+    end
+    
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        if selected then
+            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+        end
+
+        local fontHeight = gfx.getSystemFont():getHeight()
+        local rowCom = o.listRows[row]
+        local rowFin = tostring(row).."  "..rowCom
+
+        gfx.setFont(sysFNT.smDBFont)
+
+        local original_draw_mode = gfx.getImageDrawMode()
+        local fontHeight = gfx.getFont():getHeight()
+
+        gfx.setImageDrawMode(playdate.graphics.kDrawModeNXOR)
+  
+        gfx.drawTextInRect(tostring(row), x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.setImageDrawMode(original_draw_mode)
+
+        gfx.setFont(sysFNT.dbFont)
+
+        gfx.drawTextInRect(o.listRows[row], x+50, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+    end
+
+    function o:menuControl(direction) 
+        local rSelected = o:getSelectedRow()
+        if direction == "up" then
+            o:selectPreviousRow(true,true,false)
+            rSelected = o:getSelectedRow()
+        elseif direction == "down" then
+            o:selectNextRow(true,true,false)
+            rSelected = o:getSelectedRow()
+        elseif direction == "right" then
+            rSelected = rSelected + 5
+            if rSelected >150 then
+                rSelected = 1
+            end
+            o:setSelectedRow(rSelected)
+            o:scrollToRow(rSelected)
+        elseif direction == "left" then 
+            rSelected = rSelected - 5
+            if rSelected < 1 then
+                rSelected = 150
+            end
+            o:setSelectedRow(rSelected)
+            o:scrollToRow(rSelected)
+        
+        elseif direction == "b" then
+            for k, c in pairs(otherIndex) do
+                if c.menuWhi == 2 then
+                    c:remove()
+                    otherIndex.c = nil
+                    otherIndex[k] = nil
+                end
+            end
+            o:spriteKill()
+            menuIndex[o.index] = nil
+        elseif direction == "a" then
+            local selectedCard = o.listRows[o:getSelectedRow()]
+            local insertedCard = cardInsert("deck","insert",selectedCard)
+            local ramInsert = RAMSAVE[4]
+            ramInsert[selectedRow] = insertedCard
+            RAMSAVE[4]=ramInsert
+            for i,v in pairs(menuIndex) do
+                if v.menuType == "deck" then
+                    print("relist")
+                    v:reList()
+                end
+            end
+            for k, c in pairs(otherIndex) do
+                if c.menuWhi == 2 then
+                    c:remove()
+                    otherIndex.c = nil
+                    otherIndex[k] = nil
+                end
+            end
+            o:spriteKill()
+            menuIndex[o.index] = nil
+        end
+    end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+end
+
 menuSelect = playdate.ui.gridview.new(0,0)
 
 menuSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
-function menuSelect:new(direction, optionTable) -- where direction determines rows or columns and optionTable is the option list to load
+function menuSelect:new(direction, optionTable, indexC) -- where direction determines rows or columns and optionTable is the option list to load
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
 
     o.menuType = "menuSelect"
-
+    o.indexC = indexC
     o.menuTable = {}
 
-    if optionTable == "nocard" then
-        print("Present List View")
-    elseif optionTable == "cardpres" then
-        print("Card Menu")
+    if optionTable == "cardpres" then
         o.menuTable = {"Remove","Details","Sort"}
     elseif optionTable == "nochr" then
         print("Present Status view for Chr list")
@@ -688,9 +798,20 @@ function menuSelect:new(direction, optionTable) -- where direction determines ro
         o.mX, o.mY, o.mW, o.mH = 200,130,120,60
     end
 
-    function getOption()
-        local rSelected = o:getSelectedRow()
-        print(rSelected)
+    function o:getOption() -- a word of caution. Removal of cards from the deck index use the string of the card from the deck. Whereas adding a card in cardSelect uses the numerical index of the deck to be edited
+        local reSelected = o:getSelectedRow()
+        if reSelected == 1 then
+            print("Remove Match")
+            cardInsert("deck","remove",o.indexC)
+            local cList = RAMSAVE[2] 
+            local cIndex = o.indexC
+            for i,v in pairs(cList) do
+                if v == cIndex then
+                    i.cAvailable = i.cAvailable + 1
+                end
+            end
+            RAMSAVE[2] = cList
+        end
     end
 
     local menuSprite = gfx.sprite.new()
@@ -737,7 +858,7 @@ function menuSelect:new(direction, optionTable) -- where direction determines ro
             o:selectNextRow(true,true,false)
             rSelected = o:getSelectedRow()
         elseif direction == "a" then
-            print(o.menuTable[rSelected])
+            o:getOption()
         elseif direction == "b" then
             for i,v in pairs(menuIndex) do
                 if i == #menuIndex then
@@ -787,7 +908,7 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the ba
     end
     if #dataBoxIndex == 0 then
         o.bSpr = true
-        local menuBSpr = MenuBackground(0,0,"menuThree")
+        local menuBSpr = MenuBackground(0,0,"menuFour")
         menuBSpr:add()
     end
 
@@ -797,9 +918,9 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the ba
         if direction == "b" then
             if o.bSpr == true then
                 for i,v in pairs(otherIndex) do
-                    if v.menuWhi == 2 then
+                    if v.menuWhi == 3 then
                         otherIndex.v = nil
-                        v:remove()
+                        v:spriteKill()
                     end
                 end
             end 
@@ -876,6 +997,11 @@ function MenuBackground:init(x,y,back)
         self:setImage(menuImage)
         self.menuWhi = 2
         self:setZIndex(160)
+    elseif back == "menuFour" then
+        local menuImage = gfx.image.new('assets/images/background/400240.png')
+        self:setImage(menuImage)
+        self.menuWhi = 3
+        self:setZIndex(180)
     end
 
     -- Properties
@@ -900,6 +1026,10 @@ function MenuIcon:init(image)
     self:playAnimation()
 
     self.menuIcon = 1
+
+    function self:spriteKill()
+        self:remove()
+    end
 
     self.changeState("character")
 

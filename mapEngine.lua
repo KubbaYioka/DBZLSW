@@ -303,9 +303,11 @@ function cCardAdd(addCard) -- function to add a card to the player's list
     local cCTable = RAMSAVE[2]
     if cCTable[cNA.cNumber] == 0 then -- adds a card to the slot and populates card info
         cNA.cQuantity = 1
+        cNA.cAvailable = 1
         cCTable[cNA.cNumber] = cNA
     else --if the player already has one or more cards of this type, an additional card is added to the available quantity
-        cCTable[cNA.cNumber].cQuantity = cCTable[cNA.cNumber].cQuantity + 1
+        cCTable[cNA.cNumber].cQuantity = cCTable[cNA.cNumber].cQuantity + 1 -- total number of cards
+        cCTable[cNA.cNumber].cAvailable = cCTable[cNA.cNumber].cAvailable + 1 -- total not in use
     end
     RAMSAVE[2] = cCTable
 end
