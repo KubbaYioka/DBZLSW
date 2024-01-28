@@ -144,3 +144,7 @@ function loadSavedCards(card) -- Returns the character specified from the save f
         return tempTab
     end
 end
+
+function saveIntCheck()
+    print("function to check the integrity of the save file. The save file should have an expected configuration.")
+end

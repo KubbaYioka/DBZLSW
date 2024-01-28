@@ -216,8 +216,7 @@ function cardRet(cardName) -- gets the card data from tthe above master table. N
   end
 end
 
-function cardInsert(location,mode,card)
-  print("Card= "..card)
+function cardInsert(location,mode,card,cardIndex) --card is a string and cardIndex is a number
   if location == "deck" then -- for inserting\removing from joint deck
     if mode == "insert" then -- insertion uses reference to the deck index number
       local cList = RAMSAVE[2]
@@ -233,12 +232,26 @@ function cardInsert(location,mode,card)
       RAMSAVE[2] = cList
       return cardDetail
     elseif mode == "remove" then -- removal uses reference to card name string "cName"
+      local cList = RAMSAVE[2]
       local dList = RAMSAVE[4]
+      local cCount = false
       for i,v in pairs(dList) do
-        if v == card then
-          v = 0
+        print(i.." "..v)
+        if v == card and i == cardIndex then
+          print(v)
+          dList[i] = 0
         end
       end
+      for j,k in pairs(cList) do
+        if type(k) == "table" then
+          if card == k.cName then
+            k.cAvailable = k.cAvailable + 1
+            cCount = true
+          end
+        end
+      end
+      RAMSAVE[2] = cList
+      RAMSAVE[4] = dList
     end
   elseif location == "limit" then -- for inserting\removing from limit
     if mode == "insert" then

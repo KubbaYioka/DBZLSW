@@ -503,12 +503,12 @@ function cardList:new(mnType)
         local s = o:getSelectedRow()
         if o.menuType == "deck" then
             if o.listRows[o:getSelectedRow()] ~= "  " then
-                menuSelect:new("vertical","cardpres",o.listRows[o:getSelectedRow()])
+                menuSelect:new("vertical","cardpres",o.listRows[o:getSelectedRow()],o:getSelectedRow())
+
             else
-                print("No Content Detected.")
                 local sel = o:getSelectedRow()
                 print("sel= "..sel)
-                cardSelect:new(sel)
+                cardSelect:new(sel) -- passes the index of the selected deck slot to be populated
             end
         else
             for i,v in pairs(o.listRows) do
@@ -639,6 +639,8 @@ function cardSelect:new(selectedRow)
     local xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
     local oFat = loadSavedCards("all")
 
+    o.selIndex = sel -- the index of the previous menu to be populated
+
     o.listRows = {}
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#oFat)
@@ -732,14 +734,13 @@ function cardSelect:new(selectedRow)
             o:spriteKill()
             menuIndex[o.index] = nil
         elseif direction == "a" then
-            local selectedCard = o.listRows[o:getSelectedRow()]
+            local selectedCard = o.listRows[o:getSelectedRow()] --where selectedCard is a string consisting of the card name
             local insertedCard = cardInsert("deck","insert",selectedCard)
             local ramInsert = RAMSAVE[4]
             ramInsert[selectedRow] = insertedCard
             RAMSAVE[4]=ramInsert
             for i,v in pairs(menuIndex) do
                 if v.menuType == "deck" then
-                    print("relist")
                     v:reList()
                 end
             end
@@ -769,15 +770,15 @@ menuSelect = playdate.ui.gridview.new(0,0)
 
 menuSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
-function menuSelect:new(direction, optionTable, indexC) -- where direction determines rows or columns and optionTable is the option list to load
+function menuSelect:new(direction, optionTable, namC, numIndex) -- where direction determines rows or columns and optionTable is the option list to load
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
 
     o.menuType = "menuSelect"
-    o.indexC = indexC
+    o.nameC = namC
     o.menuTable = {}
-
+    o.numC = numIndex
     if optionTable == "cardpres" then
         o.menuTable = {"Remove","Details","Sort"}
     elseif optionTable == "nochr" then
@@ -786,8 +787,6 @@ function menuSelect:new(direction, optionTable, indexC) -- where direction deter
         o.menuTable = {"Limit","Switch","Remove"}
     end
 
-    local rNum = 0
-    local cNum = 0
     if direction == "vertical" then
         o:setNumberOfRows(#o.menuTable)
         o:setNumberOfColumns(1)
@@ -798,20 +797,19 @@ function menuSelect:new(direction, optionTable, indexC) -- where direction deter
         o.mX, o.mY, o.mW, o.mH = 200,130,120,60
     end
 
-    function o:getOption() -- a word of caution. Removal of cards from the deck index use the string of the card from the deck. Whereas adding a card in cardSelect uses the numerical index of the deck to be edited
+    function o:getOption()
         local reSelected = o:getSelectedRow()
         if reSelected == 1 then
-            print("Remove Match")
-            cardInsert("deck","remove",o.indexC)
-            local cList = RAMSAVE[2] 
-            local cIndex = o.indexC
-            for i,v in pairs(cList) do
-                if v == cIndex then
-                    i.cAvailable = i.cAvailable + 1
+            print(o.nameC.." "..o.numC)
+            cardInsert("deck","remove",o.nameC,o.numC)
+            for i,v in pairs(menuIndex) do
+                if v.menuType == "deck" then
+                    v:reList()
                 end
             end
-            RAMSAVE[2] = cList
         end
+        o:spriteKill()
+        menuIndex[o.index] = nil
     end
 
     local menuSprite = gfx.sprite.new()
@@ -919,8 +917,9 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the ba
             if o.bSpr == true then
                 for i,v in pairs(otherIndex) do
                     if v.menuWhi == 3 then
+                        v:remove()
                         otherIndex.v = nil
-                        v:spriteKill()
+                        otherIndex[i] = nil
                     end
                 end
             end 
