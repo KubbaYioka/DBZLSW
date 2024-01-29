@@ -14,7 +14,8 @@ characters = {
     ,chrDef = 2
     ,chrExp = 0
     ,chrTrans = {
-        trans1 = "Oozaru"
+        trans1 = "Base"
+        ,trans2 = "Oozaru"
         }
     }
 ,["dbKrillin"] = {
@@ -67,16 +68,25 @@ characters = {
 function chrRet(chrCode) -- gets the character data from this location. Not for Save access.
     for i,v in pairs (characters) do
         if v.chrCode == chrCode then
-        return v
+            return v
+        end
+    end
+end
+
+function chrGetLimit(chr,cIndex)
+    local chrList = RAMSAVE[1]
+    for i,v in pairs(chrList) do
+        if type(v) == "table" then
+            if v.chrNum == cIndex and v.chrName == chr then
+                return v.limit
+            end
         end
     end
 end
 
 
-
-
--- Chr Portrait Enum
+--[[Chr Portrait Enum
 ChrPorts = {
     dbGoku = 1
     ,db = 2
-}
+}]]--

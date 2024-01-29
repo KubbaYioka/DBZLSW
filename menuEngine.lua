@@ -596,14 +596,14 @@ function cardList:new(mnType)
             o:setSelectedRow(rSelected)
             o:scrollToRow(rSelected)
         elseif direction == "b" then
-            for k, c in pairs(otherIndex) do
+           --[[ for k, c in pairs(otherIndex) do
                 print(k)
                 if c.menuIcon or c.menuWhi or c.rectBox then
                     c:remove()
                     otherIndex.c = nil
                     otherIndex[k] = nil
                 end
-            end
+            end]]--
             o:spriteKill()
             menuIndex[o.index] = nil
         end
@@ -764,6 +764,139 @@ function cardSelect:new(selectedRow)
     return o
 end
 
+limitList = playdate.ui.gridview.new(0,0)
+
+function limitList:new(chr, chrIndex)
+    local o = playdate.ui.gridview.new(0,25)
+    setmetatable(o,self)
+    self.__index=self
+
+    o:setCellPadding(0,0,1,3)
+    o:setContentInset(5,5,7,7)
+    o:setScrollDuration(0)
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(3)
+
+    o.menuType = "limit"
+
+    o.chr = chr
+    o.chrIndex = chrIndex
+
+    o.limitRows = chrGetLimit(o.chr, o.chrIndex)
+
+    o.listRows = {}
+
+    for i=1,3,1 do
+        if o.limitRows[i] ~= nil then
+            o.listRows[i] = o.limitRows[i]
+        else
+            o.listRows[i] = "  "
+        end
+    end
+
+    local xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
+    local menuX, menuY = 250, 155
+
+    function o:reList()
+        local oFut = chrGetLimit(o.chr,o.chrIndex)
+        for i=1,3,1 do
+            if oFut[i] ~= nil then
+                o.listRows[i] = o.limitRows[i]
+            else
+                o.listRows[i] = "  "
+            end
+        end
+        o:selectNextRow()
+        o:selectPreviousRow() -- stand-in until I can figure out how to update the list another way.
+    end
+
+    function o:getOption()
+        if o.listRows[o:getSelectedRow()] ~= "  " then
+            menuSelect:new("vertical","limitpres",o.listRows[o:getSelectedRow()],o:getSelectedRow())
+
+        else
+            local sel = o:getSelectedRow()
+            print("sel= "..sel)
+            cardSelect:new(sel) -- passes the index of the selected deck slot to be populated
+        end
+    end
+
+    local limitListSprite = gfx.sprite.new()
+    limitListSprite:setCenter(0,0)
+
+    function o:spriteKill()
+        limitListSprite:remove()
+    end
+
+    limitListSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local cardListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            limitListSprite:moveTo(xPos,yPos)
+            
+            local zInNew = 130
+            zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
+            limitListSprite:setZIndex(zInNew)
+
+            gfx.pushContext(cardListImage)
+                o:drawInRect(0,0,menuX,menuY)
+            gfx.popContext()
+            limitListSprite:setImage(cardListImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+
+        gfx.fillRect(x, y+5, 30, 20)
+
+        if selected then
+            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+        end
+
+        local fontHeight = gfx.getSystemFont():getHeight()
+        local rowCom = o.listRows[row]
+        local rowFin = tostring(row).."  "..rowCom
+
+        gfx.setFont(sysFNT.smDBFont)
+
+        local original_draw_mode = gfx.getImageDrawMode()
+        local fontHeight = gfx.getFont():getHeight()
+
+        gfx.setImageDrawMode(playdate.graphics.kDrawModeNXOR)
+  
+        gfx.drawTextInRect(tostring(row), x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+        gfx.setImageDrawMode(original_draw_mode)
+
+        gfx.setFont(sysFNT.dbFont)
+
+        gfx.drawTextInRect(o.listRows[row], x+50, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+    end
+
+    function o:menuControl(direction) 
+        local rSelected = o:getSelectedRow()
+        if direction == "up" then
+            o:selectPreviousRow(true,true,false)
+            rSelected = o:getSelectedRow()
+        elseif direction == "down" then
+            o:selectNextRow(true,true,false)
+            rSelected = o:getSelectedRow()
+        elseif direction == "b" then
+            o:spriteKill()
+            menuIndex[o.index] = nil
+        end
+    end
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+end
+
 menuSelect = playdate.ui.gridview.new(0,0)
 
 menuSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
@@ -781,10 +914,16 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
     if optionTable == "cardpres" then
         o.menuTable = {"Remove","Details","Sort"}
         o.mode = "card"
+    elseif optionTable == "limitpres" then
+        o.menuTable = {"Remove","Details"}
+        o.mode = "card"
     elseif optionTable == "nochr" then
         print("Present Status view for Chr list")
         o.mode = "chr"
     elseif optionTable == "chrpres" then
+        o.menuTable = {"Details","Limit","Switch"}
+        o.mode = "chr"
+    elseif optionTable == "chrTeam" then
         o.menuTable = {"Details","Limit","Switch","Remove"}
         o.mode = "chr"
     end
@@ -817,9 +956,10 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
             end
         elseif o.mode == "chr" then
             if reSelected == 1 then
-                chrData(fs:getSelectedRow(),"pause")
+                chrData(o:getSelectedRow(),"pause")
             elseif reSelected == 2 then
                 print("chrShow Limit")
+                limitList:new(o.nameC, o.numC)
             elseif reSelected == 3 then
             elseif reSelected == 4 then
             end
@@ -1119,7 +1259,6 @@ function cardData(selCard) -- Render card info screen.
 end
 
 function chrData(chr, mode) -- render character info screen where mode specifies whether to pull pause parameters or in-battle status
-    
     if mode == "battle" then
         debugMessage() -- pulls info from character in the battle at the time, not the parameters from RAMSAVE
     elseif mode == "pause" then
