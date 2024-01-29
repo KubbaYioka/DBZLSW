@@ -82,11 +82,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
     self.__index=self
     o.type = gType
 
-    local menuX = 0 -- controls width of background box
-    local menuY = 0 -- controls height of background box
-    local xPos = 0
-    local yPos = 0
-
+    local menuX, menuY, xPos, yPos = 0,0,0,0 
     if o.type == "menu" or o.type == "twoChoices" then
         --options in menu list and menu orientation dependent on name variable
         -- so like if name == y then o.options = option table 1, etc

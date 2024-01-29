@@ -72,12 +72,11 @@ function chrRet(chrCode) -- gets the character data from this location. Not for 
     end
 end
 
+
+
+
 -- Chr Portrait Enum
 ChrPorts = {
     dbGoku = 1
     ,db = 2
-
-
-
-
 }

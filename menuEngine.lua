@@ -305,10 +305,7 @@ function statusList:new()
     local menuBSpr = MenuBackground(0,0,"menuTwo")
     menuBSpr:add()
 
-    local menuX = 0 --size of background box and position to be set later
-    local menuY = 0
-    local yPos = 0
-    local xPos = 0
+    local menuX, menuY, yPos, xPos = 0,0,0,0 --size of background box and position to be set later
 
     local oFat = loadSavedPlayers("all")
     o.listRows = {}
@@ -320,13 +317,12 @@ function statusList:new()
         if type(v) == "table" and i == v.chrNum then
             o.listRows[v.chrNum] = v.chrName
         else
-            o.listRows[i] = "   "
+            o.listRows[i] = "  "
         end
     end
 
     xPos, yPos = menuPosition(menuPosEnum.menuPosvar)
-    menuY = (155)
-    menuX = (250)
+    menuX, menuY = 250, 155
 
     local statusListSprite = gfx.sprite.new()
     statusListSprite:setCenter(0,0)
@@ -413,6 +409,12 @@ function statusList:new()
             end
             o:spriteKill()
             menuIndex[o.index] = nil
+        elseif direction == "a" then
+            if o.menuType == "Status" then
+                if o.listRows[o:getSelectedRow()] ~= "  " then
+                    menuSelect:new("vertical","chrpres",o.listRows[o:getSelectedRow()],o:getSelectedRow())
+                end
+            end
         end
     end
 
@@ -615,7 +617,6 @@ function cardList:new(mnType)
     o.index = countI + 1
     menuIndex[o.index] = o
     return o
-
 end
 
 cardSelect = playdate.ui.gridview.new(0,25)
@@ -735,10 +736,7 @@ function cardSelect:new(selectedRow)
             menuIndex[o.index] = nil
         elseif direction == "a" then
             local selectedCard = o.listRows[o:getSelectedRow()] --where selectedCard is a string consisting of the card name
-            local insertedCard = cardInsert("deck","insert",selectedCard)
-            local ramInsert = RAMSAVE[4]
-            ramInsert[selectedRow] = insertedCard
-            RAMSAVE[4]=ramInsert
+            cardInsert("deck","insert",selectedCard,selectedRow)
             for i,v in pairs(menuIndex) do
                 if v.menuType == "deck" then
                     v:reList()
@@ -779,12 +777,16 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
     o.nameC = namC
     o.menuTable = {}
     o.numC = numIndex
+
     if optionTable == "cardpres" then
         o.menuTable = {"Remove","Details","Sort"}
+        o.mode = "card"
     elseif optionTable == "nochr" then
         print("Present Status view for Chr list")
+        o.mode = "chr"
     elseif optionTable == "chrpres" then
-        o.menuTable = {"Limit","Switch","Remove"}
+        o.menuTable = {"Details","Limit","Switch","Remove"}
+        o.mode = "chr"
     end
 
     if direction == "vertical" then
@@ -799,13 +801,27 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
 
     function o:getOption()
         local reSelected = o:getSelectedRow()
-        if reSelected == 1 then
-            print(o.nameC.." "..o.numC)
-            cardInsert("deck","remove",o.nameC,o.numC)
-            for i,v in pairs(menuIndex) do
-                if v.menuType == "deck" then
-                    v:reList()
+        if o.mode == "card" then
+            if reSelected == 1 then
+                print(o.nameC.." "..o.numC)
+                cardInsert("deck","remove",o.nameC,o.numC)
+                for i,v in pairs(menuIndex) do
+                    if v.menuType == "deck" then
+                        v:reList()
+                    end
                 end
+            elseif reSelected == 2 then
+                print("card details")
+            elseif reSelected == 3 then
+                print("Sort...Oof...")
+            end
+        elseif o.mode == "chr" then
+            if reSelected == 1 then
+                chrData(fs:getSelectedRow(),"pause")
+            elseif reSelected == 2 then
+                print("chrShow Limit")
+            elseif reSelected == 3 then
+            elseif reSelected == 4 then
             end
         end
         o:spriteKill()
@@ -838,8 +854,6 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
 
         if selected then
             gfx.fillTriangle(x+15,y+8,x+15,y+23,x+25,y+15)
-        else
-           
         end
 
         local fontHeight = gfx.getFont():getHeight()
@@ -875,7 +889,6 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
     o.index = countI + 1
     menuIndex[o.index] = o
     return o
-
 end
 
 dataBox = playdate.ui.gridview.new(0,25)

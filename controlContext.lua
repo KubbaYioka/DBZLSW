@@ -60,9 +60,7 @@ function menuInputContext()
             end
             if playdate.buttonJustPressed("a") then
                 local fs = menuIndex[#menuIndex]
-                if fs.menuType == "Status" then
-                    chrData(fs:getSelectedRow(),"pause")
-                elseif fs.menuType == "menuSelect" or fs.menuType == "cardSelect" then
+                if fs.menuType == "menuSelect" or fs.menuType == "Status" or fs.menuType == "cardSelect" then
                     fs:menuControl("a")
                 else
                     goMenu(fs:getOption())

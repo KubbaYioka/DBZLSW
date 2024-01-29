@@ -218,8 +218,9 @@ end
 
 function cardInsert(location,mode,card,cardIndex) --card is a string and cardIndex is a number
   if location == "deck" then -- for inserting\removing from joint deck
-    if mode == "insert" then -- insertion uses reference to the deck index number
+    if mode == "insert" then -- insertion uses reference to card name string
       local cList = RAMSAVE[2]
+      local dList = RAMSAVE[4]
       local cardDetail = nil
       for i,v in pairs(cList) do
         if type(v) == "table" then
@@ -229,8 +230,9 @@ function cardInsert(location,mode,card,cardIndex) --card is a string and cardInd
           end
         end
       end
+      dList[cardIndex] = cardDetail
       RAMSAVE[2] = cList
-      return cardDetail
+      RAMSAVE[4] = dList
     elseif mode == "remove" then -- removal uses reference to card name string "cName"
       local cList = RAMSAVE[2]
       local dList = RAMSAVE[4]
