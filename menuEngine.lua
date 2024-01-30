@@ -596,14 +596,14 @@ function cardList:new(mnType)
             o:setSelectedRow(rSelected)
             o:scrollToRow(rSelected)
         elseif direction == "b" then
-           --[[ for k, c in pairs(otherIndex) do
+           for k, c in pairs(otherIndex) do
                 print(k)
                 if c.menuIcon or c.menuWhi or c.rectBox then
                     c:remove()
                     otherIndex.c = nil
                     otherIndex[k] = nil
                 end
-            end]]--
+            end
             o:spriteKill()
             menuIndex[o.index] = nil
         end
