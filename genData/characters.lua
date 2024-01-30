@@ -83,10 +83,3 @@ function chrGetLimit(chr,cIndex)
         end
     end
 end
-
-
---[[Chr Portrait Enum
-ChrPorts = {
-    dbGoku = 1
-    ,db = 2
-}]]--

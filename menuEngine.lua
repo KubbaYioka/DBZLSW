@@ -813,10 +813,8 @@ function limitList:new(chr, chrIndex)
     function o:getOption()
         if o.listRows[o:getSelectedRow()] ~= "  " then
             menuSelect:new("vertical","limitpres",o.listRows[o:getSelectedRow()],o:getSelectedRow())
-
         else
             local sel = o:getSelectedRow()
-            print("sel= "..sel)
             cardSelect:new(sel) -- passes the index of the selected deck slot to be populated
         end
     end
@@ -832,17 +830,17 @@ function limitList:new(chr, chrIndex)
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local cardListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            local limitListImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
             limitListSprite:moveTo(xPos,yPos)
             
             local zInNew = 130
             zInNew = zInNew + #menuIndex -- newest menu will always be drawn on top
             limitListSprite:setZIndex(zInNew)
 
-            gfx.pushContext(cardListImage)
+            gfx.pushContext(limitListImage)
                 o:drawInRect(0,0,menuX,menuY)
             gfx.popContext()
-            limitListSprite:setImage(cardListImage)
+            limitListSprite:setImage(limitListImage)
         end
     end
 
@@ -939,6 +937,7 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
     end
 
     function o:getOption()
+        o:spriteKill() -- eliminate object before creating new one
         local reSelected = o:getSelectedRow()
         if o.mode == "card" then
             if reSelected == 1 then
@@ -964,8 +963,6 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
             elseif reSelected == 4 then
             end
         end
-        o:spriteKill()
-        menuIndex[o.index] = nil
     end
 
     local menuSprite = gfx.sprite.new()
@@ -973,6 +970,7 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
 
     function o:spriteKill()
         menuSprite:remove()
+        menuIndex[o.index] = nil
     end
 
     menuSprite:add()
