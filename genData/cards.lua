@@ -216,37 +216,37 @@ function cardRet(cardName) -- gets the card data from tthe above master table. N
   end
 end
 
-function cardInsert(location,mode,card,cardIndex) --card is a string and cardIndex is a number
+function cardInsert(location,mode,selected,selIndex,chrIndex,chrN) --selected is a string and selIndex is a number. lmtIndex is used to populate the limit slot
   if location == "deck" then -- for inserting\removing from joint deck
-    if mode == "insert" then -- insertion uses reference to card name string
+    if mode == "insert" then -- insertion uses reference to selected name string
       local cList = RAMSAVE[2]
       local dList = RAMSAVE[4]
       local cardDetail = nil
       for i,v in pairs(cList) do
         if type(v) == "table" then
-          if card == v.cName then
+          if selected == v.cName then
             v.cAvailable = v.cAvailable - 1
             cardDetail = v.cName
           end
         end
       end
-      dList[cardIndex] = cardDetail
+      dList[selIndex] = cardDetail
       RAMSAVE[2] = cList
       RAMSAVE[4] = dList
-    elseif mode == "remove" then -- removal uses reference to card name string "cName"
+    elseif mode == "remove" then -- removal uses reference to selected name string "cName"
       local cList = RAMSAVE[2]
       local dList = RAMSAVE[4]
       local cCount = false
       for i,v in pairs(dList) do
         print(i.." "..v)
-        if v == card and i == cardIndex then
+        if v == selected and i == selIndex then
           print(v)
           dList[i] = 0
         end
       end
       for j,k in pairs(cList) do
         if type(k) == "table" then
-          if card == k.cName then
+          if selected == k.cName then
             k.cAvailable = k.cAvailable + 1
             cCount = true
           end
@@ -256,9 +256,54 @@ function cardInsert(location,mode,card,cardIndex) --card is a string and cardInd
       RAMSAVE[4] = dList
     end
   elseif location == "limit" then -- for inserting\removing from limit
+    local cList = RAMSAVE[2]
+    local tempList = RAMSAVE[1]
+    local limList = nil
+    local cardDetail = nil
     if mode == "insert" then
+      for i,v in pairs(tempList) do
+        if type(v) == "table" then
+          if v.chrNum == chrIndex and v.chrName == chrN then 
+            limList = v.limit
+            limList[selIndex] = selected
+            v.limit = limList
+          end
+        end
+      end
+      
+      for i,v in pairs(cList) do
+        if type(v) == "table" then
+          if selected == v.cName then
+            v.cAvailable = v.cAvailable - 1
+            cardDetail = v.cName
+          end
+        end
+      end
+
     elseif mode == "remove" then
+      print("remove in limit list triggered in cardInsert")
+      for i,v in pairs(tempList) do
+        if type(v) == "table" then
+          print(v.chrNum.." "..v.chrName.." "..selected.." "..selIndex)
+          if v.chrNum == chrIndex and v.chrName == chrN then
+            limList = v.limit
+            limList[selIndex] = nil
+            v.limit = limList
+          end
+        end
+      end
+      
+      for i,v in pairs(cList) do
+        if type(v) == "table" then
+          if selected == v.cName then
+            v.cAvailable = v.cAvailable + 1
+          end
+        end
+      end
     end
+
+    RAMSAVE[1] = tempList
+    RAMSAVE[4] = dList
   end
 end
 

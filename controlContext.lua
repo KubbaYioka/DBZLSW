@@ -77,7 +77,6 @@ function menuInputContext()
                 fs:menuControl("right")
             end
 
-
             if playdate.buttonJustPressed("up") then
                 local fs = menuIndex[#menuIndex]
                 fs:menuControl("up")

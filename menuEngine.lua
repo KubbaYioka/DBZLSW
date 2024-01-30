@@ -400,7 +400,6 @@ function statusList:new()
             o:scrollToRow(rSelected)
         elseif direction == "b" then
             for k, c in pairs(otherIndex) do
-                print(k)
                 if c.menuIcon or c.menuWhi or c.rectBox then
                     c:remove()
                     otherIndex.c = nil
@@ -509,7 +508,6 @@ function cardList:new(mnType)
 
             else
                 local sel = o:getSelectedRow()
-                print("sel= "..sel)
                 cardSelect:new(sel) -- passes the index of the selected deck slot to be populated
             end
         else
@@ -597,7 +595,6 @@ function cardList:new(mnType)
             o:scrollToRow(rSelected)
         elseif direction == "b" then
            for k, c in pairs(otherIndex) do
-                print(k)
                 if c.menuIcon or c.menuWhi or c.rectBox then
                     c:remove()
                     otherIndex.c = nil
@@ -621,7 +618,7 @@ end
 
 cardSelect = playdate.ui.gridview.new(0,25)
 
-function cardSelect:new(selectedRow)
+function cardSelect:new(selectedRow,chrNum,chrNam)
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
@@ -641,7 +638,8 @@ function cardSelect:new(selectedRow)
     local oFat = loadSavedCards("all")
 
     o.selIndex = sel -- the index of the previous menu to be populated
-
+    o.chrNum = chrNum
+    o.chrNam = chrNam
     o.listRows = {}
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#oFat)
@@ -650,7 +648,7 @@ function cardSelect:new(selectedRow)
         if type(v) == "table" and i == v.cNumber and v.cAvailable > 0 then
             o.listRows[v.cNumber] = v.cName
         else
-            o.listRows[i] = "  "..tostring(i)
+            o.listRows[i] = "  "
         end
     end
 
@@ -736,21 +734,23 @@ function cardSelect:new(selectedRow)
             menuIndex[o.index] = nil
         elseif direction == "a" then
             local selectedCard = o.listRows[o:getSelectedRow()] --where selectedCard is a string consisting of the card name
-            cardInsert("deck","insert",selectedCard,selectedRow)
-            for i,v in pairs(menuIndex) do
-                if v.menuType == "deck" then
-                    v:reList()
+            if selectedCard ~= "  " then
+                cardInsert("limit","insert",selectedCard,selectedRow,o.chrNum,o.chrNam)
+                for i,v in pairs(menuIndex) do
+                    if v.menuType == "deck" then
+                        v:reList()
+                    end
                 end
-            end
-            for k, c in pairs(otherIndex) do
-                if c.menuWhi == 2 then
-                    c:remove()
-                    otherIndex.c = nil
-                    otherIndex[k] = nil
+                for k, c in pairs(otherIndex) do
+                    if c.menuWhi == 2 then
+                        c:remove()
+                        otherIndex.c = nil
+                        otherIndex[k] = nil
+                    end
                 end
+                o:spriteKill()
+                menuIndex[o.index] = nil
             end
-            o:spriteKill()
-            menuIndex[o.index] = nil
         end
     end
 
@@ -763,6 +763,7 @@ function cardSelect:new(selectedRow)
     menuIndex[o.index] = o
     return o
 end
+
 
 limitList = playdate.ui.gridview.new(0,0)
 
@@ -778,12 +779,9 @@ function limitList:new(chr, chrIndex)
     o:setNumberOfRows(3)
 
     o.menuType = "limit"
-
     o.chr = chr
     o.chrIndex = chrIndex
-
     o.limitRows = chrGetLimit(o.chr, o.chrIndex)
-
     o.listRows = {}
 
     for i=1,3,1 do
@@ -812,10 +810,11 @@ function limitList:new(chr, chrIndex)
 
     function o:getOption()
         if o.listRows[o:getSelectedRow()] ~= "  " then
+            print("menuselect for Limit "..o.listRows[o:getSelectedRow()].." in limit slot #"..o:getSelectedRow())
             menuSelect:new("vertical","limitpres",o.listRows[o:getSelectedRow()],o:getSelectedRow())
         else
             local sel = o:getSelectedRow()
-            cardSelect:new(sel) -- passes the index of the selected deck slot to be populated
+            cardSelect:new(sel,o.chrIndex,o.chr) -- passes the index of the selected deck slot to be populated
         end
     end
 
@@ -914,16 +913,16 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
         o.mode = "card"
     elseif optionTable == "limitpres" then
         o.menuTable = {"Remove","Details"}
-        o.mode = "card"
+        o.mode = "cardLmt"
     elseif optionTable == "nochr" then
         print("Present Status view for Chr list")
-        o.mode = "chr"
+        o.mode = "chrNo"
     elseif optionTable == "chrpres" then
         o.menuTable = {"Details","Limit","Switch"}
         o.mode = "chr"
     elseif optionTable == "chrTeam" then
         o.menuTable = {"Details","Limit","Switch","Remove"}
-        o.mode = "chr"
+        o.mode = "chrTeam"
     end
 
     if direction == "vertical" then
@@ -939,9 +938,8 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
     function o:getOption()
         o:spriteKill() -- eliminate object before creating new one
         local reSelected = o:getSelectedRow()
-        if o.mode == "card" then
-            if reSelected == 1 then
-                print(o.nameC.." "..o.numC)
+        if o.mode == "card" then -- remove, see details, or sort card(s) from shared deck
+            if reSelected == 1 then -- Remove
                 cardInsert("deck","remove",o.nameC,o.numC)
                 for i,v in pairs(menuIndex) do
                     if v.menuType == "deck" then
@@ -952,6 +950,12 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
                 print("card details")
             elseif reSelected == 3 then
                 print("Sort...Oof...")
+            end
+        elseif mode == "cardLmt" then -- remove or see details for card from limit lineup
+            print("rselected in menuSelect is: "..rSelected)
+            if reSelected == 1 then -- Remove
+                cardInsert("limit","remove",o.nameC,o.numC)
+            elseif reSelected ==2 then --Detail
             end
         elseif o.mode == "chr" then
             if reSelected == 1 then
@@ -1260,7 +1264,6 @@ function chrData(chr, mode) -- render character info screen where mode specifies
     if mode == "battle" then
         debugMessage() -- pulls info from character in the battle at the time, not the parameters from RAMSAVE
     elseif mode == "pause" then
-        print(chr)
         local chrTable = loadSavedPlayers(chr)        
         for i,v in pairs(chrTable) do
             if i == "chrNum" then
