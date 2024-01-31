@@ -411,7 +411,7 @@ function statusList:new()
         elseif direction == "a" then
             if o.menuType == "Status" then
                 if o.listRows[o:getSelectedRow()] ~= "  " then
-                    menuSelect:new("vertical","chrpres",o.listRows[o:getSelectedRow()],o:getSelectedRow())
+                    menuSelect:new("vertical","chrpres",nil,nil,o.listRows[o:getSelectedRow()],o:getSelectedRow())
                 end
             end
         end
@@ -781,6 +781,7 @@ function limitList:new(chr, chrIndex)
     o.menuType = "limit"
     o.chr = chr
     o.chrIndex = chrIndex
+    print("limitlist name and index for chr: "..o.chrIndex.." "..o.chr)
     o.limitRows = chrGetLimit(o.chr, o.chrIndex)
     o.listRows = {}
 
@@ -810,8 +811,8 @@ function limitList:new(chr, chrIndex)
 
     function o:getOption()
         if o.listRows[o:getSelectedRow()] ~= "  " then
-            print("menuselect for Limit "..o.listRows[o:getSelectedRow()].." in limit slot #"..o:getSelectedRow())
-            menuSelect:new("vertical","limitpres",o.listRows[o:getSelectedRow()],o:getSelectedRow())
+            print(o.listRows[o:getSelectedRow()]," ",o:getSelectedRow()," ",o.chrIndex," ",o.chr)
+            menuSelect:new("vertical","limitpres",o.listRows[o:getSelectedRow()],o:getSelectedRow(),o.chrIndex,o.chr)
         else
             local sel = o:getSelectedRow()
             cardSelect:new(sel,o.chrIndex,o.chr) -- passes the index of the selected deck slot to be populated
@@ -898,7 +899,7 @@ menuSelect = playdate.ui.gridview.new(0,0)
 
 menuSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
-function menuSelect:new(direction, optionTable, namC, numIndex) -- where direction determines rows or columns and optionTable is the option list to load
+function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) -- where direction determines rows or columns and optionTable is the option list to load
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
@@ -907,6 +908,10 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
     o.nameC = namC
     o.menuTable = {}
     o.numC = numIndex
+    if chrNam ~= nil and chrNum ~= nil then
+        o.chrNam = chrNam
+        o.chrNum = chrNum
+    end
 
     if optionTable == "cardpres" then
         o.menuTable = {"Remove","Details","Sort"}
@@ -951,10 +956,9 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
             elseif reSelected == 3 then
                 print("Sort...Oof...")
             end
-        elseif mode == "cardLmt" then -- remove or see details for card from limit lineup
-            print("rselected in menuSelect is: "..rSelected)
+        elseif o.mode == "cardLmt" then -- remove or see details for card from limit lineup
             if reSelected == 1 then -- Remove
-                cardInsert("limit","remove",o.nameC,o.numC)
+                cardInsert("limit","remove",o.nameC,o.numC,o.chrNum,o.chrNam)
             elseif reSelected ==2 then --Detail
             end
         elseif o.mode == "chr" then
@@ -962,7 +966,7 @@ function menuSelect:new(direction, optionTable, namC, numIndex) -- where directi
                 chrData(o:getSelectedRow(),"pause")
             elseif reSelected == 2 then
                 print("chrShow Limit")
-                limitList:new(o.nameC, o.numC)
+                limitList:new(o.chrNum,o.chrNam)
             elseif reSelected == 3 then
             elseif reSelected == 4 then
             end
