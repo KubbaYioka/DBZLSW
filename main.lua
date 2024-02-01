@@ -305,7 +305,6 @@ function playdate.update()
    while gameBoot == 0 do -- First thing the game does is check for a save
         --show opening animation
         ramSave()
-
         gameBoot = 1
     end
 

@@ -125,6 +125,7 @@ local menuFunc = {
     ["Deck"] = function()
         createMenuIcon(nestedMode.DECK)
         menuArt("typeOne")
+        print("creating cardlist:new deck in menuEngine 128")
         cardList:new("deck")
     end,
     ["Team"] = function()
@@ -750,6 +751,11 @@ function cardSelect:new(selectedRow,chrNum,chrNam)
                 end
                 o:spriteKill()
                 menuIndex[o.index] = nil
+                for i,v in pairs(menuIndex) do
+                    if v.menuType == "limit" then
+                        v:reList()
+                    end
+                end
             end
         end
     end
@@ -781,7 +787,6 @@ function limitList:new(chr, chrIndex)
     o.menuType = "limit"
     o.chr = chr
     o.chrIndex = chrIndex
-    print("limitlist name and index for chr: "..o.chrIndex.." "..o.chr)
     o.limitRows = chrGetLimit(o.chr, o.chrIndex)
     o.listRows = {}
 
@@ -923,7 +928,7 @@ function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) 
         print("Present Status view for Chr list")
         o.mode = "chrNo"
     elseif optionTable == "chrpres" then
-        o.menuTable = {"Details","Limit","Switch"}
+        o.menuTable = {"Details","Limit"}
         o.mode = "chr"
     elseif optionTable == "chrTeam" then
         o.menuTable = {"Details","Limit","Switch","Remove"}
@@ -938,6 +943,10 @@ function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) 
         o:setNumberOfRows(1)
         o:setNumberOfColumns(#o.menuTable)
         o.mX, o.mY, o.mW, o.mH = 200,130,120,60
+    end
+
+    if optionTable == "limitpres" or optionTable == "chrpres" then
+        o.mH = 60
     end
 
     function o:getOption()
@@ -959,6 +968,12 @@ function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) 
         elseif o.mode == "cardLmt" then -- remove or see details for card from limit lineup
             if reSelected == 1 then -- Remove
                 cardInsert("limit","remove",o.nameC,o.numC,o.chrNum,o.chrNam)
+                for i,v in pairs(menuIndex) do
+                    if v.menuType == "limit" then
+                        
+                        v:reList()
+                    end
+                end
             elseif reSelected ==2 then --Detail
             end
         elseif o.mode == "chr" then
@@ -967,6 +982,7 @@ function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) 
             elseif reSelected == 2 then
                 print("chrShow Limit")
                 limitList:new(o.chrNum,o.chrNam)
+
             elseif reSelected == 3 then
             elseif reSelected == 4 then
             end

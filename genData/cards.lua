@@ -283,9 +283,6 @@ function cardInsert(location,mode,selected,selIndex,chrIndex,chrN) --selected is
     elseif mode == "remove" then
       for i,v in pairs(tempList) do
         if type(v) == "table" then
-          print("Characterindex: "..chrIndex.." "..chrN)
-          print("Character     : "..v.chrNum.." "..v.chrName)
-          print("card: "..selected.." Index: "..selIndex)
           if v.chrNum == chrIndex and v.chrName == chrN then
             limList = v.limit
             limList[selIndex] = nil
