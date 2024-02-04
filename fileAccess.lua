@@ -76,7 +76,7 @@ function initSaveFile() --creates the initial save file if none exists
         local demoTabl = {}
         for g=1,50,1 do
             if g==1 then
-                local gok = chrRet("dbGoku")--start with the default character. Kid Goku                
+                local gok = chrRet(1)--start with the default character. Kid Goku                
                 gok.limit = {}
                 demoTabl[g] = gok --insert character into save file at prescribed index
             else
@@ -132,8 +132,6 @@ function loadSavedCards(card) -- Returns the character specified from the save f
         local tempTab = saveCheck("cards")
         for i,v in pairs(tempTab) do
             for k,c in pairs(v) do
-                print(k)
-                print(c)
                 if c.cName == card then
                     print("card found")
                     return c

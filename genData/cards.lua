@@ -514,14 +514,13 @@ function cardRet(cardName) -- gets the card data from tthe above master table. N
 end
 
 function cardPort(cardName)
-  if cardName ~= "  " then
-    for i,v in pairs (otherIndex) do
-      if type(v) =="table" and v.cardIcon then
-        v:spriteKill{}
-      end
+  for i,v in pairs (otherIndex) do
+    if type(v) =="table" and v.cardIcon then
+      v:spriteKill{}
     end
-    local cardPort = CardIcon:new(cardName)
-    cardPort:changeState(cardName)
+  end
+  if cardName ~= "  " then
+    local cardPort = CardIcon(cardName)
   end
 end
 
@@ -547,9 +546,7 @@ function cardInsert(location,mode,selected,selIndex,chrIndex,chrN) --selected is
       local dList = RAMSAVE[4]
       local cCount = false
       for i,v in pairs(dList) do
-        print(i.." "..v)
         if v == selected and i == selIndex then
-          print(v)
           dList[i] = 0
         end
       end
@@ -610,7 +607,7 @@ function cardInsert(location,mode,selected,selIndex,chrIndex,chrN) --selected is
     end
 
     RAMSAVE[1] = tempList
-    RAMSAVE[4] = dList
+    RAMSAVE[2] = cList
   end
 end
 

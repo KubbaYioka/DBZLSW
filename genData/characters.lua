@@ -67,11 +67,22 @@ characters = {
 
 function chrRet(chrCode) -- gets the character data from this location. Not for Save access.
     for i,v in pairs (characters) do
-        if v.chrCode == chrCode then
+        if v.chrNum == chrCode then
             return v
         end
     end
 end
+
+function chrPort(chrStr,chrNum)
+    for i,v in pairs (otherIndex) do
+      if type(v) =="table" and v.chrIcon then
+        v:spriteKill{}
+      end
+    end
+    if chrStr ~= "  " then
+      local chrtPort = ChrIcon(chrNum)
+    end
+  end
 
 function chrGetLimit(chr,cIndex)
     local chrList = RAMSAVE[1]

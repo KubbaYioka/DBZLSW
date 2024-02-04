@@ -90,6 +90,7 @@ nestedMode= {
     ,LIST = "list"
     ,TEAM = "team"
     ,DECK = "deck"
+    ,LIMIT = "limit"
 }
 
 function createMenuIcon(icon)
@@ -125,7 +126,6 @@ local menuFunc = {
     ["Deck"] = function()
         createMenuIcon(nestedMode.DECK)
         menuArt("typeOne")
-        print("creating cardlist:new deck in menuEngine 128")
         cardList:new("deck")
     end,
     ["Team"] = function()
@@ -354,13 +354,14 @@ function statusList:new()
 
         gfx.fillRect(x, y+5, 30, 20)
 
-        if selected then
-            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
-        end
-
         local fontHeight = gfx.getSystemFont():getHeight()
         local rowCom = o.listRows[row]
         local rowFin = tostring(row).."  "..rowCom
+
+        if selected then
+            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+            chrPort(rowCom,row)
+        end
 
         gfx.setFont(sysFNT.smDBFont)
 
@@ -401,7 +402,7 @@ function statusList:new()
             o:scrollToRow(rSelected)
         elseif direction == "b" then
             for k, c in pairs(otherIndex) do
-                if c.menuIcon or c.menuWhi or c.rectBox then
+                if c.menuIcon or c.menuWhi or c.rectBox or c.chrIcon then
                     c:remove()
                     otherIndex.c = nil
                     otherIndex[k] = nil
@@ -490,6 +491,7 @@ function cardList:new(mnType)
 
     function o:reList()
         local oFut = loadSavedCards("deck")
+        type(oFut)
         for i,v in pairs(oFut) do
             if type(v) == "string" then
                 o.listRows[i] = v
@@ -509,7 +511,7 @@ function cardList:new(mnType)
 
             else
                 local sel = o:getSelectedRow()
-                cardSelect:new(sel) -- passes the index of the selected deck slot to be populated
+                cardSelect:new(nestedMode.DECK,sel) -- passes the index of the selected deck slot to be populated
             end
         else
             for i,v in pairs(o.listRows) do
@@ -551,7 +553,7 @@ function cardList:new(mnType)
 
         if selected then
             gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
-            o.current = o.listRows[row]
+            cardPort(o.listRows[row])
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
@@ -597,7 +599,7 @@ function cardList:new(mnType)
             o:scrollToRow(rSelected)
         elseif direction == "b" then
            for k, c in pairs(otherIndex) do
-                if c.menuIcon or c.menuWhi or c.rectBox then
+                if c.menuIcon or c.menuWhi or c.rectBox or c.cardIcon then
                     c:remove()
                     otherIndex.c = nil
                     otherIndex[k] = nil
@@ -606,9 +608,6 @@ function cardList:new(mnType)
             o:spriteKill()
             menuIndex[o.index] = nil
         end
-        print(o.current)
-        cardPort(o.current)
-
     end
 
     local countI = 0
@@ -623,7 +622,7 @@ end
 
 cardSelect = playdate.ui.gridview.new(0,25)
 
-function cardSelect:new(selectedRow,chrNum,chrNam)
+function cardSelect:new(mode,selectedRow,chrNum,chrNam)
     local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
@@ -635,6 +634,9 @@ function cardSelect:new(selectedRow,chrNum,chrNam)
     local menuBSpr = 0
     menuBSpr = MenuBackground(0,0,"menuThree")
     menuBSpr:add()
+
+    o.mode = mode
+    print("cardSelect Mode Is: "..o.mode)
 
     o.menuType = "cardSelect"
 
@@ -683,6 +685,7 @@ function cardSelect:new(selectedRow,chrNum,chrNam)
     function o:drawCell(section,row,column,selected,x,y,width,height)
         if selected then
             gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+            cardPort(o.listRows[row])
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
@@ -734,13 +737,18 @@ function cardSelect:new(selectedRow,chrNum,chrNam)
                     otherIndex.c = nil
                     otherIndex[k] = nil
                 end
+                if c.cardIcon then
+                    c:spriteKill()
+                    otherIndex.c = nil
+                    otherIndex[k] = nil
+                end
             end
             o:spriteKill()
             menuIndex[o.index] = nil
         elseif direction == "a" then
             local selectedCard = o.listRows[o:getSelectedRow()] --where selectedCard is a string consisting of the card name
             if selectedCard ~= "  " then
-                cardInsert("limit","insert",selectedCard,selectedRow,o.chrNum,o.chrNam)
+                cardInsert(o.mode,"insert",selectedCard,selectedRow,o.chrNum,o.chrNam)
                 for i,v in pairs(menuIndex) do
                     if v.menuType == "deck" then
                         v:reList()
@@ -773,7 +781,6 @@ function cardSelect:new(selectedRow,chrNum,chrNam)
     menuIndex[o.index] = o
     return o
 end
-
 
 limitList = playdate.ui.gridview.new(0,0)
 
@@ -820,11 +827,10 @@ function limitList:new(chr, chrIndex)
 
     function o:getOption()
         if o.listRows[o:getSelectedRow()] ~= "  " then
-            print(o.listRows[o:getSelectedRow()]," ",o:getSelectedRow()," ",o.chrIndex," ",o.chr)
             menuSelect:new("vertical","limitpres",o.listRows[o:getSelectedRow()],o:getSelectedRow(),o.chrIndex,o.chr)
         else
             local sel = o:getSelectedRow()
-            cardSelect:new(sel,o.chrIndex,o.chr) -- passes the index of the selected deck slot to be populated
+            cardSelect:new(nestedMode.LIMIT,sel,o.chrIndex,o.chr) -- passes the index of the selected deck slot to be populated
         end
     end
 
@@ -857,13 +863,13 @@ function limitList:new(chr, chrIndex)
 
         gfx.fillRect(x, y+5, 30, 20)
 
-        if selected then
-            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
-        end
-
         local fontHeight = gfx.getSystemFont():getHeight()
         local rowCom = o.listRows[row]
         local rowFin = tostring(row).."  "..rowCom
+
+        if selected then
+            gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+        end
 
         gfx.setFont(sysFNT.smDBFont)
 
@@ -891,6 +897,13 @@ function limitList:new(chr, chrIndex)
         elseif direction == "b" then
             o:spriteKill()
             menuIndex[o.index] = nil
+            for i,v in pairs(otherIndex) do
+                if v.cardIcon then
+                    v:remove()
+                    otherIndex.v = nil
+                    otherIndex[i] = nil
+                end
+            end
         end
     end
 
@@ -965,7 +978,7 @@ function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) 
                     end
                 end
             elseif reSelected == 2 then
-                print("card details")
+                cardData(cardRet(o.nameC))
             elseif reSelected == 3 then
                 print("Sort...Oof...")
             end
@@ -974,22 +987,22 @@ function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) 
                 cardInsert("limit","remove",o.nameC,o.numC,o.chrNum,o.chrNam)
                 for i,v in pairs(menuIndex) do
                     if v.menuType == "limit" then
-                        
                         v:reList()
                     end
                 end
             elseif reSelected ==2 then --Detail
+                cardData(cardRet(o.nameC))
             end
         elseif o.mode == "chr" then
             if reSelected == 1 then
                 chrData(o:getSelectedRow(),"pause")
-            elseif reSelected == 2 then
-                print("chrShow Limit")
+            elseif reSelected == 2 then -- limit
                 limitList:new(o.chrNum,o.chrNam)
-
-            elseif reSelected == 3 then
-            elseif reSelected == 4 then
             end
+        elseif o.mode == "chrNo" then
+
+        elseif o.mode == "chrTeam" then
+            print("Details ","Limit ","Switch ","Remove")
         end
     end
 
@@ -1209,7 +1222,7 @@ function MenuIcon:init(image)
         self:remove()
     end
 
-    self.changeState("character")
+    --self.changeState("character")
 
     self:setCenter(0, 0)
     self:moveTo(305, 0)
@@ -1220,47 +1233,66 @@ function MenuIcon:init(image)
     self:add()
 end
 
-class('CardIcon').extends(AnimatedSprite)
+class('CardIcon').extends(gfx.sprite)
 
 function CardIcon:init(cardS)
-
+    CardIcon.super.init(self)
     local cTable = cardRet(cardS)
-    local tempTable = cTable.cPortrait
-    local numOne, numTwo = tempTable[1], tempTable[2]
-    local oTable = gfx.imagetable.new('assets/images/cardtemplates-96-80.png')
-    CardIcon.super.init(self, oTable)
-    print("number"..numOne,numTwo)
 
-    -- Define sprite states
-    self:addState("cardIcon",numOne,numTwo)
+    local oTable = gfx.imagetable.new('assets/images/cardTemplates-table-96-80')
 
-    self:playAnimation()
+    self:setImage(oTable:getImage(cTable.cNumber))
 
-    self.cardIcon = 1
-
-    self.changeState("cardIcon")
+    self.cardIcon = true
 
     function self:spriteKill()
-        self:remove()
         for i,v in pairs(otherIndex) do
-            if v.cardIcon == 1 then
+            if v.cardIcon then
                 otherIndex[self.index] = nil
+                self:remove()
+                print("cardIcon spritekill")
             end
         end
     end
 
-    function changeIcon(cardNum)
-        if change == true then
-            self:addState("cardIcon",cardNum,cardNum)
-            self.changeState("cardIcon")
-        end
-    end
+    local numberO = #otherIndex + 1
 
     self:setCenter(0, 0)
     self:moveTo(0, 0)
-    self:setZIndex(140)
-    
+    self:setZIndex(240+numberO)
+        
+    self.index = numberO
+    otherIndex[numberO] = self
+    self:add()
+end
+
+class('ChrIcon').extends(gfx.sprite)
+
+function ChrIcon:init(rIndex) -- where rIndex is the index of the character in the row
+    ChrIcon.super.init(self)
+    local cTable = chrRet(rIndex)
+
+    local oTable = gfx.imagetable.new('assets/images/portraitIcon-table-96-80')
+
+    self:setImage(oTable:getImage(cTable.chrNum))
+
+    self.chrIcon = true
+
+    function self:spriteKill()
+        for i,v in pairs(otherIndex) do
+            if v.chrIcon then
+                otherIndex[self.index] = nil
+                self:remove()
+            end
+        end
+    end
+
     local numberO = #otherIndex + 1
+
+    self:setCenter(0, 0)
+    self:moveTo(0, 0)
+    self:setZIndex(240+numberO)
+        
     self.index = numberO
     otherIndex[numberO] = self
     self:add()
