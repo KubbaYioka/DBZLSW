@@ -241,6 +241,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         end
     end
 
+
     function o:menuControl(direction) 
         if o.type == "menu" or o.type == "twoChoices" then
             if direction == "up" then
@@ -345,4 +346,3 @@ function playdate.update()
     --UPDATE TIMERS
     pd.timer.updateTimers()
 end
-

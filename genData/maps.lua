@@ -90,7 +90,7 @@ maps={
                     --,-- command to say that this is the end of this dialogue session, and that the next won't begin until a flag is triggered.
                     ,function() dTag("left", "Goku") end
                     ,"This is more text and a card."
-                    ,function() cCardAdd("Dummy Card") end
+                    ,function() cCardAdd("3 Stage Attack") end
                     ,function() mNextText("jarTwo",2) end
                     , function() dTag("clear") end
                 }
@@ -98,7 +98,7 @@ maps={
                     function() dTag("left", "Goku") end
                     ,"And now the second object will be deleted."
                     ,"But first, here's a card."
-                    ,function() cCardAdd("Dummy Card") end
+                    ,function() cCardAdd("4 Stage Attack") end
                     ,function() mObjAppear("jarTwo",false) end
                     ,function() dTag("clear") end
                 }

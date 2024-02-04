@@ -65,6 +65,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,1}
   }
 ,["4 Stage Attack"] =
   {
@@ -79,6 +80,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,2}
   }
 ,["5 Stage Attack"] =
   {
@@ -93,6 +95,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,3}
   }
 ,["6 Stage Attack"] =
   {
@@ -107,6 +110,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,4}
   }
 ,["7 Stage Attack"] =
   {
@@ -121,6 +125,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,5}
   }
 ,["Cont. Punch"]=
   {
@@ -135,6 +140,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,6}
   }
 ,["Cont. Kick"]=
   {
@@ -149,6 +155,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,7}
   }
 ,["Energy Blast"]=
   {
@@ -163,6 +170,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,8}
   }
 ,["Energy Wave"]=
   {
@@ -177,6 +185,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,9}
   }
 ,["Endurance"]=
   {
@@ -191,21 +200,309 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {1,10}
   }
-  ,["Dummy Card"]=
+  ,["Card 11"]=
   {
-    cName = "Dummy Card"
-    ,cNumber = 020
+    cName = "Card 11"
+    ,cNumber = 011
     ,cType = CEffect
-    ,cPower = function() enduranceCalc(pDef) end 
+    ,cPower = CEffect
     ,cAccuracy = 100 
-    ,cCost = 7
-    ,cEffect = "Dummy Effect."
-    ,cDescription = "Just A Dummy Card."
+    ,cCost = 1
+    ,cEffect = "Card 11's Effect."
+    ,cDescription = "Description for Card 11."
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cPortrait = {2,1}
   }
+  ,["Card 12"]=
+  {
+    cName = "Card 12"
+    ,cNumber = 012
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 12's Effect."
+    ,cDescription = "Description for Card 12."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,2}
+  }
+  ,["Card 13"]=
+  {
+    cName = "Card 13"
+    ,cNumber = 013
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 13's Effect."
+    ,cDescription = "Description for Card 13."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,3}
+  }
+  ,["Card 14"]=
+  {
+    cName = "Card 14"
+    ,cNumber = 014
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 14's Effect."
+    ,cDescription = "Description for Card 14."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,4}
+  }
+  ,["Card 15"]=
+  {
+    cName = "Card 15"
+    ,cNumber = 015
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 15's Effect."
+    ,cDescription = "Description for Card 15."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,5}
+  }
+  ,["Card 16"]=
+  {
+    cName = "Card 16"
+    ,cNumber = 016
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 16's Effect."
+    ,cDescription = "Description for Card 16."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,6}
+  }
+  ,["Card 17"]=
+  {
+    cName = "Card 17"
+    ,cNumber = 017
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 17's Effect."
+    ,cDescription = "Description for Card 17."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,7}
+  }
+  ,["Card 18"]=
+  {
+    cName = "Card 18"
+    ,cNumber = 018
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 18's Effect."
+    ,cDescription = "Description for Card 18."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,8}
+  }
+  ,["Card 19"]=
+  {
+    cName = "Card 19"
+    ,cNumber = 019
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 19's Effect."
+    ,cDescription = "Description for Card 19."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,9}
+  }
+  ,["Card 20"]=
+  {
+    cName = "Card 20"
+    ,cNumber = 020
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 20's Effect."
+    ,cDescription = "Description for Card 20."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {2,10}
+  }
+  ,["Card 21"]=
+  {
+    cName = "Card 21"
+    ,cNumber = 021
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 21's Effect."
+    ,cDescription = "Description for Card 21."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,1}
+  }
+  ,["Card 22"]=
+  {
+    cName = "Card 22"
+    ,cNumber = 022
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 22's Effect."
+    ,cDescription = "Description for Card 22."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,2}
+  }
+  ,["Card 23"]=
+  {
+    cName = "Card 23"
+    ,cNumber = 023
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 23's Effect."
+    ,cDescription = "Description for Card 23."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,3}
+  }
+  ,["Card 24"]=
+  {
+    cName = "Card 24"
+    ,cNumber = 024
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 24's Effect."
+    ,cDescription = "Description for Card 24."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,4}
+  }
+  ,["Card 25"]=
+  {
+    cName = "Card 25"
+    ,cNumber = 025
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 25's Effect."
+    ,cDescription = "Description for Card 25."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,5}
+  }
+  ,["Card 26"]=
+  {
+    cName = "Card 26"
+    ,cNumber = 026
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 26's Effect."
+    ,cDescription = "Description for Card 26."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,6}
+  }
+  ,["Card 27"]=
+  {
+    cName = "Card 27"
+    ,cNumber = 027
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 27's Effect."
+    ,cDescription = "Description for Card 27."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,7}
+  }
+  ,["Card 28"]=
+  {
+    cName = "Card 28"
+    ,cNumber = 028
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 28's Effect."
+    ,cDescription = "Description for Card 28."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,8}
+  }
+  ,["Card 29"]=
+  {
+    cName = "Card 29"
+    ,cNumber = 029
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 29's Effect."
+    ,cDescription = "Description for Card 29."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,9}
+  }
+  ,["Card 30"]=
+  {
+    cName = "Card 30"
+    ,cNumber = 030
+    ,cType = CEffect
+    ,cPower = CEffect
+    ,cAccuracy = 100 
+    ,cCost = 1
+    ,cEffect = "Card 30's Effect."
+    ,cDescription = "Description for Card 30."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cPortrait = {3,10}
+  }
+
 }
 
 function cardRet(cardName) -- gets the card data from tthe above master table. Not for Save access.
@@ -213,6 +510,18 @@ function cardRet(cardName) -- gets the card data from tthe above master table. N
       if v.cName == cardName then
         return v
       end
+  end
+end
+
+function cardPort(cardName)
+  if cardName ~= "  " then
+    for i,v in pairs (otherIndex) do
+      if type(v) =="table" and v.cardIcon then
+        v:spriteKill{}
+      end
+    end
+    local cardPort = CardIcon:new(cardName)
+    cardPort:changeState(cardName)
   end
 end
 

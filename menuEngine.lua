@@ -479,7 +479,7 @@ function cardList:new(mnType)
             if type(v) == "table" and i == v.cNumber then
                 o.listRows[v.cNumber] = v.cName
             else
-                o.listRows[i] = "  "..tostring(i)
+                o.listRows[i] = "  "
             end
         end
     end
@@ -551,6 +551,7 @@ function cardList:new(mnType)
 
         if selected then
             gfx.fillTriangle(x+35,y+8,x+35,y+23,x+45,y+15)
+            o.current = o.listRows[row]
         end
 
         local fontHeight = gfx.getSystemFont():getHeight()
@@ -605,6 +606,9 @@ function cardList:new(mnType)
             o:spriteKill()
             menuIndex[o.index] = nil
         end
+        print(o.current)
+        cardPort(o.current)
+
     end
 
     local countI = 0
@@ -1218,19 +1222,32 @@ end
 
 class('CardIcon').extends(AnimatedSprite)
 
-function CardIcon:init(cardNum, change)
+function CardIcon:init(cardS)
 
+    local cTable = cardRet(cardS)
+    local tempTable = cTable.cPortrait
+    local numOne, numTwo = tempTable[1], tempTable[2]
     local oTable = gfx.imagetable.new('assets/images/cardtemplates-96-80.png')
     CardIcon.super.init(self, oTable)
+    print("number"..numOne,numTwo)
 
     -- Define sprite states
-    self:addState("cardIcon",cardNum,cardNum)
+    self:addState("cardIcon",numOne,numTwo)
 
     self:playAnimation()
 
     self.cardIcon = 1
 
     self.changeState("cardIcon")
+
+    function self:spriteKill()
+        self:remove()
+        for i,v in pairs(otherIndex) do
+            if v.cardIcon == 1 then
+                otherIndex[self.index] = nil
+            end
+        end
+    end
 
     function changeIcon(cardNum)
         if change == true then
@@ -1244,6 +1261,7 @@ function CardIcon:init(cardNum, change)
     self:setZIndex(140)
     
     local numberO = #otherIndex + 1
+    self.index = numberO
     otherIndex[numberO] = self
     self:add()
 end
