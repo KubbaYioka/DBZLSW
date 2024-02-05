@@ -217,6 +217,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
         local menuText={}
+        local nN = nil
         if o.type == "menu" then
             if selected then
                 gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
@@ -231,6 +232,7 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
 
         for i,v in pairs(menuText) do
             if row == i then
+                
                 if o.type == "menu" then
                     nN = " "..v
                 else 
