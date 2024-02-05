@@ -1,5 +1,7 @@
 --debug functions
 
+local gfx = playdate.graphics
+
 --view loaded file
 function callRam()
     printTable(RAMSAVE)
@@ -18,11 +20,12 @@ function regularBox:new(optionsTable) -- pass a table to this menu to get those 
     setmetatable(o,self)
     self.__index=self
 
-    local menuX, menuY = 80, 80 --size of background box
-    local xPos, yPos = 0 menuPosition(menuPosEnum.menuPosStart)
+    local menuX, menuY = 150, 80 --size of background box
+    local xPos, yPos = menuPosition(menuPosEnum.menuPosStart)
     o:setScrollDuration(0)
 
     o.optionsRow = optionsTable
+
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
         for i,v in pairs(o.optionsRow) do

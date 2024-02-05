@@ -111,7 +111,7 @@ local menuFunc = {
     end,
     ["Options"] = function()
         local iHTab = {"Battle Test","Menu Test","Map Test"}
-        regularBox(iHTab)
+        regularBox:new(iHTab)
     end,
     ["Battle"] = function()
         debugMessage()
