@@ -40,6 +40,9 @@ import '/genData/maps'
 --File Access
 import 'fileAccess'
 
+--Debug Functions
+import 'debugF'
+
 --Basic graphics setup
 local gfx <const> = playdate.graphics
 local pd <const> = playdate
@@ -60,8 +63,6 @@ dataBoxIndex = {} -- for individually drawn data boxes like fields for card info
 otherIndex = {} -- for misc objects that will not be used at the same time as any other misc object (e.g, menu icons)
 mapObjIndex = {} -- for map objects
 rectBoxIndex = {} -- table for the UI elements in the menu
-
---Menu Object Class
 
 --Initial Menu Settings
 
@@ -293,12 +294,6 @@ function bgChange(bgImage)
             backgroundImage:draw( 0, 0 )
         end)
 end
-
---DEBUG BLOCK
-function callRam()
-    printTable(RAMSAVE)
-end
---END DEBUG BLOCK
 
 gameBoot = 0
 gameMode = GameMode.MENU 

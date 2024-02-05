@@ -110,7 +110,8 @@ local menuFunc = {
         gameModeChange(nMode, loc) 
     end,
     ["Options"] = function()
-        debugMessage()
+        local iHTab = {"Battle Test","Menu Test","Map Test"}
+        regularBox(iHTab)
     end,
     ["Battle"] = function()
         debugMessage()
