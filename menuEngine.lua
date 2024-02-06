@@ -146,6 +146,15 @@ local menuFunc = {
     ["Exit"] = function()
         clearPauseMenu()
     end,
+    ["Battle Test"] = function()
+        loadTestBattle()
+    end,
+    ["Menu Test"] = function()
+        print("No Function Yet")
+    end,
+    ["Map Test"] = function()
+        print("No Function Yet")
+    end,
     ["eof"] = 0
     -- Add more menu items and their corresponding functions here
 }

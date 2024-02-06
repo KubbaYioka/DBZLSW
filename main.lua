@@ -19,14 +19,11 @@ import 'gameModeEnum'
 
 --Battle Engine
 import 'battleEngine' --commented out. Something is crashing the program.
-import '/data/battleData'
 
 --Story Engine
-import '/data/storyData'
 import 'storyEngine'
 
 --Map Engine 
-import '/data/mapData'
 import 'mapEngine'
 
 --General Data
@@ -36,6 +33,7 @@ import '/genData/transformations'
 import 'menuCat'
 import '/genData/story'
 import '/genData/maps'
+import '/genData/battle'
 
 --File Access
 import 'fileAccess'

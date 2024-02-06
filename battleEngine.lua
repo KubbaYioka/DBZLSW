@@ -1,19 +1,32 @@
---[[
 --battleEngine
 
 
 playerChr={}
-enemyChr={}
+playerTeam={}
+playerDeck={}
 
--- Data Structures
-local characterStats = {
-    HP = 100,
-    STR = 10,
-    SPD = 5,
-    KI = 10,
-    DEF = 5,
-    EXP = 0
-}
+enemyChr={}
+enemyTeam={}
+enemyDeck={}
+
+function battleInit(battleTable) -- copy values from tables and player save to create battle-only data
+    if type(battleTable) ~= "table" then
+        print("battle table is not in correct format")
+    end
+    local initPTeam = {"dbGoku"} -- will eventually pull from table RAMSAVE[5]
+    local initPDeck = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
+    local initChr = initPTeam[1] -- simply uses the first player in the team
+
+    local oppTab = battleTable[oppoParam]
+    local initETeam = oppTab[oppoTeam]
+    local initEChr = initETeam[1]
+    local initeDeck = oppTab[enemyDeck]
+
+    for i,v in pairs(initPTeam) do
+        -- make copies of all players from RAMSAVE into playerTeam
+    end
+end
+
 
 local cardStats = {
     Type = "Attack", -- or "Defense" or "Support"
@@ -101,4 +114,3 @@ while true do
     -- Initialization, Turn Sequence, End Conditions
     -- This is a placeholder; the actual game loop would be more complex and involve user input, UI updates, etc.
 end
-]]--

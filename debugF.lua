@@ -9,7 +9,7 @@ end
 
 regularBox = playdate.ui.gridview.new(0,20)
 regularBox:setNumberOfColumns(1)
-regularBox:setNumberOfRows(1)
+
 regularBox:setCellPadding(0,0,4,0)
 regularBox:setContentInset(5,5,5,5)
 
@@ -25,6 +25,7 @@ function regularBox:new(optionsTable) -- pass a table to this menu to get those 
     o:setScrollDuration(0)
 
     o.optionsRow = optionsTable
+    regularBox:setNumberOfRows(#o.optionsRow)
 
     function o:getOption() -- item selection in menu
         local s = o:getSelectedRow()
