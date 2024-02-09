@@ -1,33 +1,206 @@
 --battleEngine
+local gfx = playdate.graphics
 
+function bTabInit()
+    PositionEnum = {
+        GroundFore = "groundfore"
+        ,GroundAft = "groundaft"
+        ,AirFore = "airfore"
+        ,AirAft = "airaft"
+    }
 
-playerChr={}
-playerTeam={}
-playerDeck={}
+    sprBIndex = {}
 
-enemyChr={}
-enemyTeam={}
-enemyDeck={}
+    playerChr={}
+    playerTeam={}
+    playerDeck={}
+    playerCC = 3
+    playerSprTab = {
+        sprRange = {}
+        ,current = 0
+        ,position = PositionEnum.GroundAft
+    }
+
+    enemyChr={}
+    enemyTeam={}
+    enemyDeck={}
+    enemyCC = 3
+    enemySprTab = {
+        sprRange = {}
+        ,current = 0
+        ,position = PositionEnum.GroundAft
+    }
+    BattleRef = {} -- contains all battle data and parameters for later reference. Cleared at the end of every battle.
+end
 
 function battleInit(battleTable) -- copy values from tables and player save to create battle-only data
+    bTabInit()
     if type(battleTable) ~= "table" then
         print("battle table is not in correct format")
     end
+    BattleRef = battleTable
     local initPTeam = {"dbGoku"} -- will eventually pull from table RAMSAVE[5]
-    local initPDeck = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
+    playerDeck = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
     local initChr = initPTeam[1] -- simply uses the first player in the team
 
-    local oppTab = battleTable[oppoParam]
-    local initETeam = oppTab[oppoTeam]
+    local oppTab = battleTable["oppoParam"]
+    local initETeam = oppTab.oppoTeam
     local initEChr = initETeam[1]
-    local initeDeck = oppTab[enemyDeck]
+    enemyDeck = oppTab.enemyDeck
 
-    for i,v in pairs(initPTeam) do
-        -- make copies of all players from RAMSAVE into playerTeam
+    for i,v in pairs(initPTeam) do -- copy current players in team to battle ram
+        local mTab = RAMSAVE[1]
+        for j,k in pairs(mTab) do
+            if type(k) == "table" then
+                if k.chrCode == v then
+                    playerTeam[i] = k
+                    playerTeam[i].ability = unlockCheck(v,k.chrExp)
+                    local lmtChk = playerTeam[i].ability
+                    if lmtChk[2] == true then
+                        playerTeam[i].limit = k.limit
+                    end
+                end
+            end
+        end
+    end
+
+    for i,v in pairs(initETeam) do
+        for j,k in pairs(characters) do
+            if v == j then
+                enemyTeam[i] = characters[j]
+                local chrLvlT = oppTab.opponentLvl
+                enemyTeam[i].ability = unlockCheck(characters[j].chrCode,chrLvlT[i])
+                local lmtChk = enemyTeam[i].ability
+                if lmtChk[2] == true then
+                    enemyTeam[i].limit = oppTab.opponentLimit[i]
+                end
+                --Next, do calculations to set stats according to [oppoParam].opponentLvl and insert .opponentLimit, .hasFly, hasLimit, transformation etc
+            end
+        end
+    end
+    playerChr = playerTeam[1]
+    enemyChr = enemyTeam[1]
+
+    gameModeChange(GameMode.BATTLE)
+    SubMode = SubEnum.NONE
+    --Battle start screen
+    battleIntro(playerChr.chrCode,#playerTeam,enemyChr.chrCode,#enemyTeam)
+    battleSpriteSet(BattleRef)
+    drawUI()
+
+end
+
+function battleIntro(chr1,T1,chr2,T2)
+    -- create battle start screen.
+    -- chr1 and chr2 are the portraits and names to be displayed
+    --T1 and T2 are the number of team members for the icon that shows up on the battle screen for 2+ team members.
+
+    --ba da ba da ba ba baa ba da da baaaaaaaaa
+    --when done, return
+    return 0
+end
+
+---------------------
+-- BATTLE GRAPHICS --
+---------------------
+function battleSpriteSet(bTable)
+    bgChange(bTable["arenaParam"].bField)
+    enemySprTab.sprRange = arenaSpriteSelect(enemyChr)
+    playerSprTab.sprRange = arenaSpriteSelect(playerChr)
+    arenaSpriteMode("player","normal")
+    arenaSpriteMode("enemy","normal")
+end
+
+function arenaSpriteSelect(chr) -- selects minisprite to appear in the field
+    local sprTab = {}                -- returns coordinates for a 16x16 sprite from battleSprites.png
+    for i,v in pairs(battleSprites) do
+        if i == chr.chrCode then
+            return battleSprites[i]
+        end
     end
 end
 
+function arenaSpriteMode(player,mode) -- for deciding if the sprite is normal, standready, or powerup
+    if player == "player" then
+        playerSprTab.current = playerSprTab.sprRange[mode]
+    elseif player == "enemy" then
+        enemySprTab.current = enemySprTab.sprRange[mode]
+    end
+end
 
+function areaPosition(tag)
+    --get the enemy position enumeration or player enumeration from enemySprTab
+    local pos = nil
+    if tag == "player" then
+        pos = playerSprTab.position
+        if pos == PositionEnum.GroundFore then
+            return 150,180
+        elseif pos == PositionEnum.GroundAft then
+            return 60,180
+        elseif pos == PositionEnum.AirFore then
+            return 150, 70
+        elseif pos == PositionEnum.AirAft then
+            return 60, 70
+        end
+    elseif tag == "enemy" then
+        pos = enemySprTab.position
+        if pos == PositionEnum.GroundFore then
+            return 220,180
+        elseif pos == PositionEnum.GroundAft then
+            return 340,180
+        elseif pos == PositionEnum.AirFore then
+            return 220, 70
+        elseif pos == PositionEnum.AirAft then
+            return 340, 70
+        end
+    end
+
+end
+
+function drawChr(chr)
+    if chr == "player" then
+    elseif chr == "enemy" then
+    end
+end
+
+function drawArena()
+-- Draw players in the different positions. 
+--draw UI and lifebars
+--see how to create animations
+--create gridview after animations that have options based on above characteristics
+end
+
+function drawUI()
+    local pName, eName = playerChr.chrName, enemyChr.chrName
+    local pUI = topUI:new("left",pName)
+    local eUI = topUI:new("right",eName)
+    local bottomBox = RectangleBox(0,200,400,80)
+        bottomBox:add()
+    local vsEmb = VsEmblem()
+    local enSprite = BattleMiniSpr("enemy")
+    local plrSprite = BattleMiniSpr("player")
+
+end
+
+-------------------
+--ARENA FUNCTIONS--
+-------------------
+
+function chrPlacement(chr,position)--where chr is enemyChr or playerChr and position is PositionEnum entry
+    -- changes the position variable for chr to position. 
+end
+
+
+
+
+
+
+
+
+
+
+
+--[[
 local cardStats = {
     Type = "Attack", -- or "Defense" or "Support"
     AttackRating = 10,
@@ -38,10 +211,10 @@ local cardStats = {
 
 local positionalBonuses = {
     --["Position"] = {DefBonus, StrBonus, KiBonus}
-    ["Ground Aft"] -- Bonus Def, Ki Defense, Phys Penalty
-    ["Ground Fore"] -- STR Bonus, KI Defense, Phys Penalty
-    ["Air Aft"] -- DEF Bonus, Ki Penalty, Phys Defense
-    ["Air Fore"] -- KI Bonus, Ki Penalty, Phys Defense
+    ["Ground Aft"] =0-- Bonus Def, Ki Defense, Phys Penalty
+    ,["Ground Fore"] =0-- STR Bonus, KI Defense, Phys Penalty
+    ,["Air Aft"] =0-- DEF Bonus, Ki Penalty, Phys Defense
+    ,["Air Fore"] =0-- KI Bonus, Ki Penalty, Phys Defense
 }
 -- Functions
 local function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
@@ -113,4 +286,154 @@ end
 while true do
     -- Initialization, Turn Sequence, End Conditions
     -- This is a placeholder; the actual game loop would be more complex and involve user input, UI updates, etc.
+end
+]]--
+
+---------------------------
+--Battle Gridview Objects--
+---------------------------
+topUI = playdate.ui.gridview.new(0,25)
+
+function topUI:new(side,cName) -- where bgD is the background color
+
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    o.text = cName
+
+    o.w = 200 -- w and h are constant
+    o.h = 30
+
+    if side == "left" then
+        o.x = 0
+    elseif side == "right" then
+        o.x = 200
+    end
+    o.y = 0 -- y is constant
+
+    topUI:setNumberOfColumns(1)
+    topUI:setNumberOfRows(1)
+    topUI:setCellPadding(0,0,0,0)
+    topUI:setContentInset(0,0,0,0)
+
+    local topUISprite = gfx.sprite.new()
+    topUISprite:setCenter(0, 0)
+
+    function o:spriteKill()
+        topUISprite:remove()
+    end
+
+    topUISprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local UIImage = gfx.image.new(o.w,o.h,gfx.kColorBlack)
+            topUISprite:moveTo(o.x, o.y)
+            local zInd = #dataBoxIndex + 50
+            topUISprite:setZIndex(zInd)
+            gfx.pushContext(UIImage)
+                o:drawInRect(0,0,o.w,o.h)
+            gfx.popContext()
+            topUISprite:setImage(UIImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        gfx.setFont(sysFNT.smDBFont)
+        local original_draw_mode = gfx.getImageDrawMode()
+        gfx.setImageDrawMode( playdate.graphics.kDrawModeInverted )
+        o.align = kTextAlignment.center
+        gfx.drawTextInRect(o.text, x, y-2 , width, height, nil, truncationString, o.align)
+        gfx.setImageDrawMode( original_draw_mode )
+        gfx.setFont(sysFNT.dbFont)
+    end
+
+    local countI = 0
+    for _ in pairs(dataBoxIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    dataBoxIndex[o.index] = o
+    return o
+end
+
+class('BattleMiniSpr').extends(gfx.sprite)
+
+function BattleMiniSpr:init(tag)
+    BattleMiniSpr.super.init(self)
+
+    local oTable = gfx.imagetable.new('assets/images/battleSprites-table-16-16.png')
+
+    local mSpr = gfx.sprite.new()
+
+    mSpr:setCenter(0,0)
+    print(areaPosition(tag))
+    mSpr:moveTo(areaPosition(tag))
+
+    local zInd = #sprBIndex + 210
+    mSpr:setZIndex(zInd)
+
+    local selImage = nil
+    if tag == "player" then
+        selImage = (oTable:getImage(playerSprTab.current))
+        mSpr:setImage(selImage)
+    elseif tag == "enemy" then
+        selImage = (oTable:getImage(enemySprTab.current))
+        mSpr:setImage(selImage,gfx.kImageFlippedX)
+    end
+
+
+    
+
+    self.tag = tag
+
+    function self:spriteKill()
+        mSpr:remove()
+        for i,v in pairs(sprBIndex) do
+            if v.tag == "enemy" or v.tag == "player" then
+                sprBIndex[i] = nil
+            end
+        end
+    end
+
+    mSpr:add()
+
+    local numberO = #sprBIndex + 1
+    self.index = numberO
+    sprBIndex[numberO] = self
+end
+
+class('VsEmblem').extends(gfx.sprite)
+
+function VsEmblem:init()
+    VsEmblem.super.init(self)
+
+    local vsImage = gfx.image.new('/assets/images/background/vsEmblemw90h45.png')
+
+    local vsSprite = gfx.sprite.new()
+    vsSprite:setCenter(0,0)
+    vsSprite:moveTo(155,0)
+
+    local zInd = #otherIndex + 205
+    vsSprite:setZIndex(zInd)
+    vsSprite:setImage(vsImage)
+    function self:spriteKill()
+        for i,v in pairs(otherIndex) do
+            if v.vs then
+                vsSprite:remove()
+                otherIndex[i] = nil
+            end
+        end
+    end
+
+    vsSprite:add()
+
+    self.vs = true
+
+    local numberO = #otherIndex + 1
+        
+    self.index = numberO
+    otherIndex[numberO] = self
 end

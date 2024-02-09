@@ -147,7 +147,7 @@ local menuFunc = {
         clearPauseMenu()
     end,
     ["Battle Test"] = function()
-        loadTestBattle()
+        loadTestBattle() -- in debugF.lua
     end,
     ["Menu Test"] = function()
         print("No Function Yet")
@@ -1392,7 +1392,7 @@ function RectangleBox:init(bX,bY,bW,bH)
     RectangleBox.super.init(self)
     self:setCenter(0,0)
     self:moveTo(bX,bY)
-    self:setZIndex(200)
+    self:setZIndex(200+#otherIndex)
     local rectanImage = gfx.image.new(bW,bH,gfx.kColorBlack)
     gfx.pushContext(rectanImage)
         gfx.fillRect(bX,bY,bW,bH)

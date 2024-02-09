@@ -89,3 +89,8 @@ function regularBox:new(optionsTable) -- pass a table to this menu to get those 
     menuIndex[o.index] = o
     return o
 end
+
+function loadTestBattle()
+    clearAll()
+    battleInit(battles["battleTest"])
+end

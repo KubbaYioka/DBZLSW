@@ -18,7 +18,7 @@ import 'menuEngine'
 import 'gameModeEnum'
 
 --Battle Engine
-import 'battleEngine' --commented out. Something is crashing the program.
+import 'battleEngine' 
 
 --Story Engine
 import 'storyEngine'
@@ -33,7 +33,7 @@ import '/genData/transformations'
 import 'menuCat'
 import '/genData/story'
 import '/genData/maps'
-import '/genData/battle'
+import '/genData/battles'
 
 --File Access
 import 'fileAccess'
@@ -242,7 +242,6 @@ function gridview:new(gType,name) -- creates grid object based on parameters pas
         end
     end
 
-
     function o:menuControl(direction) 
         if o.type == "menu" or o.type == "twoChoices" then
             if direction == "up" then
@@ -281,7 +280,6 @@ gfx.sprite.setBackgroundDrawingCallback(
     end)
 
 function bgChange(bgImage)
-
     local backgroundImage = gfx.image.new('assets/images/background/'..bgImage..'.png')
     assert( backgroundImage )
     

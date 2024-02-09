@@ -11,37 +11,34 @@ local winCond = {
 }
 
 local arenaList = {
-    tenkaichi = 'assets/images/background/fields.png'
+    tenkaichi = "bgTourn" -- reference to the .png in the background folder
+    ,noko = nil
 }
 
 battles = {
 
-    battleTest = {
-        name = "Test Battle"
+    ["battleTest"] = {
+        ["name"] = "Test Battle"
 
-        ,[oppoParam] = {
-            ,oppoTeam = {"dbKrillin"}
+        ,["oppoParam"] = {
+            oppoTeam = {"dbKrillin"}
             ,opponentLvl = {0}
             ,opponentDeck = {1,2,1,2,1,2,1,2,1,3,4,5,6,7,1,2,3,4,5,6}
-            ,opponentLimit = {1,2,3}
-            ,opponentAppearance = {"normal"}
-            ,opponentTrans = {"none"}
-            ,hasFly = [false] -- corresponds to the first index of each table in this groun (except deck and limit)
-            ,hasLimit = [false]
+            ,opponentLimit = {
+                [1] = {"Energy Blast","Cont. Kick"}
             }
-        ,[arenaParam] = {
+            ,opponentAppearance = {"normal"} -- first index in table is for the first index in oppoTeam, aka first chr
+            ,opponentTrans = {"none"}
+
+            }
+        ,["arenaParam"] = {
             bField = arenaList.tenkaichi
         }
-        ,[eventParam] = {
+        ,["eventParam"] = {
             winCondition = healthZero
             ,secretWin = nil -- conditions in which a secret is unlocked. Could be the use of a chr or attack or winning with a certain amount of health
             ,winCards = {4,5,6} -- cards that can be collected upon win
-            ,secWinCards - {} -- cards that can be collected if a condition is met
+            ,secWinCards = {} -- cards that can be collected if a condition is met
         }
     }
-
-
-
-
-
 }

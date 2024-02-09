@@ -1,6 +1,13 @@
 --This file contains the control schemes for button contexts.
 
 local bounceProtect = false
+SubMode = nil
+
+SubEnum = {
+    NONE = "none" --no inputs accepted
+    ,MENU = "menu" --menu selections on battle screen
+    ,COMM = "command" -- for action commands
+}
 
 function getInput()
     if playdate.buttonJustPressed("b") then
@@ -66,33 +73,33 @@ function menuInputContext()
                     goMenu(fs:getOption())
                 end
             end
-
             if playdate.buttonJustPressed("left") then
                 local fs = menuIndex[#menuIndex]
                 fs:menuControl("left")
             end
-
             if playdate.buttonJustPressed("right") then
                 local fs = menuIndex[#menuIndex]
                 fs:menuControl("right")
             end
-
             if playdate.buttonJustPressed("up") then
                 local fs = menuIndex[#menuIndex]
                 fs:menuControl("up")
-
             end
-
             if playdate.buttonJustPressed("down") then
                 local fs = menuIndex[#menuIndex]
                 fs:menuControl("down")
-
             end
         end
     end
 
     if controlContext == GameMode.BATTLE then
+        if SubMode == SubEnum.NONE then
 
+        elseif SubMode == SubEnum.MENU then
+
+        elseif SubMode == SubEnum.COMM then
+
+        end
     end
 
    -- print("Checking control context:",controlContext)

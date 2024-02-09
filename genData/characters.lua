@@ -1,4 +1,5 @@
 --Character List
+local gfx = playdate.graphics
 --Master list of initial values for all characters. Can be modified by save data or place in story.
 
 characters = {
@@ -31,7 +32,7 @@ characters = {
     ,chrTrans = {
         trans1 = "none"
 
-        }
+        } 
     }
 ,["dbBulma"] = {
     chrNum = 03
@@ -64,6 +65,45 @@ characters = {
         }
     }
 }
+
+UnlockTables = { -- in format ["chrName"] = {flyunlock, limitunlock, focusunlock, powerupunlock}
+    ["dbGoku"] = {10,4,3,10}
+    ,["dbKrillin"] = {10,4,3,10}
+    ,["dbBulma"] = {0,0,0,0}
+    ,["dbYamcha"] = {10,4,3,10}
+}
+
+battleSpriteSheet = gfx.image.new('assets/images/battleSprites-table-16-16.png')
+
+battleSprites = {
+    ["dbGoku"] = {
+        ["normal"] = 1
+        ,["ready"] = 2
+        ,["powerUp"] = 3
+    }
+    ,["dbKrillin"] = {        
+        ["normal"] = 4
+        ,["ready"] = 5
+        ,["powerUp"] = 6
+    },
+    ["EOF"] = nil
+}
+
+function unlockCheck(chrCode,level)
+    local reTable = {}
+    for i,v in pairs(UnlockTables) do
+        if i == chrCode then
+            for k,j in pairs(v) do
+                if level >= j then
+                    reTable[k] = true
+                else
+                    reTable[k] = false
+                end
+            end
+        end
+    end
+    return reTable
+end
 
 function chrRet(chrCode) -- gets the character data from this location. Not for Save access.
     for i,v in pairs (characters) do
