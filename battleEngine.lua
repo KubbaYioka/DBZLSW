@@ -8,7 +8,6 @@ function bTabInit()
         ,AirFore = "airfore"
         ,AirAft = "airaft"
     }
-
     sprBIndex = {}
 
     playerChr={}
@@ -166,8 +165,9 @@ end
 function drawArena()
 -- Draw players in the different positions. 
 --draw UI and lifebars
---see how to create animations
+--Do top UI turn animations and Defense\attack animations
 --create gridview after animations that have options based on above characteristics
+
 end
 
 function drawUI()
@@ -180,12 +180,14 @@ function drawUI()
     local enSprite = BattleMiniSpr("enemy")
     local plrSprite = BattleMiniSpr("player")
     fillGauge()
+    local bMenu = battleUIMenu:new()
 end
 
 function fillGauge()
     local enLife = LifeBar("enemy",enemyChr.chrHp)
     local plLife = LifeBar("player",playerChr.chrHp)
-    --do animation to fill life gauges
+    --do animation to fill life gauges, possibly by incrementing the width of a rectangle until a max width is reached
+    
 end
 
 -------------------
@@ -459,6 +461,9 @@ function LifeBar:init(position,HP)
         self.tag = "playerHP"
     end
 
+    self.initL = false
+    self.intHP = 0
+
     self:updateHP(position,HP)
 
     local numberO = #otherIndex
@@ -471,7 +476,7 @@ end
 function LifeBar:updateHP(position,nHP)
     local maxWidth = 100
     local height = 10
-    local lifeBarWidth = (nHP / self.max) * maxWidth
+    local lifeBarWidth = (nHP / self.max) * maxWidth -- ensure maxWidth is not the same as self.max (max HP from chr table)
     local lifeBarImage = gfx.image.new(maxWidth,height)
     gfx.pushContext(lifeBarImage)
     gfx.setColor(gfx.kColorWhite)
@@ -489,3 +494,54 @@ function LifeBar:damage(position,damage)
     self:updateHP(position,self.HP)
 end
 
+battleUIMenu = playdate.ui.gridview.new(0,25)
+
+function battleUIMenu:new()
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    --establish contents of the entire gridview before continuing
+
+    o.col = 1--check how many options the player has (eg, do they have limit)
+    o.rows = 1-- may be based on the number of rows in each column (so, the Deck column will have rows based on how many cards are currently in the hand) 
+
+    battleUIMenu:setNumberOfColumns(o.col)
+    battleUIMenu:setNumberOfRows(o.rows)
+    battleUIMenu:setCellPadding(0,0,0,0)
+    battleUIMenu:setContentInset(0,0,0,0)
+
+    local bUIMenu = gfx.sprite.new()
+    bUIMenu:setCenter(0,0)
+    
+    function o:spriteKill()
+        bUIMenu:remove()
+    end
+    
+    bUIMenu:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local boxImage = gfx.image.new(400,80,gfx.kColorWhite)
+            bUIMenu:moveTo(0,200)
+            local zInd = #otherIndex + 220
+            bUIMenu:setZIndex(zInd)
+            gfx.pushContext(boxImage)
+                o:drawInRect(0,0,400,80)
+            gfx.popContext()
+            bUIMenu:setImage(boxImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        local fontHeight = gfx.getSystemFont():getHeight()
+        gfx.drawTextInRect("test",x+2,y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.right)
+
+    end
+
+    o.tag = "battleUI"
+
+    o.index = #menuIndex + 1
+    menuIndex[o.index] = o
+    return o
+end

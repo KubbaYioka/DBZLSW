@@ -334,6 +334,7 @@ function playdate.update()
         end
     end
 
+
     --UPDATE SPRITES
     gfx.sprite.update()
     --UPDATE TIMERS
