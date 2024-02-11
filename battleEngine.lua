@@ -390,9 +390,6 @@ function BattleMiniSpr:init(tag)
         mSpr:setImage(selImage,gfx.kImageFlippedX,2)
     end
 
-
-    
-
     self.tag = tag
 
     function self:spriteKill()
@@ -451,17 +448,21 @@ function LifeBar:init(position,HP)
     LifeBar.super.init(self)
     self.max = HP
     self.currentHP = HP
+
     if position == "enemy" then
         self:moveTo(320,20)
+        local bg = RectangleBox(319,19,102,22) -- supposed to be white
         self.tag = "enemyHP"
     elseif position == "player" then
         self:moveTo(80,20)
+        local bg = RectangleBox(79,19,102,22)
         self.tag = "playerHP"
     end
+
     self:updateHP(position,HP)
 
     local numberO = #otherIndex
-    self.index = numberO + 10
+    self.index = numberO + 1
     otherIndex[self.index] = self
 
     self:add()
@@ -473,15 +474,12 @@ function LifeBar:updateHP(position,nHP)
     local lifeBarWidth = (nHP / self.max) * maxWidth
     local lifeBarImage = gfx.image.new(maxWidth,height)
     gfx.pushContext(lifeBarImage)
-        gfx.setColor(gfx.kColorWhite)
+    gfx.setColor(gfx.kColorWhite)
         gfx.fillRect(0,0,lifeBarWidth,height)
     gfx.popContext()
     self:setZIndex(#otherIndex + 207)
     self:setImage(lifeBarImage)
 end
-
-
-
 
 function LifeBar:damage(position,damage)
     self.currentHP -= damage
@@ -490,3 +488,4 @@ function LifeBar:damage(position,damage)
     end
     self:updateHP(position,self.HP)
 end
+

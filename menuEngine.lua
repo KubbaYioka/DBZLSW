@@ -1394,6 +1394,7 @@ function RectangleBox:init(bX,bY,bW,bH)
     self:moveTo(bX,bY)
     self:setZIndex(200+#otherIndex)
     local rectanImage = gfx.image.new(bW,bH,gfx.kColorBlack)
+    
     gfx.pushContext(rectanImage)
         gfx.fillRect(bX,bY,bW,bH)
     gfx.popContext()
