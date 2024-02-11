@@ -134,9 +134,9 @@ function areaPosition(tag)
     if tag == "player" then
         pos = playerSprTab.position
         if pos == PositionEnum.GroundFore then
-            return 150,180
+            return 150,160
         elseif pos == PositionEnum.GroundAft then
-            return 60,180
+            return 60,160
         elseif pos == PositionEnum.AirFore then
             return 150, 70
         elseif pos == PositionEnum.AirAft then
@@ -145,9 +145,9 @@ function areaPosition(tag)
     elseif tag == "enemy" then
         pos = enemySprTab.position
         if pos == PositionEnum.GroundFore then
-            return 220,180
+            return 220,160
         elseif pos == PositionEnum.GroundAft then
-            return 340,180
+            return 340,160
         elseif pos == PositionEnum.AirFore then
             return 220, 70
         elseif pos == PositionEnum.AirAft then
@@ -179,7 +179,13 @@ function drawUI()
     local vsEmb = VsEmblem()
     local enSprite = BattleMiniSpr("enemy")
     local plrSprite = BattleMiniSpr("player")
+    fillGauge()
+end
 
+function fillGauge()
+    local enLife = LifeBar("enemy",enemyChr.chrHp)
+    local plLife = LifeBar("player",playerChr.chrHp)
+    --do animation to fill life gauges
 end
 
 -------------------
@@ -378,10 +384,10 @@ function BattleMiniSpr:init(tag)
     local selImage = nil
     if tag == "player" then
         selImage = (oTable:getImage(playerSprTab.current))
-        mSpr:setImage(selImage)
+        mSpr:setImage(selImage,gfx.kImageUnflipped,2)
     elseif tag == "enemy" then
         selImage = (oTable:getImage(enemySprTab.current))
-        mSpr:setImage(selImage,gfx.kImageFlippedX)
+        mSpr:setImage(selImage,gfx.kImageFlippedX,2)
     end
 
 
@@ -436,4 +442,51 @@ function VsEmblem:init()
         
     self.index = numberO
     otherIndex[numberO] = self
+end
+
+
+class('LifeBar').extends(gfx.sprite)
+
+function LifeBar:init(position,HP)
+    LifeBar.super.init(self)
+    self.max = HP
+    self.currentHP = HP
+    if position == "enemy" then
+        self:moveTo(320,20)
+        self.tag = "enemyHP"
+    elseif position == "player" then
+        self:moveTo(80,20)
+        self.tag = "playerHP"
+    end
+    self:updateHP(position,HP)
+
+    local numberO = #otherIndex
+    self.index = numberO + 10
+    otherIndex[self.index] = self
+
+    self:add()
+end
+
+function LifeBar:updateHP(position,nHP)
+    local maxWidth = 100
+    local height = 10
+    local lifeBarWidth = (nHP / self.max) * maxWidth
+    local lifeBarImage = gfx.image.new(maxWidth,height)
+    gfx.pushContext(lifeBarImage)
+        gfx.setColor(gfx.kColorWhite)
+        gfx.fillRect(0,0,lifeBarWidth,height)
+    gfx.popContext()
+    self:setZIndex(#otherIndex + 207)
+    self:setImage(lifeBarImage)
+end
+
+
+
+
+function LifeBar:damage(position,damage)
+    self.currentHP -= damage
+    if self.currentHP <= 0 then
+        self.currentHP = 0
+    end
+    self:updateHP(position,self.HP)
 end
