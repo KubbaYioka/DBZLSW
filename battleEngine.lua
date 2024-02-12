@@ -503,11 +503,18 @@ function battleUIMenu:new()
 
     --establish contents of the entire gridview before continuing
 
-    o.col = 1--check how many options the player has (eg, do they have limit)
-    o.rows = 1-- may be based on the number of rows in each column (so, the Deck column will have rows based on how many cards are currently in the hand) 
+    if limitQuery() == true then
+        o.col = 4
+        o.options = {"L","J","B","C"}
+        print("limitQuery true")
+    else
+        o.col = 3
+        o.options = {"J","B","C"}
+        print("limitQuery false")
+    end
 
     battleUIMenu:setNumberOfColumns(o.col)
-    battleUIMenu:setNumberOfRows(o.rows)
+    battleUIMenu:setNumberOfRows(1)
     battleUIMenu:setCellPadding(0,0,0,0)
     battleUIMenu:setContentInset(0,0,0,0)
 
@@ -522,8 +529,8 @@ function battleUIMenu:new()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local boxImage = gfx.image.new(400,80,gfx.kColorWhite)
-            bUIMenu:moveTo(0,200)
+            local boxImage = gfx.image.new(304,20,gfx.kColorBlack)
+            bUIMenu:moveTo(96,200)
             local zInd = #otherIndex + 220
             bUIMenu:setZIndex(zInd)
             gfx.pushContext(boxImage)
@@ -535,8 +542,10 @@ function battleUIMenu:new()
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
         local fontHeight = gfx.getSystemFont():getHeight()
-        gfx.drawTextInRect("test",x+2,y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.right)
-
+        local original_draw_mode = gfx.getImageDrawMode()
+        gfx.setImageDrawMode(playdate.graphics.kDrawModeNXOR)
+        gfx.drawTextInRect(o.options[column],x+2,y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.right)
+        gfx.setImageDrawMode(original_draw_mode)
     end
 
     o.tag = "battleUI"
@@ -544,4 +553,12 @@ function battleUIMenu:new()
     o.index = #menuIndex + 1
     menuIndex[o.index] = o
     return o
+end
+
+function limitQuery() -- check to see if the player has limit deck unlocked and return deck if true
+    if #playerChr.limit ~= 0 then
+        return true
+    else
+        return false
+    end
 end
