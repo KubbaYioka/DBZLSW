@@ -29,6 +29,29 @@ function bTabInit()
         ,current = 0
         ,position = PositionEnum.GroundAft
     }
+
+    Phase = {
+        ATTACK = "attack"
+        ,DEFENSE = "defense"
+    }
+
+    BattleInfoStrings = {
+        NoJoint = {
+            [1] = "Joint Deck"
+            ,[2] = "Basic Command"
+            ,[3] = "Character"
+        },
+        HasJoint = {
+            [1] = "Limit Deck"
+            ,[2] = "Joint Deck"
+            ,[3] = "Basic Command"
+            ,[4] = "Character"
+        },
+        noEntryD = {}
+    }
+
+    miniIcons = gfx.imagetable.new('assets/images/background/cardMiniIcon-table-16-16.png')
+
     BattleRef = {} -- contains all battle data and parameters for later reference. Cleared at the end of every battle.
 end
 
@@ -180,7 +203,10 @@ function drawUI()
     local enSprite = BattleMiniSpr("enemy")
     local plrSprite = BattleMiniSpr("player")
     fillGauge()
-    local bMenu = battleUIMenu:new()
+    --compare speeds to see who attacks first.
+    local bMenu = battleUIMenu:new(Phase.ATTACK) --also spawns battleInfoBox
+
+    SubMode = SubEnum.MENU
 end
 
 function fillGauge()
@@ -196,6 +222,14 @@ end
 
 function chrPlacement(chr,position)--where chr is enemyChr or playerChr and position is PositionEnum entry
     -- changes the position variable for chr to position. 
+end
+
+----------------------
+--SELECTION FUNCTION--
+----------------------
+
+function getNextBMenu(selOption,phase) --gets the selected option and creates the next menu level based on that.
+    print("Selected Option is: ",selOption," in the phase ",phase)
 end
 
 
@@ -377,7 +411,6 @@ function BattleMiniSpr:init(tag)
     local mSpr = gfx.sprite.new()
 
     mSpr:setCenter(0,0)
-    print(areaPosition(tag))
     mSpr:moveTo(areaPosition(tag))
 
     local zInd = #sprBIndex + 210
@@ -496,27 +529,41 @@ end
 
 battleUIMenu = playdate.ui.gridview.new(0,25)
 
-function battleUIMenu:new()
-    local o = o or {}
+function battleUIMenu:new(phase)
+    local o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
     self.__index=self
 
-    --establish contents of the entire gridview before continuing
+    o.phase = phase
 
+    --establish contents of the entire gridview before continuing
+    local STable = nil
     if limitQuery() == true then
-        o.col = 4
-        o.options = {"L","J","B","C"}
-        print("limitQuery true")
+        o.options = {
+            [1] = 1
+            ,[2] = 1
+            ,[3] = 9
+            ,[4] = 13
+        }
+        STable = BattleInfoStrings.HasJoint
     else
-        o.col = 3
-        o.options = {"J","B","C"}
-        print("limitQuery false")
+        o.options = {            
+            [1] = 1
+            ,[2] = 9
+            ,[3] = 13
+        }
+        STable = BattleInfoStrings.NoJoint
     end
 
-    battleUIMenu:setNumberOfColumns(o.col)
-    battleUIMenu:setNumberOfRows(1)
-    battleUIMenu:setCellPadding(0,0,0,0)
-    battleUIMenu:setContentInset(0,0,0,0)
+    local bNfoBx = battleInfoBox:new(STable)
+
+    o:setNumberOfColumns(#o.options)
+    o:setNumberOfRows(1)
+    o:setCellPadding(10,10,0,0)
+    o:setContentInset(0,0,0,0)
+    o.scrollCellsToCenter = false
+    o:removeHorizontalDividers()
+    o:setScrollDuration(0)
 
     local bUIMenu = gfx.sprite.new()
     bUIMenu:setCenter(0,0)
@@ -527,25 +574,45 @@ function battleUIMenu:new()
     
     bUIMenu:add()
 
+    function o:getOption() -- item selection in menu
+        local f,m,s = o:getSelection()
+        for i,v in pairs(o.options) do
+            if s==i then
+                return i,o.phase
+            end
+        end
+    end
+
     function o:menuUpdate()
         if o.needsDisplay then
-            local boxImage = gfx.image.new(304,20,gfx.kColorBlack)
+            local UIImage = gfx.image.new(304,20,gfx.kColorBlack)
             bUIMenu:moveTo(96,200)
-            local zInd = #otherIndex + 220
+
+            local zInd = 205 + #menuIndex
             bUIMenu:setZIndex(zInd)
-            gfx.pushContext(boxImage)
-                o:drawInRect(0,0,400,80)
+
+            gfx.pushContext(UIImage)
+                o:drawInRect(0,0,304,20)
             gfx.popContext()
-            bUIMenu:setImage(boxImage)
+            bUIMenu:setImage(UIImage)
         end
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
-        local fontHeight = gfx.getSystemFont():getHeight()
-        local original_draw_mode = gfx.getImageDrawMode()
-        gfx.setImageDrawMode(playdate.graphics.kDrawModeNXOR)
-        gfx.drawTextInRect(o.options[column],x+2,y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.right)
-        gfx.setImageDrawMode(original_draw_mode)
+        gfx.setColor(gfx.kColorWhite)
+
+        if selected then
+            gfx.fillRect(x+2,y,24,16)
+            gfx.fillTriangle(x+25,y,x+36,y+16,x+25,y+16)
+        end
+
+        local fontHeight = gfx.getFont():getHeight()
+        for i,v in pairs(o.options) do
+            if i == column then
+                gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+                miniIcons:drawImage(v,x+5,y)
+            end
+        end
     end
 
     o.tag = "battleUI"
@@ -561,4 +628,58 @@ function limitQuery() -- check to see if the player has limit deck unlocked and 
     else
         return false
     end
+end
+
+battleInfoBox = playdate.ui.gridview.new(0,40)
+
+function battleInfoBox:new(selTable)
+    local o = playdate.ui.gridview.new(0,40)
+    setmetatable(o,self)
+    self.__index=self
+
+    o.sTable = selTable
+
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(#o.sTable)
+    o:setCellPadding(0,0,0,0)
+    o:setContentInset(0,0,0,0)
+
+    local bUIMenu = gfx.sprite.new()
+    bUIMenu:setCenter(0,0)
+
+    function o:spriteKill()
+        bUIMenu:remove()
+    end
+
+    bUIMenu:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local UIImage = gfx.image.new(304,40,gfx.kColorWhite)
+            bUIMenu:moveTo(96,215)
+
+            local zInd = 206
+            bUIMenu:setZIndex(zInd)
+
+            gfx.pushContext(UIImage)
+                o:drawInRect(0,0,304,40)
+            gfx.popContext()
+            bUIMenu:setImage(UIImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        local fontHeight = gfx.getFont():getHeight()
+        for i,v in pairs(o.sTable) do
+            if i == row then
+                gfx.drawTextInRect(o.sTable[i], x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
+            end
+        end
+    end
+
+    o.tag = "UIInfo"
+
+    o.index = #dataBoxIndex + 1
+    dataBoxIndex[o.index] = o
+    return o
 end

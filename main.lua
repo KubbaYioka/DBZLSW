@@ -334,6 +334,10 @@ function playdate.update()
         end
     end
 
+    if gameMode == GameMode.BATTLE then
+        getInput()
+    end
+
 
     --UPDATE SPRITES
     gfx.sprite.update()

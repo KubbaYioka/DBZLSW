@@ -11,17 +11,47 @@ SubEnum = {
 
 function getInput()
     if playdate.buttonJustPressed("b") then
-        menuInputContext("b")
+        battleInputContext("b")
     elseif playdate.buttonJustPressed("a") then
-        menuInputContext("a")
+        battleInputContext("a")
     elseif playdate.buttonJustPressed("right") then
-        menuInputContext("right")
+        battleInputContext("right")
     elseif playdate.buttonJustPressed("up") then
-        menuInputContext("up")
+        battleInputContext("up")
     elseif playdate.buttonJustPressed("down") then
-        menuInputContext("down")
+        battleInputContext("down")
     elseif playdate.buttonJustPressed("left") then
-        menuInputContext("left")
+        battleInputContext("left")
+    end
+end
+
+function battleInputContext(dir) 
+
+    if SubMode == SubEnum.NONE then
+
+    elseif SubMode == SubEnum.MENU then
+        if dir == "left" then
+            local fs = menuIndex[#menuIndex]
+            fs:selectPreviousColumn(true,true,false)
+            for i,v in pairs(dataBoxIndex) do
+                if v.tag == "UIInfo" then
+                    v:selectPreviousRow(true,true,false)
+                end
+            end
+        elseif dir == "right" then
+            local fs = menuIndex[#menuIndex]
+            fs:selectNextColumn(true,true,false)
+            for i,v in pairs(dataBoxIndex) do
+                if v.tag == "UIInfo" then
+                    v:selectNextRow(true,true,false)
+                end
+            end
+        elseif dir =="a" then
+            local fs = menuIndex[#menuIndex]
+                getNextBMenu(fs:getOption())
+        end
+    elseif SubMode == SubEnum.COMM then
+
     end
 end
 
@@ -89,16 +119,6 @@ function menuInputContext()
                 local fs = menuIndex[#menuIndex]
                 fs:menuControl("down")
             end
-        end
-    end
-
-    if controlContext == GameMode.BATTLE then
-        if SubMode == SubEnum.NONE then
-
-        elseif SubMode == SubEnum.MENU then
-
-        elseif SubMode == SubEnum.COMM then
-
         end
     end
 
