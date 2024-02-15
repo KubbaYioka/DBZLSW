@@ -6,6 +6,7 @@ SubMode = nil
 SubEnum = {
     NONE = "none" --no inputs accepted
     ,MENU = "menu" --menu selections on battle screen
+    ,STAT = "status" --specifically for status screen of cards and characters
     ,COMM = "command" -- for action commands
 }
 
@@ -33,7 +34,7 @@ function battleInputContext(dir)
         if dir == "left" then
             local fs = menuIndex[#menuIndex]
             fs:selectPreviousColumn(true,true,false)
-            for i,v in pairs(dataBoxIndex) do
+            for i,v in pairs(UIIndex) do
                 if v.tag == "UIInfo" then
                     v:selectPreviousRow(true,true,false)
                 end
@@ -41,7 +42,7 @@ function battleInputContext(dir)
         elseif dir == "right" then
             local fs = menuIndex[#menuIndex]
             fs:selectNextColumn(true,true,false)
-            for i,v in pairs(dataBoxIndex) do
+            for i,v in pairs(UIIndex) do
                 if v.tag == "UIInfo" then
                     v:selectNextRow(true,true,false)
                 end
@@ -49,6 +50,19 @@ function battleInputContext(dir)
         elseif dir =="a" then
             local fs = menuIndex[#menuIndex]
                 getNextBMenu(fs:getOption())
+        end
+    elseif subMode == SubMode.STAT then
+        -- specifically for status screens of cards and characters
+        if dir == "b" then
+            for i,v in pairs(dataBoxIndex) do
+                v:spriteKill()
+            end
+            for i,v in pairs(otherIndex) do
+                if v.menuWhi == 3 then
+                    v:remove()
+                end
+            end
+            SubMode = SubEnum.MENU
         end
     elseif SubMode == SubEnum.COMM then
 

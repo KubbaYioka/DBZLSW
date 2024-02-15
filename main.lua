@@ -335,7 +335,11 @@ function playdate.update()
     end
 
     if gameMode == GameMode.BATTLE then
+        for i,v in pairs(UIIndex) do
+            v:menuUpdate()
+        end
         getInput()
+        
     end
 
 

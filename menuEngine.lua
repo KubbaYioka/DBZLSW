@@ -1106,7 +1106,7 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the ba
     function o:spriteKill()
         dataBoxSprite:remove()
     end
-    if #dataBoxIndex == 0 then
+    if #dataBoxIndex == 0 or gameMode == GameMode.BATTLE then
         o.bSpr = true
         local menuBSpr = MenuBackground(0,0,"menuFour")
         menuBSpr:add()
@@ -1203,6 +1203,7 @@ function MenuBackground:init(x,y,back)
         self:setImage(menuImage)
         self.menuWhi = 3
         self:setZIndex(180)
+
     end
 
     -- Properties
@@ -1341,47 +1342,68 @@ function cardData(selCard) -- Render card info screen.
 end
 
 function chrData(chr, mode) -- render character info screen where mode specifies whether to pull pause parameters or in-battle status
+    local chrTable = {}
     if mode == "battle" then
-        debugMessage() -- pulls info from character in the battle at the time, not the parameters from RAMSAVE
-    elseif mode == "pause" then
-        local chrTable = loadSavedPlayers(chr)        
-        for i,v in pairs(chrTable) do
-            if i == "chrNum" then
-                local sRT = tostring(v)
-                local sRTT = "No. "..sRT
-                dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil)
-            elseif i == "chrName" then
-                dataBox:new(180,40,120,20,v,gfx.kColorWhite,nil)
-            elseif i == "chrTrans" then
-                if type(v) == "table" then
-                    local sRT = v.trans1
-                    dataBox:new(185,60,120,20,sRT,gfx.kColorWhite,nil,"small")
+        if #chr > 1 then
+            for i,v in pairs (chr) do
+                if chr[i].chrCode == playerChr.chrCode then
+                    chrTable[1] = chr[i]
+                    for c=2,#chr,1 do
+                        if chr[c] ~= chrTable[1] then -- if the other tables are not equal to playerChr, then add them at indexes starting at 2 and until the total number has been reached
+                            chrTable[c] = chr[c]
+                        end
+                    end
                 end
-            elseif i == "chrHp" then
-                local sRT = tostring(v)
-                local sRTT = "HP  "..sRT
-                dataBox:new(60,100,120,20,sRTT,gfx.kColorWhite,nil)
-            elseif i == "chrStr" then
-                local sRT = tostring(v)
-                local sRTT = "Str  "..sRT
-                dataBox:new(60,120,120,20,sRTT,gfx.kColorWhite,nil)
-            elseif i == "chrKi" then
-                local sRT = tostring(v)
-                local sRTT = "Ki  "..sRT
-                dataBox:new(60,140,120,20,sRTT,gfx.kColorWhite,nil)
-            elseif i == "chrDef" then
-                local sRT = tostring(v)
-                local sRTT = "Def  "..sRT
-                dataBox:new(180,100,120,20,sRTT,gfx.kColorWhite,nil)
-            elseif i == "chrSpd" then
-                local sRT = tostring(v)
-                local sRTT = "Spd  "..sRT
-                dataBox:new(180,120,120,20,sRTT,gfx.kColorWhite,nil)
-            elseif i == "chrExp" then
-                local sRT = tostring(v)
-                local sRTT = "Exp  "..sRT
-                dataBox:new(180,160,120,20,sRTT,gfx.kColorWhite,nil)
             end
+        else
+            chrTable = chr
+        end
+        SubMode = SubEnum.STAT
+        drawStatus(chrTable[1])
+    elseif mode == "pause" then
+        chrTable = loadSavedPlayers(chr)  
+        drawStatus(chrTable)
+    end
+end
+
+function drawStatus(chrTable)
+    for i,v in pairs(chrTable) do
+        if i == "chrNum" then
+            print(i)
+            local sRT = tostring(v)
+            local sRTT = "No. "..sRT
+            dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil)
+        elseif i == "chrName" then
+            dataBox:new(180,40,120,20,v,gfx.kColorWhite,nil)
+        elseif i == "chrTrans" then
+            if type(v) == "table" then
+                local sRT = v.trans1
+                dataBox:new(185,60,120,20,sRT,gfx.kColorWhite,nil,"small")
+            end
+        elseif i == "chrHp" then
+            local sRT = tostring(v)
+            local sRTT = "HP  "..sRT
+            dataBox:new(60,100,120,20,sRTT,gfx.kColorWhite,nil)
+        elseif i == "chrStr" then
+            local sRT = tostring(v)
+            local sRTT = "Str  "..sRT
+            dataBox:new(60,120,120,20,sRTT,gfx.kColorWhite,nil)
+        elseif i == "chrKi" then
+            local sRT = tostring(v)
+            local sRTT = "Ki  "..sRT
+            dataBox:new(60,140,120,20,sRTT,gfx.kColorWhite,nil)
+        elseif i == "chrDef" then
+            local sRT = tostring(v)
+            local sRTT = "Def  "..sRT
+            dataBox:new(180,100,120,20,sRTT,gfx.kColorWhite,nil)
+        elseif i == "chrSpd" then
+            local sRT = tostring(v)
+            local sRTT = "Spd  "..sRT
+            dataBox:new(180,120,120,20,sRTT,gfx.kColorWhite,nil)
+        elseif i == "chrExp" then
+            local sRT = tostring(v)
+            local sRTT = "Exp  "..sRT
+            dataBox:new(180,160,120,20,sRTT,gfx.kColorWhite,nil)
         end
     end
 end
@@ -1393,6 +1415,9 @@ function RectangleBox:init(bX,bY,bW,bH)
     self:setCenter(0,0)
     self:moveTo(bX,bY)
     self:setZIndex(200+#otherIndex)
+    if gameMode == GameMode.BATTLE then
+        self:setZIndex(102)
+    end
     local rectanImage = gfx.image.new(bW,bH,gfx.kColorBlack)
     
     gfx.pushContext(rectanImage)

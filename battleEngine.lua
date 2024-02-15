@@ -10,8 +10,13 @@ function bTabInit()
     }
     sprBIndex = {}
 
+    ---------------
+    --Player Info--
+    ---------------
+
     playerChr={}
     playerTeam={}
+    pDeckCopy={} -- copy of RAMSAVE[4]
     playerDeck={}
     playerCC = 3
     playerSprTab = {
@@ -20,8 +25,11 @@ function bTabInit()
         ,position = PositionEnum.GroundAft
     }
 
+    bFaster = {} -- will compare speeds of combatants to see who will go first. Evaluated every turn change.
+
     enemyChr={}
     enemyTeam={}
+    eDeckCopy={} -- copy from battle data in the battle database
     enemyDeck={}
     enemyCC = 3
     enemySprTab = {
@@ -34,6 +42,10 @@ function bTabInit()
         ATTACK = "attack"
         ,DEFENSE = "defense"
     }
+
+    ---------------------
+    --Menu Enum----------
+    ---------------------
 
     BattleInfoStrings = {
         NoJoint = {
@@ -50,6 +62,15 @@ function bTabInit()
         noEntryD = {}
     }
 
+    ---------------------
+    --Joint Deck Info ---
+    ---------------------
+
+    playerHand = {}
+    enemyHand = {}
+
+    UIIndex = {} -- for graphical and gridview objects related to the battle screen
+
     miniIcons = gfx.imagetable.new('assets/images/background/cardMiniIcon-table-16-16.png')
 
     BattleRef = {} -- contains all battle data and parameters for later reference. Cleared at the end of every battle.
@@ -62,12 +83,21 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     end
     BattleRef = battleTable
     local initPTeam = {"dbGoku"} -- will eventually pull from table RAMSAVE[5]
-    playerDeck = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
+    --pDeckCopy = RAMSAVE[4]
+    pDeckCopy = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
+    playerDeck[1],playerDeck[2],playerDeck[3],pDeckCopy = cardShuffle(pDeckCopy,true)
+    print("Cards in Hand:")
+    printTable(playerDeck)
+    print(" ")
+    print("Cards Remaining in Draw Stack")
+    printTable(pDeckCopy)
     local initChr = initPTeam[1] -- simply uses the first player in the team
 
     local oppTab = battleTable["oppoParam"]
     local initETeam = oppTab.oppoTeam
     local initEChr = initETeam[1]
+    eDeckCopy = oppTab.enemyDeck
+    --enemyDeck = cardShuffle(eDeckCopy,true)
     enemyDeck = oppTab.enemyDeck
 
     for i,v in pairs(initPTeam) do -- copy current players in team to battle ram
@@ -110,6 +140,47 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     battleSpriteSet(BattleRef)
     drawUI()
 
+end
+
+function cardShuffle(deck,initial)
+    local cSelect = nil
+    local cCount = 1
+    local cOne, cTwo, cThree
+    local tempTab = {cOne, cTwo, cThree}
+    local emptyTest = 0 -- if this number reaches 20, then the deck is empty and no card is drawn.
+    if initial == true then
+        cCount = 3
+    end
+    for i=1,cCount,1 do
+        cSelect = nil
+        while cSelect == nil do
+            cSelect  = deck[math.random(1, #deck)] 
+            if cSelect ~= nil then
+                local spec = false
+                for k,c in pairs(deck) do
+                    if spec == false then
+                        if c == cSelect then
+                            print("deck index ",k," is now nil")
+                            deck[k]=nil -- card is no longer in the deck and is either discarded or in the hand
+                            spec = true -- since cards are removed one at a time, this eliminates the first card found.
+                        end
+                    end
+                end
+                tempTab[i] = cSelect
+            end
+            emptyTest = emptyTest + 1
+            if emptyTest >= #deck then
+                return "No Cards Remaining"
+            end
+        end
+    end
+    
+    if initial == true then
+        printTable(deck)
+        return tempTab[1],tempTab[2],tempTab[3],deck
+    else
+        return tempTab[1],deck
+    end
 end
 
 function battleIntro(chr1,T1,chr2,T2)
@@ -229,7 +300,21 @@ end
 ----------------------
 
 function getNextBMenu(selOption,phase) --gets the selected option and creates the next menu level based on that.
-    print("Selected Option is: ",selOption," in the phase ",phase)
+    print(selOption)
+
+    --Limit
+    if selOption == "Limit" then
+
+    --Joint
+    elseif selOption == "Joint" then
+
+    --Basic Commands
+    elseif selOption == "Basic Commands" then
+
+    --Character
+    elseif selOption == "Character" then
+        chrData(playerTeam,"battle")
+    end
 end
 
 
@@ -372,7 +457,7 @@ function topUI:new(side,cName) -- where bgD is the background color
         if o.needsDisplay then
             local UIImage = gfx.image.new(o.w,o.h,gfx.kColorBlack)
             topUISprite:moveTo(o.x, o.y)
-            local zInd = #dataBoxIndex + 50
+            local zInd = #UIIndex + 50
             topUISprite:setZIndex(zInd)
             gfx.pushContext(UIImage)
                 o:drawInRect(0,0,o.w,o.h)
@@ -392,12 +477,12 @@ function topUI:new(side,cName) -- where bgD is the background color
     end
 
     local countI = 0
-    for _ in pairs(dataBoxIndex) do 
+    for _ in pairs(UIIndex) do 
         countI = countI + 1 
     end
 
     o.index = countI + 1
-    dataBoxIndex[o.index] = o
+    UIIndex[o.index] = o
     return o
 end
 
@@ -413,7 +498,7 @@ function BattleMiniSpr:init(tag)
     mSpr:setCenter(0,0)
     mSpr:moveTo(areaPosition(tag))
 
-    local zInd = #sprBIndex + 210
+    local zInd = #sprBIndex + 105
     mSpr:setZIndex(zInd)
 
     local selImage = nil
@@ -454,7 +539,7 @@ function VsEmblem:init()
     vsSprite:setCenter(0,0)
     vsSprite:moveTo(155,0)
 
-    local zInd = #otherIndex + 205
+    local zInd = #otherIndex + 105
     vsSprite:setZIndex(zInd)
     vsSprite:setImage(vsImage)
     function self:spriteKill()
@@ -515,7 +600,7 @@ function LifeBar:updateHP(position,nHP)
     gfx.setColor(gfx.kColorWhite)
         gfx.fillRect(0,0,lifeBarWidth,height)
     gfx.popContext()
-    self:setZIndex(#otherIndex + 207)
+    self:setZIndex(#otherIndex + 107)
     self:setImage(lifeBarImage)
 end
 
@@ -575,12 +660,13 @@ function battleUIMenu:new(phase)
     bUIMenu:add()
 
     function o:getOption() -- item selection in menu
-        local f,m,s = o:getSelection()
-        for i,v in pairs(o.options) do
-            if s==i then
-                return i,o.phase
+        local itemS = nil
+        for j,k in pairs(UIIndex) do
+            if k.tag == "UIInfo" then
+                itemS = k.sTable[k:getSelectedRow()]
             end
         end
+    return itemS,o.phase
     end
 
     function o:menuUpdate()
@@ -588,7 +674,7 @@ function battleUIMenu:new(phase)
             local UIImage = gfx.image.new(304,20,gfx.kColorBlack)
             bUIMenu:moveTo(96,200)
 
-            local zInd = 205 + #menuIndex
+            local zInd = 105 + #menuIndex
             bUIMenu:setZIndex(zInd)
 
             gfx.pushContext(UIImage)
@@ -658,7 +744,7 @@ function battleInfoBox:new(selTable)
             local UIImage = gfx.image.new(304,40,gfx.kColorWhite)
             bUIMenu:moveTo(96,215)
 
-            local zInd = 206
+            local zInd = 110
             bUIMenu:setZIndex(zInd)
 
             gfx.pushContext(UIImage)
@@ -679,7 +765,21 @@ function battleInfoBox:new(selTable)
 
     o.tag = "UIInfo"
 
-    o.index = #dataBoxIndex + 1
-    dataBoxIndex[o.index] = o
+    o.index = #UIIndex + 1
+    UIIndex[o.index] = o
     return o
+end
+
+jointDeck = playdate.ui.gridview.new(20,20)
+
+function jointDeck:new()
+    o = playdate.ui.gridview.new(20,20)
+    setmetatable(o,self)
+    self.__index=self
+    o.tag = "jointDeck"
+    o.options = getDeck()
+end
+
+function getDeck()
+
 end
