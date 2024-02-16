@@ -312,9 +312,11 @@ function playdate.update()
         end
     end
 
-    if #dataBoxIndex > 0 then
-        for i,v in pairs(dataBoxIndex) do
-            v:menuUpdate()
+    if dataBoxIndex ~= nil then
+        if #dataBoxIndex > 0 then
+            for i,v in pairs(dataBoxIndex) do
+                v:menuUpdate()
+            end
         end
     end
 
@@ -335,11 +337,10 @@ function playdate.update()
     end
 
     if gameMode == GameMode.BATTLE then
+        getInput()
         for i,v in pairs(UIIndex) do
             v:menuUpdate()
         end
-        getInput()
-        
     end
 
 

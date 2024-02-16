@@ -3,19 +3,19 @@ local gfx = playdate.graphics
 
 function gameModeChange(gMode, location, index)
     if gMode == GameMode.BATTLE then
-        controlContext = GameMode.BATTLE
+        ctrlConSwi("battle")
         --display vs and transition
     elseif gMode == GameMode.MENU then
-        controlContext = GameMode.MENU
+        ctrlConSwi("menu)")
         -- gridview etc etc
         -- load appropriate menu
     elseif gMode == GameMode.MAP then
-        controlContext = GameMode.MAP
+        ctrlConSwi("map")
         clearAll()
         gfx.clear()
         goMap(location) -- loads map from appropriate dataset
     elseif gMode == GameMode.STORY then
-        controlContext = GameMode.STORY
+        ctrlConSwi("story")
        -- gridview:new(name, rows, columns, options, index, mType)
         gridview:new(gMode, location)
         -- load appropriate story
@@ -1080,10 +1080,10 @@ function menuSelect:new(direction, optionTable, namC, numIndex, chrNum, chrNam) 
     return o
 end
 
+
 dataBox = playdate.ui.gridview.new(0,25)
 
 function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the background color
-
     local o = o or {}
     setmetatable(o,self)
     self.__index=self
@@ -1106,7 +1106,8 @@ function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the ba
     function o:spriteKill()
         dataBoxSprite:remove()
     end
-    if #dataBoxIndex == 0 or gameMode == GameMode.BATTLE then
+    
+    if #dataBoxIndex == 0 and dataBoxIndex ~= nil then
         o.bSpr = true
         local menuBSpr = MenuBackground(0,0,"menuFour")
         menuBSpr:add()
@@ -1203,9 +1204,7 @@ function MenuBackground:init(x,y,back)
         self:setImage(menuImage)
         self.menuWhi = 3
         self:setZIndex(180)
-
     end
-
     -- Properties
     self:setCenter(0,0)
     self:moveTo(x, y)
@@ -1369,7 +1368,6 @@ end
 function drawStatus(chrTable)
     for i,v in pairs(chrTable) do
         if i == "chrNum" then
-            print(i)
             local sRT = tostring(v)
             local sRTT = "No. "..sRT
             dataBox:new(180,0,250,20,sRTT,gfx.kColorBlack,nil)

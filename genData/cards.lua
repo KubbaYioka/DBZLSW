@@ -66,6 +66,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,1}
+    ,mIcon = 2
   }
 ,["4 Stage Attack"] =
   {
@@ -81,6 +82,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,2}
+    ,mIcon = 2
   }
 ,["5 Stage Attack"] =
   {
@@ -96,6 +98,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,3}
+    ,mIcon = 2
   }
 ,["6 Stage Attack"] =
   {
@@ -111,6 +114,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,4}
+    ,mIcon = 2
   }
 ,["7 Stage Attack"] =
   {
@@ -126,6 +130,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,5}
+    ,mIcon = 2
   }
 ,["Cont. Punch"]=
   {
@@ -141,6 +146,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,6}
+    ,mIcon = 3
   }
 ,["Cont. Kick"]=
   {
@@ -156,6 +162,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,7}
+    ,mIcon = 3
   }
 ,["Energy Blast"]=
   {
@@ -171,6 +178,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,8}
+    ,mIcon = 4
   }
 ,["Energy Wave"]=
   {
@@ -186,6 +194,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,9}
+    ,mIcon = 4
   }
 ,["Endurance"]=
   {
@@ -201,6 +210,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {1,10}
+    ,mIcon = 10
   }
   ,["Card 11"]=
   {
@@ -216,6 +226,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,1}
+    ,mIcon = 6
   }
   ,["Card 12"]=
   {
@@ -231,6 +242,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,2}
+    ,mIcon = 6
   }
   ,["Card 13"]=
   {
@@ -246,6 +258,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,3}
+    ,mIcon = 6
   }
   ,["Card 14"]=
   {
@@ -261,6 +274,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,4}
+    ,mIcon = 6
   }
   ,["Card 15"]=
   {
@@ -276,6 +290,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,5}
+    ,mIcon = 6
   }
   ,["Card 16"]=
   {
@@ -291,6 +306,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,6}
+    ,mIcon = 6
   }
   ,["Card 17"]=
   {
@@ -306,6 +322,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,7}
+    ,mIcon = 6
   }
   ,["Card 18"]=
   {
@@ -321,6 +338,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,8}
+    ,mIcon = 6
   }
   ,["Card 19"]=
   {
@@ -336,6 +354,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,9}
+    ,mIcon = 6
   }
   ,["Card 20"]=
   {
@@ -351,6 +370,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {2,10}
+    ,mIcon = 6
   }
   ,["Card 21"]=
   {
@@ -366,6 +386,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,1}
+    ,mIcon = 6
   }
   ,["Card 22"]=
   {
@@ -381,6 +402,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,2}
+    ,mIcon = 6
   }
   ,["Card 23"]=
   {
@@ -396,6 +418,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,3}
+    ,mIcon = 6
   }
   ,["Card 24"]=
   {
@@ -411,6 +434,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,4}
+    ,mIcon = 6
   }
   ,["Card 25"]=
   {
@@ -426,6 +450,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,5}
+    ,mIcon = 6
   }
   ,["Card 26"]=
   {
@@ -441,6 +466,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,6}
+    ,mIcon = 6
   }
   ,["Card 27"]=
   {
@@ -456,6 +482,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,7}
+    ,mIcon = 6
   }
   ,["Card 28"]=
   {
@@ -471,6 +498,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,8}
+    ,mIcon = 6
   }
   ,["Card 29"]=
   {
@@ -486,6 +514,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,9}
+    ,mIcon = 6
   }
   ,["Card 30"]=
   {
@@ -501,6 +530,7 @@ cards = {
     ,cAbility = None
     ,cAllowed = AllChrs
     ,cPortrait = {3,10}
+    ,mIcon = 6
   }
 
 }

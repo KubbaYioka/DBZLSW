@@ -43,6 +43,8 @@ function bTabInit()
         ,DEFENSE = "defense"
     }
 
+    CurrentPhase = nil
+
     ---------------------
     --Menu Enum----------
     ---------------------
@@ -86,11 +88,6 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     --pDeckCopy = RAMSAVE[4]
     pDeckCopy = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
     playerDeck[1],playerDeck[2],playerDeck[3],pDeckCopy = cardShuffle(pDeckCopy,true)
-    print("Cards in Hand:")
-    printTable(playerDeck)
-    print(" ")
-    print("Cards Remaining in Draw Stack")
-    printTable(pDeckCopy)
     local initChr = initPTeam[1] -- simply uses the first player in the team
 
     local oppTab = battleTable["oppoParam"]
@@ -99,6 +96,8 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     eDeckCopy = oppTab.enemyDeck
     --enemyDeck = cardShuffle(eDeckCopy,true)
     enemyDeck = oppTab.enemyDeck
+
+    CurrentPhase = phaseChange(playerChr,enemyChr)
 
     for i,v in pairs(initPTeam) do -- copy current players in team to battle ram
         local mTab = RAMSAVE[1]
@@ -142,6 +141,10 @@ function battleInit(battleTable) -- copy values from tables and player save to c
 
 end
 
+function phaseChange(playerChr,enemyChr)
+    return Phase.ATTACK
+end
+
 function cardShuffle(deck,initial)
     local cSelect = nil
     local cCount = 1
@@ -160,7 +163,6 @@ function cardShuffle(deck,initial)
                 for k,c in pairs(deck) do
                     if spec == false then
                         if c == cSelect then
-                            print("deck index ",k," is now nil")
                             deck[k]=nil -- card is no longer in the deck and is either discarded or in the hand
                             spec = true -- since cards are removed one at a time, this eliminates the first card found.
                         end
@@ -176,7 +178,6 @@ function cardShuffle(deck,initial)
     end
     
     if initial == true then
-        printTable(deck)
         return tempTab[1],tempTab[2],tempTab[3],deck
     else
         return tempTab[1],deck
@@ -300,14 +301,12 @@ end
 ----------------------
 
 function getNextBMenu(selOption,phase) --gets the selected option and creates the next menu level based on that.
-    print(selOption)
-
     --Limit
     if selOption == "Limit" then
 
     --Joint
-    elseif selOption == "Joint" then
-
+    elseif selOption == "Joint Deck" then
+        local jD = jointDeck:new()
     --Basic Commands
     elseif selOption == "Basic Commands" then
 
@@ -316,16 +315,6 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
         chrData(playerTeam,"battle")
     end
 end
-
-
-
-
-
-
-
-
-
-
 
 --[[
 local cardStats = {
@@ -640,8 +629,6 @@ function battleUIMenu:new(phase)
         STable = BattleInfoStrings.NoJoint
     end
 
-    local bNfoBx = battleInfoBox:new(STable)
-
     o:setNumberOfColumns(#o.options)
     o:setNumberOfRows(1)
     o:setCellPadding(10,10,0,0)
@@ -650,14 +637,14 @@ function battleUIMenu:new(phase)
     o:removeHorizontalDividers()
     o:setScrollDuration(0)
 
-    local bUIMenu = gfx.sprite.new()
-    bUIMenu:setCenter(0,0)
+    local bInfoSpr = gfx.sprite.new()
+    bInfoSpr:setCenter(0,0)
     
     function o:spriteKill()
-        bUIMenu:remove()
+        bInfoSpr:remove()
     end
     
-    bUIMenu:add()
+    bInfoSpr:add()
 
     function o:getOption() -- item selection in menu
         local itemS = nil
@@ -666,21 +653,21 @@ function battleUIMenu:new(phase)
                 itemS = k.sTable[k:getSelectedRow()]
             end
         end
-    return itemS,o.phase
+        return itemS,o.phase
     end
 
     function o:menuUpdate()
         if o.needsDisplay then
             local UIImage = gfx.image.new(304,20,gfx.kColorBlack)
-            bUIMenu:moveTo(96,200)
+            bInfoSpr:moveTo(96,200)
 
             local zInd = 105 + #menuIndex
-            bUIMenu:setZIndex(zInd)
+            bInfoSpr:setZIndex(zInd)
 
             gfx.pushContext(UIImage)
                 o:drawInRect(0,0,304,20)
             gfx.popContext()
-            bUIMenu:setImage(UIImage)
+            bInfoSpr:setImage(UIImage)
         end
     end
 
@@ -705,7 +692,7 @@ function battleUIMenu:new(phase)
 
     o.index = #menuIndex + 1
     menuIndex[o.index] = o
-    return o
+    local bNfoBx = battleInfoBox:new(STable)
 end
 
 function limitQuery() -- check to see if the player has limit deck unlocked and return deck if true
@@ -724,33 +711,60 @@ function battleInfoBox:new(selTable)
     self.__index=self
 
     o.sTable = selTable
+    o.oldTable = {}
 
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#o.sTable)
     o:setCellPadding(0,0,0,0)
     o:setContentInset(0,0,0,0)
 
-    local bUIMenu = gfx.sprite.new()
-    bUIMenu:setCenter(0,0)
-
-    function o:spriteKill()
-        bUIMenu:remove()
+    function o:newTable(newTable)
+        local tempT = o.sTable
+        o.oldTable = tempT
+        o.sTable = newTable
+        local sS,sR,sC = 0,0,0
+        for i,v in pairs(menuIndex) do
+            if i==#menuIndex then
+               sS,sR,sC = v:getSelection()
+            end
+        end
+        o:setSelectedRow(sC)
     end
 
-    bUIMenu:add()
+    function o:restorePrevTab()
+        o.sTable = o.oldTable
+        local sS,sR,sC = 0,0,0
+        for i,v in pairs(menuIndex) do
+            if i==#menuIndex then
+               sS,sR,sC = v:getSelection()
+            end
+        end
+        o:setSelectedRow(sC)
+        o:selectNextRow(true,true,false)
+        o:selectPreviousRow(true,true,false) -- to update screen
+    end
+
+    local bBottomM = gfx.sprite.new()
+    bBottomM:setCenter(0,0)
+
+    function o:spriteKill()
+        bBottomM:remove()
+    end
+
+    bBottomM:add()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local UIImage = gfx.image.new(304,40,gfx.kColorWhite)
-            bUIMenu:moveTo(96,215)
+            local bottUIImg = gfx.image.new(304,40,gfx.kColorWhite)
+            bBottomM:moveTo(96,215)
 
             local zInd = 110
-            bUIMenu:setZIndex(zInd)
+            bBottomM:setZIndex(zInd)
 
-            gfx.pushContext(UIImage)
+            gfx.pushContext(bottUIImg)
                 o:drawInRect(0,0,304,40)
             gfx.popContext()
-            bUIMenu:setImage(UIImage)
+            bBottomM:setImage(bottUIImg)
         end
     end
 
@@ -770,16 +784,118 @@ function battleInfoBox:new(selTable)
     return o
 end
 
+function changeUIInfo(tableOne)
+    local tebN = {}
+    if tableOne == nil then
+        if limitQuery() == true then
+            tebN = BattleInfoStrings.HasJoint
+        else
+            tebN = BattleInfoStrings.NoJoint
+        end
+    else
+        tebN = tableOne
+    end
+
+    for i,v in pairs(UIIndex) do
+        if v.tag == "UIInfo" then
+            v:newTable(tebN)
+        end
+    end
+end
+
 jointDeck = playdate.ui.gridview.new(20,20)
 
 function jointDeck:new()
     o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
     self.__index=self
+
+    --o.icons,o.names,o.ports,o.costs = getDeck(playerDeck)
+    o.icons = getDeck(playerDeck)
+    --changeUIInfo(o.names)
+
+    o:setNumberOfColumns(#o.icons)
+    o:setNumberOfRows(1)
+    o:setCellPadding(5,5,0,0)
+    o:setContentInset(0,0,0,0)
+    o.scrollCellsToCenter = false
+    o:removeHorizontalDividers()
+    o:setScrollDuration(0)
+
+    local jointSpr = gfx.sprite.new()
+    jointSpr:setCenter(0,0)
+
+    function o:spriteKill()
+        jointSpr:remove()
+        menuIndex[o.index] = nil
+        changeUIInfo()
+    end
+
+    jointSpr:add()
+
+    function o:getOption()
+
+    end
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local JDImage = gfx.image.new(304,20,gfx.kColorBlack)
+            jointSpr:moveTo(96,200)
+
+            local zInd = 107 + #menuIndex
+            jointSpr:setZIndex(zInd)
+
+            gfx.pushContext(JDImage)
+                o:drawInRect(0,0,304,20)
+            gfx.popContext()
+            jointSpr:setImage(JDImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        gfx.setColor(gfx.kColorWhite)
+
+        if selected then
+            gfx.fillRect(x+2,y,24,16)
+            gfx.fillTriangle(x+25,y,x+36,y+16,x+25,y+16)
+        end
+
+        local fontHeight = gfx.getFont():getHeight()
+
+        for i,v in pairs(o.icons) do
+            if i == column then
+                gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+                miniIcons:drawImage(v,x+5,y)
+            end
+        end
+
+    end
+
     o.tag = "jointDeck"
-    o.options = getDeck()
+
+    o.index = #menuIndex + 1
+    menuIndex[o.index] = o
+
 end
 
-function getDeck()
+function getDeck(deck) -- get icons to appear for each item in the deck.
+    local iconTable = {}
+    local nameTable = {}
+    local portTable = {}
+    local costTable = {}
+    for i,v in pairs(deck) do
+        for k,c in pairs(cards) do
+            if v == c.cNumber then
+                if c.cPhases ~= CurrentPhase then
+                    --do something to sorta grey out the icons that can't be used
+                end
+                iconTable[i] = c.mIcon
+                nameTable[i] = c.cName
+                portTable[i] = c.cPortrait
+                costTable[i] = c.cCost
+            end
+        end
+    end
 
+    return iconTable --,nameTable,portTable,costTable
 end

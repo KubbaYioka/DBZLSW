@@ -27,45 +27,59 @@ function getInput()
 end
 
 function battleInputContext(dir) 
+    if bounceProtect == false then
 
-    if SubMode == SubEnum.NONE then
+        if SubMode == SubEnum.NONE then
 
-    elseif SubMode == SubEnum.MENU then
-        if dir == "left" then
-            local fs = menuIndex[#menuIndex]
-            fs:selectPreviousColumn(true,true,false)
-            for i,v in pairs(UIIndex) do
-                if v.tag == "UIInfo" then
-                    v:selectPreviousRow(true,true,false)
+        elseif SubMode == SubEnum.MENU then
+            if dir == "left" then
+                local fs = menuIndex[#menuIndex]
+                fs:selectPreviousColumn(true,true,false)
+                for i,v in pairs(UIIndex) do
+                    if v.tag == "UIInfo" then
+                        v:selectPreviousRow(true,true,false)
+                    end
                 end
-            end
-        elseif dir == "right" then
-            local fs = menuIndex[#menuIndex]
-            fs:selectNextColumn(true,true,false)
-            for i,v in pairs(UIIndex) do
-                if v.tag == "UIInfo" then
-                    v:selectNextRow(true,true,false)
+            elseif dir == "right" then
+                local fs = menuIndex[#menuIndex]
+                fs:selectNextColumn(true,true,false)
+                for i,v in pairs(UIIndex) do
+                    if v.tag == "UIInfo" then
+                        v:selectNextRow(true,true,false)
+                    end
                 end
-            end
-        elseif dir =="a" then
-            local fs = menuIndex[#menuIndex]
+            elseif dir == "a" then
+                local fs = menuIndex[#menuIndex]
                 getNextBMenu(fs:getOption())
-        end
-    elseif subMode == SubMode.STAT then
-        -- specifically for status screens of cards and characters
-        if dir == "b" then
-            for i,v in pairs(dataBoxIndex) do
-                v:spriteKill()
-            end
-            for i,v in pairs(otherIndex) do
-                if v.menuWhi == 3 then
-                    v:remove()
+            elseif dir == "b" then
+                if #menuIndex > 1 then
+                    for i,v in pairs(menuIndex) do
+                        if v.index == #menuIndex then
+                            v:spriteKill()
+                        end
+                    end
                 end
+                
             end
-            SubMode = SubEnum.MENU
-        end
-    elseif SubMode == SubEnum.COMM then
+        elseif subMode == SubMode.STAT then
+            -- specifically for status screens of cards and characters
+            if dir == "up" then
+                -- display next character in team, if there.
+                print("display next character in team, if there.")
+            elseif dir == "down" then
+                -- display previous character in team, if there.
+                print("display previous character in team, if there.")
+            elseif dir == "b" then
+                for i,v in pairs(dataBoxIndex) do
+                    v:menuControl("b")
+                end
+                SubMode = SubEnum.MENU
+            end
+        elseif SubMode == SubEnum.COMM then
 
+        end
+    elseif bounceProtect == true then
+        bounceProtectSwi("off")
     end
 end
 
@@ -78,6 +92,7 @@ function menuInputContext()
         if playdate.buttonJustPressed("a") then
             local fs = menuIndex[#menuIndex]
             goMenu(fs:getOption())
+            
         end
 
         if playdate.buttonJustPressed("right") then
@@ -110,6 +125,7 @@ function menuInputContext()
                 end
             end
             if playdate.buttonJustPressed("a") then
+                
                 local fs = menuIndex[#menuIndex]
                 if fs.menuType == "menuSelect" or fs.menuType == "Status" or fs.menuType == "cardSelect" then
                     fs:menuControl("a")
@@ -206,6 +222,7 @@ function ctrlConSwi(item)
             controlContext = GameMode.MAP
         elseif item == "battle" then
             controlContext = GameMode.BATTLE
+            bounceProtectSwi("on")
         elseif item =="pause" then
             controlContext = GameMode.PAUSE
         else 
