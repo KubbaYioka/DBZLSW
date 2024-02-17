@@ -2,14 +2,7 @@
 local gfx = playdate.graphics
 
 function bTabInit()
-    print("joint")
-print(jointDeck.cellWidth)
-print("topUI")
-print(topUI.cellWidth)
-print("battleUIMenu")
-print(battleUIMenu.cellwidth)
-print("basicCommands")
-print(basicCommands.cellWidth)
+
     PositionEnum = {
         GroundFore = "groundfore"
         ,GroundAft = "groundaft"
@@ -317,7 +310,7 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
         local jD = jointDeck:new()
     --Basic Commands
     elseif selOption == "Basic Command" then
-        local bC = basicCommands:new()
+        local bC = batCom:new()
     --Character
     elseif selOption == "Character" then
         chrData(playerTeam,"battle")
@@ -611,8 +604,6 @@ end
 
 battleUIMenu = playdate.ui.gridview.new(0,25)
 
-
-
 function battleUIMenu:new(phase)
     local o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
@@ -738,6 +729,7 @@ function battleInfoBox:new(selTable)
                sS,sR,sC = v:getSelection()
             end
         end
+        print(sC)
         o:setSelectedRow(sC)
     end
 
@@ -805,10 +797,11 @@ function changeUIInfo(tableOne)
     else
         tebN = tableOne
     end
-
-    for i,v in pairs(UIIndex) do
-        if v.tag == "UIInfo" then
-            v:newTable(tebN)
+    if UIIndex ~= nil then
+        for i,v in pairs(UIIndex) do
+            if v.tag == "UIInfo" then
+                v:newTable(tebN)
+            end
         end
     end
 end
@@ -908,36 +901,32 @@ function getDeck(deck) -- get icons to appear for each item in the deck.
     return iconTable,nameTable,portTable,costTable
 end
 
-basicCommands = playdate.ui.gridview:new(0,0)
+batCom = playdate.ui.gridview:new(0,0)
 
-function basicCommands:new()
-    o = playdate.ui.gridview:new(20,20)
+function batCom:new()
+    o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
     self.__index=self
 
-    --o.icons,o.names,o.ports = commandGet()
-    o.icons = {2,18}
-    o.names = {"3 Stage Attack","Movement"}
+    o.icons,o.names,o.ports = abilityGet()
     changeUIInfo(o.names)
 
     o:setNumberOfColumns(#o.icons)
     o:setNumberOfRows(1)
     o:setCellPadding(5,5,0,0)
     o:setContentInset(0,0,0,0)
-    o.scrollCellsToCenter = false
-    o:removeHorizontalDividers()
     o:setScrollDuration(0)
 
-    local comSpr = gfx.sprite.new()
-    comSpr:setCenter(0,0)
+    local batSpr = gfx.sprite.new()
+    batSpr:setCenter(0,0)
 
     function o:spriteKill()
-        comSpr:remove()
+        batSpr:remove()
         menuIndex[o.index] = nil
         changeUIInfo()
     end
 
-    comSpr:add()
+    batSpr:add()
 
     function o:getOption()
 
@@ -945,14 +934,16 @@ function basicCommands:new()
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local bCoImage = gfx.image.new(304,20,gfx.kColorBlack)
-            comSpr:moveTo(96,200)
-            local zInd = 108 + #menuIndex
-            comSpr:setZIndex(zInd)
-            gfx.pushContext(bCoImage)
+            local JDImage = gfx.image.new(304,20,gfx.kColorBlack)
+            batSpr:moveTo(96,200)
+
+            local zInd = 107 + #menuIndex
+            batSpr:setZIndex(zInd)
+
+            gfx.pushContext(JDImage)
                 o:drawInRect(0,0,304,20)
             gfx.popContext()
-        comSpr:setImage(bCoImage)
+            batSpr:setImage(JDImage)
         end
     end
 
@@ -963,50 +954,54 @@ function basicCommands:new()
             gfx.fillRect(x+2,y,24,16)
             gfx.fillTriangle(x+25,y,x+36,y+16,x+25,y+16)
         end
+
         local fontHeight = gfx.getFont():getHeight()
+
         for i,v in pairs(o.icons) do
             if i == column then
                 gfx.setImageDrawMode(gfx.kDrawModeNXOR)
                 miniIcons:drawImage(v,x+5,y)
             end
         end
+
     end
 
-    o.tag = "basicCommands"
+    o.tag = "batCom"
 
     o.index = #menuIndex + 1
     menuIndex[o.index] = o
-    
+
 end
 
-function commandGet()
-    --[1] is fly, 2 is limit, 3 is focus, 4 is powerup)
-    local pPhase = CurrentPhase
-    local pTab = playerChr.ability
-    local retTable = {}
+function abilityGet()
+    local retuTable = {}
     local nameTable = {}
     local portTable = {}
-    for i=1,4,1 do
-        retTable[i] = 0
-    end
-
-    retTable[1] = 18 -- player will always be able to move. Check for fly later.
-    nameTable[1] = "Movement" 
+    local pPhase = CurrentPhase
+    local pTab = playerChr.ability
 
     if pPhase == Phase.ATTACK then
+        retuTable[1] = 2 -- player will always be able to move. Check for fly later.
+        nameTable[1] = "2 Stage Attack" 
+        retuTable[2] = 18
+        nameTable[2] = "Movement"
         for i,v in pairs(pTab) do
             if pTab[3] == true then
-                retTable[3] = 17
+                retuTable[3] = 17
                 nameTable[3] = "Focus"
-            end 
-            if pTab[4] == true then
-                retTable[4] = 5
-                nameTable[4] = "Power Up"
-            end 
+            elseif pTab[4] == true then
+                retuTable[3] = 5
+                nameTable[3] = "Power Up"
+            else
+                retuTable[3] = nil
+                nameTable[3] = nil
+            end
         end
     else
-        retTable[2] = 19 -- guard
-        nameTable[2] = "Guard"
+        retuTable[1] = 19 -- guard
+        nameTable[1] = "Guard"
+        retuTable[2] = 18
+        nameTable[2] = "Movement"
     end 
-    return retTable,nameTable,portTable
+    return retuTable,nameTable,portTable
 end
