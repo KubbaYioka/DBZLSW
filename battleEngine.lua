@@ -2,6 +2,14 @@
 local gfx = playdate.graphics
 
 function bTabInit()
+    print("joint")
+print(jointDeck.cellWidth)
+print("topUI")
+print(topUI.cellWidth)
+print("battleUIMenu")
+print(battleUIMenu.cellwidth)
+print("basicCommands")
+print(basicCommands.cellWidth)
     PositionEnum = {
         GroundFore = "groundfore"
         ,GroundAft = "groundaft"
@@ -50,12 +58,12 @@ function bTabInit()
     ---------------------
 
     BattleInfoStrings = {
-        NoJoint = {
+        NoLimit = {
             [1] = "Joint Deck"
             ,[2] = "Basic Command"
             ,[3] = "Character"
         },
-        HasJoint = {
+        HasLimit = {
             [1] = "Limit Deck"
             ,[2] = "Joint Deck"
             ,[3] = "Basic Command"
@@ -276,7 +284,7 @@ function drawUI()
     local plrSprite = BattleMiniSpr("player")
     fillGauge()
     --compare speeds to see who attacks first.
-    local bMenu = battleUIMenu:new(Phase.ATTACK) --also spawns battleInfoBox
+    local battleSMenu = battleUIMenu:new(Phase.ATTACK) --also spawns battleInfoBox
 
     SubMode = SubEnum.MENU
 end
@@ -308,8 +316,8 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
     elseif selOption == "Joint Deck" then
         local jD = jointDeck:new()
     --Basic Commands
-    elseif selOption == "Basic Commands" then
-
+    elseif selOption == "Basic Command" then
+        local bC = basicCommands:new()
     --Character
     elseif selOption == "Character" then
         chrData(playerTeam,"battle")
@@ -603,6 +611,8 @@ end
 
 battleUIMenu = playdate.ui.gridview.new(0,25)
 
+
+
 function battleUIMenu:new(phase)
     local o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
@@ -619,14 +629,14 @@ function battleUIMenu:new(phase)
             ,[3] = 9
             ,[4] = 13
         }
-        STable = BattleInfoStrings.HasJoint
+        STable = BattleInfoStrings.HasLimit
     else
         o.options = {            
             [1] = 1
             ,[2] = 9
             ,[3] = 13
         }
-        STable = BattleInfoStrings.NoJoint
+        STable = BattleInfoStrings.NoLimit
     end
 
     o:setNumberOfColumns(#o.options)
@@ -788,9 +798,9 @@ function changeUIInfo(tableOne)
     local tebN = {}
     if tableOne == nil then
         if limitQuery() == true then
-            tebN = BattleInfoStrings.HasJoint
+            tebN = BattleInfoStrings.HasLimit
         else
-            tebN = BattleInfoStrings.NoJoint
+            tebN = BattleInfoStrings.NoLimit
         end
     else
         tebN = tableOne
@@ -898,16 +908,75 @@ function getDeck(deck) -- get icons to appear for each item in the deck.
     return iconTable,nameTable,portTable,costTable
 end
 
-basicCommands = playdate.ui.gridview:new(20,20)
+basicCommands = playdate.ui.gridview:new(0,0)
 
 function basicCommands:new()
     o = playdate.ui.gridview:new(20,20)
     setmetatable(o,self)
     self.__index=self
 
-    o.abTable = commandGet()
-    
+    --o.icons,o.names,o.ports = commandGet()
+    o.icons = {2,18}
+    o.names = {"3 Stage Attack","Movement"}
+    changeUIInfo(o.names)
 
+    o:setNumberOfColumns(#o.icons)
+    o:setNumberOfRows(1)
+    o:setCellPadding(5,5,0,0)
+    o:setContentInset(0,0,0,0)
+    o.scrollCellsToCenter = false
+    o:removeHorizontalDividers()
+    o:setScrollDuration(0)
+
+    local comSpr = gfx.sprite.new()
+    comSpr:setCenter(0,0)
+
+    function o:spriteKill()
+        comSpr:remove()
+        menuIndex[o.index] = nil
+        changeUIInfo()
+    end
+
+    comSpr:add()
+
+    function o:getOption()
+
+    end
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local bCoImage = gfx.image.new(304,20,gfx.kColorBlack)
+            comSpr:moveTo(96,200)
+            local zInd = 108 + #menuIndex
+            comSpr:setZIndex(zInd)
+            gfx.pushContext(bCoImage)
+                o:drawInRect(0,0,304,20)
+            gfx.popContext()
+        comSpr:setImage(bCoImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        gfx.setColor(gfx.kColorWhite)
+
+        if selected then
+            gfx.fillRect(x+2,y,24,16)
+            gfx.fillTriangle(x+25,y,x+36,y+16,x+25,y+16)
+        end
+        local fontHeight = gfx.getFont():getHeight()
+        for i,v in pairs(o.icons) do
+            if i == column then
+                gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+                miniIcons:drawImage(v,x+5,y)
+            end
+        end
+    end
+
+    o.tag = "basicCommands"
+
+    o.index = #menuIndex + 1
+    menuIndex[o.index] = o
+    
 end
 
 function commandGet()
@@ -915,28 +984,29 @@ function commandGet()
     local pPhase = CurrentPhase
     local pTab = playerChr.ability
     local retTable = {}
-    
-    for i,v in pairs(pTab) do
-        if pTab[1] == true then
-            retTable[1] = "canFly"
-        elseif pTab[1] == false then
-            retTable[1] = "noFly"
-        end 
-        if pTab[3] == true then
-            retTable[3] = "canFocus"
-        elseif pTab[3] == false then
-            retTable[3] = "noFocus"
-        end 
-        if pTab[4] == true then
-            retTable[4] = "canPowerUp"
-        elseif pTab[4] == false then
-            retTable[4] = "noPowerUp"
-        end 
+    local nameTable = {}
+    local portTable = {}
+    for i=1,4,1 do
+        retTable[i] = 0
     end
 
+    retTable[1] = 18 -- player will always be able to move. Check for fly later.
+    nameTable[1] = "Movement" 
+
     if pPhase == Phase.ATTACK then
-        return retTable
+        for i,v in pairs(pTab) do
+            if pTab[3] == true then
+                retTable[3] = 17
+                nameTable[3] = "Focus"
+            end 
+            if pTab[4] == true then
+                retTable[4] = 5
+                nameTable[4] = "Power Up"
+            end 
+        end
     else
-        return reTable[1]
+        retTable[2] = 19 -- guard
+        nameTable[2] = "Guard"
     end 
+    return retTable,nameTable,portTable
 end

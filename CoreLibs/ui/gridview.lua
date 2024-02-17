@@ -356,13 +356,11 @@ end
 
 -- utility function used by drawInRect()
 local function calculateContentSizeAndClampScrollPosition(self, drawingWidth, drawingHeight)
-
 	if self.needsDisplay == false then
 		return
 	end
 
 	local contentWidth, contentHeight
-
 	-- width
 	if self.cellWidth > 0 then
 		self.contentWidth = self.contentInsetLeft + self.contentInsetRight + (self.numColumns * (self.cellPaddingLeft + self.cellWidth + self.cellPaddingRight))
