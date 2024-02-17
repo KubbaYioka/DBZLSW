@@ -897,3 +897,46 @@ function getDeck(deck) -- get icons to appear for each item in the deck.
     end
     return iconTable,nameTable,portTable,costTable
 end
+
+basicCommands = playdate.ui.gridview:new(20,20)
+
+function basicCommands:new()
+    o = playdate.ui.gridview:new(20,20)
+    setmetatable(o,self)
+    self.__index=self
+
+    o.abTable = commandGet()
+    
+
+end
+
+function commandGet()
+    --[1] is fly, 2 is limit, 3 is focus, 4 is powerup)
+    local pPhase = CurrentPhase
+    local pTab = playerChr.ability
+    local retTable = {}
+    
+    for i,v in pairs(pTab) do
+        if pTab[1] == true then
+            retTable[1] = "canFly"
+        elseif pTab[1] == false then
+            retTable[1] = "noFly"
+        end 
+        if pTab[3] == true then
+            retTable[3] = "canFocus"
+        elseif pTab[3] == false then
+            retTable[3] = "noFocus"
+        end 
+        if pTab[4] == true then
+            retTable[4] = "canPowerUp"
+        elseif pTab[4] == false then
+            retTable[4] = "noPowerUp"
+        end 
+    end
+
+    if pPhase == Phase.ATTACK then
+        return retTable
+    else
+        return reTable[1]
+    end 
+end

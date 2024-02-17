@@ -102,7 +102,7 @@ function unlockCheck(chrCode,level)
             end
         end
     end
-    return reTable
+    return reTable -- reTable[1] is fly, 2 is limit, 3 is focus, 4 is powerup
 end
 
 function chrRet(chrCode) -- gets the character data from this location. Not for Save access.
