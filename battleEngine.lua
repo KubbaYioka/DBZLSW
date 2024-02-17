@@ -810,9 +810,8 @@ function jointDeck:new()
     setmetatable(o,self)
     self.__index=self
 
-    --o.icons,o.names,o.ports,o.costs = getDeck(playerDeck)
-    o.icons = getDeck(playerDeck)
-    --changeUIInfo(o.names)
+    o.icons,o.names,o.ports,o.costs = getDeck(playerDeck)
+    changeUIInfo(o.names)
 
     o:setNumberOfColumns(#o.icons)
     o:setNumberOfRows(1)
@@ -896,6 +895,5 @@ function getDeck(deck) -- get icons to appear for each item in the deck.
             end
         end
     end
-
-    return iconTable --,nameTable,portTable,costTable
+    return iconTable,nameTable,portTable,costTable
 end

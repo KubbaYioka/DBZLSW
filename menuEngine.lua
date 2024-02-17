@@ -1084,14 +1084,14 @@ end
 dataBox = playdate.ui.gridview.new(0,25)
 
 function dataBox:new(xD,yD,wD,hD,dText,bgD,image,fntSize) -- where bgD is the background color
-    local o = o or {}
+    local o = playdate.ui.gridview.new(0,25)
     setmetatable(o,self)
     self.__index=self
 
-    dataBox:setNumberOfColumns(1)
-    dataBox:setNumberOfRows(1)
-    dataBox:setCellPadding(0,0,0,0)
-    dataBox:setContentInset(0,0,0,0)
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(1)
+    o:setCellPadding(0,0,0,0)
+    o:setContentInset(0,0,0,0)
 
     o.bgD = bgD
     o.dText = dText
