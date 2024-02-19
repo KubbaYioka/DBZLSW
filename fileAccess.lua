@@ -24,14 +24,14 @@ function ramSave() -- loads all save data into RAM. This is modified instead of 
     if playdate.file.exists("sav.json") == false then -- if save is not found
         initSaveFile()
         RAMSAVE = playdate.datastore.read("sav")
-        gridview:new("menu", startMenu)
+        titleMenu:new("menu", startMenu)
     elseif playdate.file.exists("sav.json") == true then
         RAMSAVE = playdate.datastore.read("sav")
         local sit = clearOne() -- check to see if the game has been beaten once
         if sit == true then
-            gridview:new("menu",fullMenuMain)
+            titleMenu:new("menu",fullMenuMain)
         elseif sit == false then
-            gridview:new("menu",intermMenu)
+            titleMenu:new("menu",intermMenu)
         end
     end
     

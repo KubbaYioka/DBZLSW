@@ -17,7 +17,7 @@ function gameModeChange(gMode, location, index)
     elseif gMode == GameMode.STORY then
         ctrlConSwi("story")
        -- gridview:new(name, rows, columns, options, index, mType)
-        gridview:new(gMode, location)
+        dialogueBox:new(gMode, location)
         -- load appropriate story
     end
     gameMode = gMode

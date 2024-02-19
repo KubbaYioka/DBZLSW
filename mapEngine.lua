@@ -168,7 +168,7 @@ function queryObject(xPos,yPos,qryObj)
     end
     if qryTag == "object" then
         ctrlConSwi("story")
-        gridview:new("mapDialogue",qryObj)
+        dialogueBox:new("mapDialogue",qryObj)
     end
 end
 

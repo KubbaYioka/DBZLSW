@@ -720,30 +720,29 @@ function battleInfoBox:new(selTable)
     o:setContentInset(0,0,0,0)
 
     function o:newTable(newTable)
+        printTable(newTable)
         local tempT = o.sTable
         o.oldTable = tempT
         o.sTable = newTable
+        o:updateSelection()
+    end
+
+    function o:updateSelection()
         local sS,sR,sC = 0,0,0
         for i,v in pairs(menuIndex) do
-            if i==#menuIndex then
-               sS,sR,sC = v:getSelection()
+            if i == #menuIndex then
+                sS,sR,sC = v:getSelection()
             end
         end
-        print(sC)
+        o:setNumberOfRows(#o.sTable)
         o:setSelectedRow(sC)
+        o:selectNextRow(true,true,false)
+        o:selectPreviousRow(true,true,false) -- to update screen
     end
 
     function o:restorePrevTab()
         o.sTable = o.oldTable
-        local sS,sR,sC = 0,0,0
-        for i,v in pairs(menuIndex) do
-            if i==#menuIndex then
-               sS,sR,sC = v:getSelection()
-            end
-        end
-        o:setSelectedRow(sC)
-        o:selectNextRow(true,true,false)
-        o:selectPreviousRow(true,true,false) -- to update screen
+        o:updateSelection()
     end
 
     local bBottomM = gfx.sprite.new()
@@ -783,7 +782,7 @@ function battleInfoBox:new(selTable)
 
     o.index = #UIIndex + 1
     UIIndex[o.index] = o
-    return o
+
 end
 
 function changeUIInfo(tableOne)
@@ -814,14 +813,12 @@ function jointDeck:new()
     self.__index=self
 
     o.icons,o.names,o.ports,o.costs = getDeck(playerDeck)
-    changeUIInfo(o.names)
+    
 
     o:setNumberOfColumns(#o.icons)
     o:setNumberOfRows(1)
     o:setCellPadding(5,5,0,0)
     o:setContentInset(0,0,0,0)
-    o.scrollCellsToCenter = false
-    o:removeHorizontalDividers()
     o:setScrollDuration(0)
 
     local jointSpr = gfx.sprite.new()
@@ -877,7 +874,7 @@ function jointDeck:new()
 
     o.index = #menuIndex + 1
     menuIndex[o.index] = o
-
+    changeUIInfo(o.names)
 end
 
 function getDeck(deck) -- get icons to appear for each item in the deck.
@@ -909,7 +906,6 @@ function batCom:new()
     self.__index=self
 
     o.icons,o.names,o.ports = abilityGet()
-    changeUIInfo(o.names)
 
     o:setNumberOfColumns(#o.icons)
     o:setNumberOfRows(1)
@@ -970,7 +966,7 @@ function batCom:new()
 
     o.index = #menuIndex + 1
     menuIndex[o.index] = o
-
+    changeUIInfo(o.names)
 end
 
 function abilityGet()
