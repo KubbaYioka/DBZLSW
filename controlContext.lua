@@ -36,7 +36,7 @@ function battleInputContext(dir)
                 local fs = menuIndex[#menuIndex]
                 fs:selectPreviousColumn(true,true,false)
                 for i,v in pairs(UIIndex) do
-                    if v.tag == "UIInfo" then
+                    if v.tag == "UIInfo" and fs.tag ~= "optionSelect" then
                         v:selectPreviousRow(true,true,false)
                     end
                 end
@@ -44,7 +44,7 @@ function battleInputContext(dir)
                 local fs = menuIndex[#menuIndex]
                 fs:selectNextColumn(true,true,false)
                 for i,v in pairs(UIIndex) do
-                    if v.tag == "UIInfo" then
+                    if v.tag == "UIInfo" and fs.tag ~= "optionSelect" then
                         v:selectNextRow(true,true,false)
                     end
                 end
@@ -61,7 +61,7 @@ function battleInputContext(dir)
                 end
                 
             end
-        elseif subMode == SubMode.STAT then
+        elseif SubMode == SubEnum.STAT then
             -- specifically for status screens of cards and characters
             if dir == "up" then
                 -- display next character in team, if there.

@@ -149,7 +149,7 @@ function dTag(pos, name)
 
 end
 
-dialogueBox = playdate.ui.gridview:new(0,0)
+dialogueBox = playdate.ui.gridview.new(0,0)
 
 dialogueBox.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 

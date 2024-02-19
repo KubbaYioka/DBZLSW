@@ -44,6 +44,7 @@ function bTabInit()
         ,DEFENSE = "defense"
     }
 
+    CurrentTurn = 0
     CurrentPhase = nil
 
     ---------------------
@@ -98,7 +99,7 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     --enemyDeck = cardShuffle(eDeckCopy,true)
     enemyDeck = oppTab.enemyDeck
 
-    CurrentPhase = phaseChange(playerChr,enemyChr)
+   
 
     for i,v in pairs(initPTeam) do -- copy current players in team to battle ram
         local mTab = RAMSAVE[1]
@@ -135,15 +136,43 @@ function battleInit(battleTable) -- copy values from tables and player save to c
 
     gameModeChange(GameMode.BATTLE)
     SubMode = SubEnum.NONE
+    CurrentPhase = initTurn(playerChr,enemyChr)
     --Battle start screen
     battleIntro(playerChr.chrCode,#playerTeam,enemyChr.chrCode,#enemyTeam)
     battleSpriteSet(BattleRef)
     drawUI()
-
 end
 
-function phaseChange(playerChr,enemyChr)
-    return Phase.ATTACK
+function initTurn(playerChr,enemyChr)
+    local chrGo = nil
+    if playerChr.chrSpd > enemyChr.chrSpd then
+        chrGo = "player"
+    elseif playerChr.chrSpd < enemyChr.chrSpd then
+        chrGo = "enemy"
+    elseif playerChr.chrSpd == enemyChr.chrSpd then
+        if playerChr.chrKi >= enemyChr.chrKi then
+            chrGo = "player"
+        else
+            chrGo = "enemy"
+        end
+    end
+    if chrGo == "player" then
+        turnInc()
+        return Phase.ATTACK
+    elseif chrGo == "enemy" then
+        turnInc()
+        return Phase.DEFENSE
+    end
+end
+
+function phaseChange()
+    local cPhase = CurrentPhase
+    if cPhase == Phase.ATTACK then
+        cPhase = Phase.DEFENSE
+    elseif cPhase == Phase.DEFENSE then
+        cPhase = Phase.ATTACK
+    end
+    return cPhase
 end
 
 function cardShuffle(deck,initial)
@@ -314,7 +343,20 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
     --Character
     elseif selOption == "Character" then
         chrData(playerTeam,"battle")
+    elseif selOption == "Guard" then
+    elseif selOption == "Movement" then
+        local gC = moveField:new(playerChr.ability[1])
+    elseif selOption == "Focus" then
+    elseif selOption == "Power Up" then
+    else
+        local oS = optionSelect:new(selOption)
     end
+end
+
+function battleCardConfirm(selOption)
+    print("load card and proceed with turn")
+    -- load card stats into temp table
+    -- proceed to fight execution
 end
 
 --[[
@@ -486,7 +528,8 @@ function BattleMiniSpr:init(tag)
     local mSpr = gfx.sprite.new()
 
     mSpr:setCenter(0,0)
-    mSpr:moveTo(areaPosition(tag))
+    o.x,o.y = areaPosition(tag)
+    mSpr:moveTo(o.x,o.y)
 
     local zInd = #sprBIndex + 105
     mSpr:setZIndex(zInd)
@@ -833,7 +876,13 @@ function jointDeck:new()
     jointSpr:add()
 
     function o:getOption()
-
+        local itemS = nil
+        for i,v in pairs(UIIndex) do
+            if v.tag == "UIInfo" then
+                itemS = v.sTable[v:getSelectedRow()]
+            end
+        end
+        return itemS
     end
 
     function o:menuUpdate()
@@ -898,7 +947,7 @@ function getDeck(deck) -- get icons to appear for each item in the deck.
     return iconTable,nameTable,portTable,costTable
 end
 
-batCom = playdate.ui.gridview:new(0,0)
+batCom = playdate.ui.gridview.new(0,0)
 
 function batCom:new()
     o = playdate.ui.gridview.new(20,20)
@@ -925,7 +974,13 @@ function batCom:new()
     batSpr:add()
 
     function o:getOption()
-
+        local itemS = nil
+        for i,v in pairs(UIIndex) do
+            if v.tag == "UIInfo" then
+                itemS = v.sTable[v:getSelectedRow()]
+            end
+        end
+        return itemS
     end
 
     function o:menuUpdate()
@@ -1001,3 +1056,118 @@ function abilityGet()
     end 
     return retuTable,nameTable,portTable
 end
+
+optionSelect = playdate.ui.gridview.new(0,0)
+
+optionSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+function optionSelect:new(item) -- where item is the selected card
+    local o = playdate.ui.gridview.new(50,30)
+    setmetatable(o,self)
+    self.__index=self
+
+    o.item = item
+
+    o.menuTable = {"Details","Use"}
+
+    o:setNumberOfRows(1)
+    o:setNumberOfColumns(#o.menuTable)
+    o:setCellPadding(0,30,0,0)
+    o:setContentInset(0,0,0,0)
+    o.scrollCellsToCenter = false
+    o:setScrollDuration(0)
+
+
+    function o:getOption()
+        
+        local sS,sR,sC = o:getSelection()
+        if o.menuTable[sC] == "Details" then
+            bShowCard(o.item)
+        elseif o.menuTable[sC] == "Use" then
+            battleCardConfirm(o.item)
+        end
+        o:spriteKill() -- bounce is making the object reappear after initial kill
+    end
+
+    local menuSprite = gfx.sprite.new()
+    menuSprite:setCenter(0, 0)
+
+    function o:spriteKill()
+        menuSprite:remove()
+        menuIndex[o.index] = nil
+    end
+
+    menuSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local menuImage = gfx.image.new(150,30,gfx.kColorWhite)
+            menuSprite:moveTo(120, 180)
+            local zInd = #menuIndex + 170
+            menuSprite:setZIndex(zInd)
+            gfx.pushContext(menuImage)
+                o:drawInRect(0,0,150,30)
+            gfx.popContext()
+            menuSprite:setImage(menuImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+
+        if selected then
+            gfx.fillTriangle(x+15,y+8,x+15,y+23,x+25,y+15)
+        end
+
+        local fontHeight = gfx.getFont():getHeight()
+  
+        gfx.drawTextInRect(o.menuTable[column], x+26, y+10, width, height, nil, truncationString, kTextAlignment.left)
+    end
+
+    o.tag = "optionSelect"
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+end
+
+function bShowCard(card)
+    print(card)
+    local retCard = cardRet(card)
+    print(retCard)
+    cardData(retCard)
+    SubMode = SubEnum.STAT
+end
+
+moveField = playdate.ui.gridview.new(0,0)
+
+function moveField:new(flyParam)
+    o = playdate.ui.gridview.new(20,20)
+    setmetatable(o,self)
+    self.__index=self
+
+    for i,v in pairs (UIIndex) do
+        if v.tag == "player" then
+            o.currentPosition = playerSprTab.position
+        end
+    end
+
+    o.origin = movTabConfig(o.currentPosition)
+
+
+
+end
+
+function movTabCongig(cPos)
+    print(cPos)
+end
+
+--[[PositionEnum = {
+    GroundFore = "groundfore"
+    ,GroundAft = "groundaft"
+    ,AirFore = "airfore"
+    ,AirAft = "airaft"}]]--

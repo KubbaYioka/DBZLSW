@@ -532,6 +532,22 @@ cards = {
     ,cPortrait = {3,10}
     ,mIcon = 6
   }
+  ,["2 Stage Attack"]=
+  {
+  cName = "2 Stage Attack"
+  ,cNumber = 031
+  ,cType = CEffect
+  ,cPower = CEffect
+  ,cAccuracy = 100 
+  ,cCost = 0
+  ,cEffect = "Basic Attack"
+  ,cDescription = "Gain 2 CCs on successful attack."
+  ,cPhases = PDefense
+  ,cAbility = None
+  ,cAllowed = AllChrs
+  ,cPortrait = {4,1}
+  ,mIcon = 6
+  }
 
 }
 
