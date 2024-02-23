@@ -165,6 +165,10 @@ function initTurn(playerChr,enemyChr)
     end
 end
 
+function turnInc()
+    CurrentTurn = CurrentTurn + 1
+end
+
 function phaseChange()
     local cPhase = CurrentPhase
     if cPhase == Phase.ATTACK then
@@ -345,6 +349,7 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
         chrData(playerTeam,"battle")
     elseif selOption == "Guard" then
     elseif selOption == "Movement" then
+        SubMode = SubEnum.MOVE
         local gC = moveField:new(playerChr.ability[1])
     elseif selOption == "Focus" then
     elseif selOption == "Power Up" then
@@ -528,8 +533,8 @@ function BattleMiniSpr:init(tag)
     local mSpr = gfx.sprite.new()
 
     mSpr:setCenter(0,0)
-    o.x,o.y = areaPosition(tag)
-    mSpr:moveTo(o.x,o.y)
+    self.x,self.y = areaPosition(tag)
+    mSpr:moveTo(self.x,self.y)
 
     local zInd = #sprBIndex + 105
     mSpr:setZIndex(zInd)
@@ -763,7 +768,6 @@ function battleInfoBox:new(selTable)
     o:setContentInset(0,0,0,0)
 
     function o:newTable(newTable)
-        printTable(newTable)
         local tempT = o.sTable
         o.oldTable = tempT
         o.sTable = newTable
@@ -829,6 +833,8 @@ function battleInfoBox:new(selTable)
 end
 
 function changeUIInfo(tableOne)
+    print("TableOne")
+    printTable(tableOne)
     local tebN = {}
     if tableOne == nil then
         if limitQuery() == true then
@@ -851,6 +857,7 @@ end
 jointDeck = playdate.ui.gridview.new(20,20)
 
 function jointDeck:new()
+
     o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
     self.__index=self
@@ -868,6 +875,7 @@ function jointDeck:new()
     jointSpr:setCenter(0,0)
 
     function o:spriteKill()
+
         jointSpr:remove()
         menuIndex[o.index] = nil
         changeUIInfo()
@@ -1077,7 +1085,6 @@ function optionSelect:new(item) -- where item is the selected card
     o.scrollCellsToCenter = false
     o:setScrollDuration(0)
 
-
     function o:getOption()
         
         local sS,sR,sC = o:getSelection()
@@ -1117,9 +1124,7 @@ function optionSelect:new(item) -- where item is the selected card
         if selected then
             gfx.fillTriangle(x+15,y+8,x+15,y+23,x+25,y+15)
         end
-
         local fontHeight = gfx.getFont():getHeight()
-  
         gfx.drawTextInRect(o.menuTable[column], x+26, y+10, width, height, nil, truncationString, kTextAlignment.left)
     end
 
@@ -1136,9 +1141,7 @@ function optionSelect:new(item) -- where item is the selected card
 end
 
 function bShowCard(card)
-    print(card)
     local retCard = cardRet(card)
-    print(retCard)
     cardData(retCard)
     SubMode = SubEnum.STAT
 end
@@ -1146,28 +1149,211 @@ end
 moveField = playdate.ui.gridview.new(0,0)
 
 function moveField:new(flyParam)
-    o = playdate.ui.gridview.new(20,20)
+    local o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
     self.__index=self
 
-    for i,v in pairs (UIIndex) do
+    o.canFly = flyParam
+
+    for i,v in pairs (sprBIndex) do
         if v.tag == "player" then
             o.currentPosition = playerSprTab.position
         end
     end
 
-    o.origin = movTabConfig(o.currentPosition)
+    o.cX,o.cY = movTabConfig(o.currentPosition)
 
+    o.extraSpace = enTest()
 
+    o.drawX,o.drawY,o.dRow,o.dCol = compMove(o.cX,o.cY,o.extraSpace,o.currentPosition,o.canFly)    
+
+    o:setNumberOfRows(o.dRow)
+    o:setNumberOfColumns(o.dCol)
+    o.scrollCellsToCenter = false
+    o:setScrollDuration(0)
+    o:setCellPadding(0,90,0,90)
+    o:setContentInset(0,0,0,0)
+
+    local movementSpr = gfx.sprite.new()
+    movementSpr:setCenter(0,0)
+    movementSpr:add()
+
+    function o:getOption()
+        local movTab = {}
+        movTab = o:getSelection()
+    end
+
+    function o:spriteKill()
+        movementSpr:remove()
+        menuIndex[o.index] = nil
+    end
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local mGrid = gfx.image.new(90*o.dCol,90*o.dRow,gfx.kColorClear)
+            movementSpr:moveTo(o.drawX,o.drawY)
+            local zInd = #menuIndex + 171
+            movementSpr:setZIndex(zInd)
+            gfx.pushContext(mGrid)
+                o:drawInRect(0,0,90*o.dCol,90*o.dRow) 
+            gfx.popContext()
+            movementSpr:setImage(mGrid)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        if selected then
+            gfx.fillTriangle(x+35,y+13,x+35,y+28,x+45,y+20)
+        end
+    end
+
+    o.tag = "moveGrid"
+
+    local countI = 0
+    for _ in pairs(menuIndex) do 
+        countI = countI + 1 
+    end
+
+    o.index = countI + 1
+    menuIndex[o.index] = o
 
 end
 
-function movTabCongig(cPos)
-    print(cPos)
+function movTabConfig(cPos)
+    if cPos == PositionEnum.GroundFore then
+        return 150,160
+    elseif cPos == PositionEnum.GroundAft then
+        return 60,160
+    elseif cPos == PositionEnum.AirFore then
+        return 150, 70
+    elseif cPos == PositionEnum.AirAft then
+        return 60, 70
+    end
 end
 
---[[PositionEnum = {
-    GroundFore = "groundfore"
-    ,GroundAft = "groundaft"
-    ,AirFore = "airfore"
-    ,AirAft = "airaft"}]]--
+function enTest()
+    if enemySprTab.Position == PositionEnum.AirAft or enemySprTab.Position == PositionEnum.GroundAft then
+        if playerSprTab.Position == PositionEnum.AirFore or playerSprTab.Position == PositionEnum.GroundFore then
+            return true
+        end
+    else 
+        return false
+    end
+end
+
+function compMove(oX,oY,xtra,cPos,cFly)
+    if cPos == PositionEnum.GroundAft then
+        if  cFly == true then
+            moveUIInfo:new({"AAft","AFore"},{"GAft","GFore"})
+            return  50,50,2,2
+        else
+            moveUIInfo:new({"GAft","GFore"})
+            return 50,140,1,2
+        end
+    elseif cPos == PositionEnum.AirAft then
+        moveUIInfo:new({"AAft","AFore"},{"GAft","GFore"})
+        return 50,50,2,2
+    elseif cPos == PositionEnum.GroundFore then
+        if  cFly == true and xtra == true then
+            moveUIInfo:new({"AAft","AFore","AXtra"},{"GAft","GFore","GXtra"})
+            return  50,50,2,3
+        elseif cFly == true and xtra == false then
+            moveUIInfo:new({"AAft","AFore"},{"GAft","GFore"})
+            return 50,50,2,2
+        elseif cFly == false and xtra == true then
+            moveUIInfo:new({"GAft","GFore","GXtra"})
+            return 50,140,1,3
+        elseif cFly == false and xtra == false then
+            moveUIInfo:new({"GAft","GFore"})
+            return 50,140,1,2
+        end
+    elseif cPos == PositionEnum.AirFore then
+        if  xtra == true then
+            moveUIInfo:new({"AAft","AFore","AXtra"},{"GAft","GFore","GXtra"})
+            return  50,50,2,3
+        elseif xtra == false then
+            moveUIInfo:new({"AAft","AFore"},{"GAft","GFore"})
+            return 50,50,2,2
+        end
+    end
+end
+
+moveUIInfo = playdate.ui.gridview.new(0,0)
+
+function moveUIInfo:new(selTable1,selTable2)
+    local o = playdate.ui.gridview.new(0,40)
+    setmetatable(o,self)
+    self.__index=self
+
+    o.gTable = movDesc(selTable1)
+    if selTable2 ~= nil then
+        o.aTable = movDesc(selTable2)
+        o.rowTrig = true
+        o:setNumberOfRows(2)
+    else
+        o.rowTrig = false
+        o:setNumberOfRows(1)
+    end
+
+    o:setNumberOfColumns(#o.gTable)
+    o:setCellPadding(0,0,0,0)
+    o:setContentInset(0,0,0,0)
+
+    local bBottomM = gfx.sprite.new()
+    bBottomM:setCenter(0,0)
+
+    function o:spriteKill()
+        bBottomM:remove()
+        UIIndex[o.index] = nil
+    end
+
+    bBottomM:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local bottUIImg = gfx.image.new(304,40,gfx.kColorWhite)
+            bBottomM:moveTo(96,215)
+
+            local zInd = 110
+            bBottomM:setZIndex(zInd)
+
+            gfx.pushContext(bottUIImg)
+                o:drawInRect(0,0,304,40)
+            gfx.popContext()
+            bBottomM:setImage(bottUIImg)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        local fontHeight = gfx.getFont():getHeight()
+        for i,v in pairs(o.gTable) do
+            if i == column and row == 1 then
+                gfx.drawTextInRect(o.gTable[i], x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
+            end
+        end
+        if o.rowTrig == true then
+            for i,v in pairs(o.aTable) do
+                if i == column and row == 2 then
+                    gfx.drawTextInRect(o.aTable[i], x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
+                end
+            end
+        end
+    end
+
+    o.tag = "movementUIInfo"
+
+    o.index = #UIIndex + 1
+    UIIndex[o.index] = o
+
+end
+
+function movDesc(tTab)
+    print("Insert descriptors here based on available positions.")
+end
+
+
+function movementConfirm(newPos)
+end
+function execTurn()
+
+end

@@ -8,6 +8,7 @@ SubEnum = {
     ,MENU = "menu" --menu selections on battle screen
     ,STAT = "status" --specifically for status screen of cards and characters
     ,COMM = "command" -- for action commands
+    ,MOVE = "move" -- for selecting a position on the movement grid
 }
 
 function getInput()
@@ -55,6 +56,7 @@ function battleInputContext(dir)
                 if #menuIndex > 1 then
                     for i,v in pairs(menuIndex) do
                         if v.index == #menuIndex then
+                            print(v.tag)
                             v:spriteKill()
                         end
                     end
@@ -77,6 +79,41 @@ function battleInputContext(dir)
             end
         elseif SubMode == SubEnum.COMM then
 
+        elseif SubMode == SubEnum.MOVE then
+            local gt = nil
+            for i,v in pairs(UIIndex) do
+                if v.index == #UIIndex and v.tag == "movementUIInfo" then
+                    gt = v
+                end
+            end
+            local fs = menuIndex[#menuIndex]
+            if dir == "left" then
+                fs:selectPreviousColumn(true,true,false)
+                gt:selectPreviousColumn(true,true,false)
+            elseif dir == "right" then
+                fs:selectNextColumn(true,true,false)
+                gt:selectNextColumn(true,true,false)
+            elseif dir == "up" then
+                fs:selectPreviousRow(true,true,false)
+                gt:selectPreviousRow(true,true,false)
+            elseif dir == "down" then
+                fs:selectNextRow(true,true,false)
+                fs:selectNextRow(true,true,false)
+            elseif dir == "a" then
+                fs:getOption()
+            elseif dir == "b" then
+                for j,k in pairs(UIIndex) do
+                    if k.index == #UIIndex and k.tag == "movementUIInfo" then
+                        k:spriteKill()
+                    end
+                end
+                for i,v in pairs(menuIndex) do
+                    if v.index == #menuIndex and v.tag == "moveGrid" then
+                        v:spriteKill()
+                        SubMode = SubEnum.MENU
+                    end
+                end
+            end
         end
     elseif bounceProtect == true then
         bounceProtectSwi("off")
