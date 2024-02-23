@@ -80,27 +80,24 @@ function battleInputContext(dir)
         elseif SubMode == SubEnum.COMM then
 
         elseif SubMode == SubEnum.MOVE then
-            local gt = nil
-            for i,v in pairs(UIIndex) do
-                if v.index == #UIIndex and v.tag == "movementUIInfo" then
-                    gt = v
-                end
-            end
+            local gt = UIIndex[#UIIndex]
             local fs = menuIndex[#menuIndex]
             if dir == "left" then
                 fs:selectPreviousColumn(true,true,false)
-                gt:selectPreviousColumn(true,true,false)
+                gt:selectPreviousRow(false,true,false)
             elseif dir == "right" then
                 fs:selectNextColumn(true,true,false)
-                gt:selectNextColumn(true,true,false)
+                gt:selectNextRow(false,true,false)
             elseif dir == "up" then
                 fs:selectPreviousRow(true,true,false)
-                gt:selectPreviousRow(true,true,false)
+                gt:selectNextColumn(false,true,false)
+                
             elseif dir == "down" then
                 fs:selectNextRow(true,true,false)
-                fs:selectNextRow(true,true,false)
+                gt:selectPreviousColumn(false,true,false)
+                
             elseif dir == "a" then
-                fs:getOption()
+                print(fs:getOption())
             elseif dir == "b" then
                 for j,k in pairs(UIIndex) do
                     if k.index == #UIIndex and k.tag == "movementUIInfo" then
@@ -129,7 +126,6 @@ function menuInputContext()
         if playdate.buttonJustPressed("a") then
             local fs = menuIndex[#menuIndex]
             goMenu(fs:getOption())
-            
         end
 
         if playdate.buttonJustPressed("right") then

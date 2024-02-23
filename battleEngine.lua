@@ -833,8 +833,6 @@ function battleInfoBox:new(selTable)
 end
 
 function changeUIInfo(tableOne)
-    print("TableOne")
-    printTable(tableOne)
     local tebN = {}
     if tableOne == nil then
         if limitQuery() == true then
@@ -1179,8 +1177,13 @@ function moveField:new(flyParam)
     movementSpr:add()
 
     function o:getOption()
-        local movTab = {}
-        movTab = o:getSelection()
+        local itemS = nil
+        for i,v in pairs(UIIndex) do
+            if v.tag == "movementUIInfo" then
+                itemS = v.current
+            end
+        end
+        return itemS
     end
 
     function o:spriteKill()
@@ -1289,15 +1292,18 @@ function moveUIInfo:new(selTable1,selTable2)
     if selTable2 ~= nil then
         o.aTable = movDesc(selTable2)
         o.rowTrig = true
-        o:setNumberOfRows(2)
+        o:setNumberOfColumns(2)
     else
         o.rowTrig = false
-        o:setNumberOfRows(1)
+        o:setNumberOfColumns(1)
     end
 
-    o:setNumberOfColumns(#o.gTable)
+    o:setNumberOfRows(#o.gTable)
     o:setCellPadding(0,0,0,0)
     o:setContentInset(0,0,0,0)
+    o:setScrollDuration(0)
+
+    o.current = nil
 
     local bBottomM = gfx.sprite.new()
     bBottomM:setCenter(0,0)
@@ -1314,7 +1320,7 @@ function moveUIInfo:new(selTable1,selTable2)
             local bottUIImg = gfx.image.new(304,40,gfx.kColorWhite)
             bBottomM:moveTo(96,215)
 
-            local zInd = 110
+            local zInd = 120
             bBottomM:setZIndex(zInd)
 
             gfx.pushContext(bottUIImg)
@@ -1327,14 +1333,16 @@ function moveUIInfo:new(selTable1,selTable2)
     function o:drawCell(section,row,column,selected,x,y,width,height)
         local fontHeight = gfx.getFont():getHeight()
         for i,v in pairs(o.gTable) do
-            if i == column and row == 1 then
-                gfx.drawTextInRect(o.gTable[i], x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
+            if i == row and column == 1 then
+                gfx.drawTextInRect(v, x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
+                o.current = v
             end
         end
         if o.rowTrig == true then
             for i,v in pairs(o.aTable) do
-                if i == column and row == 2 then
-                    gfx.drawTextInRect(o.aTable[i], x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
+                if i == row and column == 2 then
+                    gfx.drawTextInRect(v, x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
+                    o.current = v
                 end
             end
         end
@@ -1344,15 +1352,29 @@ function moveUIInfo:new(selTable1,selTable2)
 
     o.index = #UIIndex + 1
     UIIndex[o.index] = o
-
 end
 
-function movDesc(tTab)
-    print("Insert descriptors here based on available positions.")
+function movDesc(newPos)
+    local retTable = {}
+    if newPos[1] == "AAft" then
+        retTable[1] = "Defense Up. Phys Defense."
+        retTable[2] = "Attack Up. Phys Defense."
+        if newPos[3] ~= nil and newPos[3 ]== "AXtra" then
+            retTable[3] = "Attack Up. Phys Defense"
+        end
+    elseif newPos[1] == "GAft" then
+        retTable[1] = "Defense Up. Ki Defense."
+        retTable[2] = "Attack Up. Ki Defense."
+        if newPos[3] ~= nil and newPos[3 ]== "GXtra" then
+            retTable[3] = "Attack Up. Ki Defense"
+        end
+    end
+    return retTable
 end
 
 
 function movementConfirm(newPos)
+
 end
 function execTurn()
 
