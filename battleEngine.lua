@@ -358,11 +358,7 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
     end
 end
 
-function battleCardConfirm(selOption)
-    print("load card and proceed with turn")
-    -- load card stats into temp table
-    -- proceed to fight execution
-end
+
 
 --[[
 local cardStats = {
@@ -1089,7 +1085,7 @@ function optionSelect:new(item) -- where item is the selected card
         if o.menuTable[sC] == "Details" then
             bShowCard(o.item)
         elseif o.menuTable[sC] == "Use" then
-            battleCardConfirm(o.item)
+            battleCardConfirm(o.item,"player")
         end
         o:spriteKill() -- bounce is making the object reappear after initial kill
     end
@@ -1372,10 +1368,28 @@ function movDesc(newPos)
     return retTable
 end
 
+------------------
+--Action Confirm--
+------------------
 
-function movementConfirm(newPos)
-
+function movementConfirm(newPos,side)
+    print(newPos)
 end
-function execTurn()
+
+function battleCardConfirm(selOption,side)
+    if side == "enemy" then
+        -- Do enemy calcs for move
+        enemyTurnTable = {}
+        enemyTurnRable.card = cardRet(selOption)
+    elseif side == "player" then
+        playerTurnTable = {}
+        playerTurnTable.card = cardRet(selOption)
+
+    -- load card stats into temp table
+    -- proceed to fight execution
+    end
+end
+
+function execTurn(action,param)
 
 end

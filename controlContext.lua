@@ -97,7 +97,7 @@ function battleInputContext(dir)
                 gt:selectPreviousColumn(false,true,false)
                 
             elseif dir == "a" then
-                print(fs:getOption())
+                movementConfirm(fs:getOption(),"player")
             elseif dir == "b" then
                 for j,k in pairs(UIIndex) do
                     if k.index == #UIIndex and k.tag == "movementUIInfo" then

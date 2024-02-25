@@ -73,5 +73,21 @@ Stat: Display character stats
 ___
 
 
+1) Get actions of both sides. Load into temporary table
+2) If movement, get new destination. Apply destination parameters.
+3) If Buff and player is attacking, the buff occurs after the other player conducts their move.
+    a) If buff and player is defending, the buff occurs before the other player moves.
+4) If attack, calculate player power and accuracy of attack based on card base and player stats
+    a) Requires calculating attacker stats+card and defender stats+card
+5) If defensive card, calculate accuracy and defense level based on card and player stats
+    a) Requires calculating attacker stats+card and defender stats+card
+6) If regular guard, calculate probability of random dodge, block, evasion, counter, w\each
+    a) Requires calculating attacker card+stats and defender stats. 
+7) Calculate outcome. Apply to temporary table.
+8) Reduce or add to CC accordingly.
+9) Animate according to outcome. Load player animations to occur according to outcome. Execute at defined times and triggers.
+10) Apply stat or HP changes.
+11) Clear temp tables. Go to next phase.
+12) If new turn, do new turn calcs for speed and such.
 
 

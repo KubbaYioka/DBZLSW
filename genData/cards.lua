@@ -212,7 +212,7 @@ cards = {
     ,cPortrait = {1,10}
     ,mIcon = 10
   }
-  ,["Sword Slash"]=
+,["Sword Slash"]=
   {
     cName = "Sword Slash"
     ,cNumber = 011
@@ -228,7 +228,7 @@ cards = {
     ,cPortrait = {2,1}
     ,mIcon = 20
   }
-  ,["Pole Strike"]=
+,["Pole Strike"]=
   {
     cName = "Pole Strike"
     ,cNumber = 012
@@ -244,15 +244,15 @@ cards = {
     ,cPortrait = {2,2}
     ,mIcon = 20
   }
-  ,["Pistol Shot"]=
+,["Pistol Shot"]=
   {
     cName = "Pistol Shot"
     ,cNumber = 013
     ,cType = CPhysical
     ,cPower = 6
     ,cAccuracy = 60
-    ,cCost = 
-    ,cEffect = "Shot from a handgun"
+    ,cCost = 5
+    ,cEffect = "Shot from a handgun."
     ,cDescription = "Strong, but inaccurate."
     ,cPhases = PAttack
     ,cAbility = None
