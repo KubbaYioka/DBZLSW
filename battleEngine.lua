@@ -359,23 +359,6 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
 end
 
 
-
---[[
-local cardStats = {
-    Type = "Attack", -- or "Defense" or "Support"
-    AttackRating = 10,
-    DefenseRating = 5,
-    Effect = nil,
-    AccuracyRating = 90
-}
-
-local positionalBonuses = {
-    --["Position"] = {DefBonus, StrBonus, KiBonus}
-    ["Ground Aft"] =0-- Bonus Def, Ki Defense, Phys Penalty
-    ,["Ground Fore"] =0-- STR Bonus, KI Defense, Phys Penalty
-    ,["Air Aft"] =0-- DEF Bonus, Ki Penalty, Phys Defense
-    ,["Air Fore"] =0-- KI Bonus, Ki Penalty, Phys Defense
-}
 -- Functions
 local function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
     if phaseType == attack then
@@ -391,8 +374,8 @@ local function calculateDerivedStats(character, phaseType) --pass character name
     end
 end
 
-local function calculateEvasion(defender)
-    return math.sqrt(defender.SPD + defender.DEF)
+local function calculateEvasion(spd,def)
+    return math.sqrt(spd + def)
 end
 
 local function determineAttackOutcome(attacker, defender, card) --only if an attacker uses an attack card and the defender uses Guard
@@ -441,13 +424,6 @@ local function postAttackChecks(player, opponent)
     -- Swap roles for next phase
     player, opponent = opponent, player
 end
-
--- Game Loop (simplified for demonstration)
-while true do
-    -- Initialization, Turn Sequence, End Conditions
-    -- This is a placeholder; the actual game loop would be more complex and involve user input, UI updates, etc.
-end
-]]--
 
 ---------------------------
 --Battle Gridview Objects--
@@ -1380,16 +1356,66 @@ function battleCardConfirm(selOption,side)
     if side == "enemy" then
         -- Do enemy calcs for move
         enemyTurnTable = {}
-        enemyTurnRable.card = cardRet(selOption)
+        enemyTurnTable.card = cardRet(selOption)
+        enemyTurnTable.mStats = turnStat(enemyChr,cardRet(selOption))
     elseif side == "player" then
         playerTurnTable = {}
         playerTurnTable.card = cardRet(selOption)
+        playerTurnTable.mStats = turnStat(playerChr,cardRet(selOption))
 
     -- load card stats into temp table
     -- proceed to fight execution
     end
 end
 
+function turnStat(stat,card,mod)
+    local tempTab = {}
+    tempTab.hp = stat.chrHp
+    tempTab.def = stat.chrDef
+    tempTab.spd = stat.chrSpd
+    tempTab.str = stat.Spd
+    tempTab.ki = stat.chrKi
+    tempTab.off = tempTab.str + tempTab.ki
+    tempTab.eva = calculateEvasion(tempTab.def,tempTab.spd)
+    tempTab.mas = tempTab.str + tempTab.def
+    if type(card) == "table" then
+        tempTab.acc = card.cAccuracy
+    end
+
+    --apply position bonuses.
+
+    return tempTab
+
+end
+
+
 function execTurn(action,param)
 
 end
+
+--[[
+    {
+	[ability] = {
+		false,
+		false,
+		false,
+		false,
+	},
+	[chrCode] = dbGoku,
+	[chrDef] = 2,
+	[chrExp] = 0,
+	[chrHp] = 80,
+	[chrKi] = 0,
+	[chrName] = Goku,
+	[chrNum] = 1,
+	[chrSpd] = 3,
+	[chrStr] = 2,
+	[chrTrans] = {
+		[trans1] = Base,
+		[trans2] = Oozaru,
+	},
+	[limit] = {
+	},
+}
+
+]]
