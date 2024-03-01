@@ -1061,7 +1061,7 @@ function optionSelect:new(item) -- where item is the selected card
         if o.menuTable[sC] == "Details" then
             bShowCard(o.item)
         elseif o.menuTable[sC] == "Use" then
-            battleCardConfirm(o.item,"player")
+            goOption(o.item,"player")
         end
         o:spriteKill() -- bounce is making the object reappear after initial kill
     end
@@ -1352,6 +1352,13 @@ function movementConfirm(newPos,side)
     print(newPos)
 end
 
+function goOption(selOption,side)
+    battleCardConfirm(selOption,side)
+    --enemy card select based on AI type--
+    
+    execTurn()
+end
+
 function battleCardConfirm(selOption,side)
     if side == "enemy" then
         -- Do enemy calcs for move
@@ -1362,35 +1369,93 @@ function battleCardConfirm(selOption,side)
         playerTurnTable = {}
         playerTurnTable.card = cardRet(selOption)
         playerTurnTable.mStats = turnStat(playerChr,cardRet(selOption))
-
-    -- load card stats into temp table
-    -- proceed to fight execution
     end
 end
 
 function turnStat(stat,card,mod)
     local tempTab = {}
+
+    local pBonus = {}
+    if stat == playerChr then
+       pBonus = getPositionBonus("player")
+    elseif stat == enemyChr then
+       pBonus = getPositionBonus("enemy")
+    end
+
     tempTab.hp = stat.chrHp
     tempTab.def = stat.chrDef
     tempTab.spd = stat.chrSpd
-    tempTab.str = stat.Spd
+    tempTab.str = stat.chrStr
     tempTab.ki = stat.chrKi
+    
+    if pBonus["Def"] then
+        --print("pBonus Def")
+        tempTab.def = tempTab.def + (tempTab.def * pBonus["Def"])
+    elseif pBonus["Str"] then
+        --print("pBonus Str")
+        tempTab.str = tempTab.str + (tempTab.str * pBonus["Str"])
+    elseif pBonus["Ki"] then
+        --print("pBonus Ki")
+        tempTab.ki = tempTab.ki + (tempTab.ki * pBonus["Ki"])
+    end
+    if pBonus["KiDef"] then
+        --print("pBonus KiDef")
+        tempTab.kiDef = true
+    elseif pBonus["PhysDef"] then
+        --print("pBonus PhysDef")
+        tempTab.physDef = true
+    end
     tempTab.off = tempTab.str + tempTab.ki
     tempTab.eva = calculateEvasion(tempTab.def,tempTab.spd)
     tempTab.mas = tempTab.str + tempTab.def
     if type(card) == "table" then
         tempTab.acc = card.cAccuracy
+        tempTab.abi = card.cAbility
     end
 
-    --apply position bonuses.
+    --/ofzg```````                       
+
+    --apply position bonuses. Calculate positional changes first.
 
     return tempTab
 
 end
 
+function getPositionBonus(side)
+    local pTab = nil
+    if side == "enemy" then
+        pTab = enemySprTab.position
+    elseif side == "player" then
+        pTab = playerSprTab.position
+    end
+    local reTab = {}
+    if pTab == PositionEnum.GroundAft then
+        reTab["Def"] = 0.10
+        reTab["KiDef"] = true
+    elseif pTab == PositionEnum.GroundFore then
+        reTab["Str"] = 0.10
+        reTab["KiDef"] = true
+    elseif pTab == PositionEnum.AirAft then
+        reTab["Def"] = 0.10
+        reTab["PhyDef"] = true
+    elseif pTab == PositionEnum.AirFore then
+        reTab["Ki"] = 0.10
+        reTab["PhyDef"] = true
+    end
 
-function execTurn(action,param)
+    return reTab
+end
 
+function execTurn()
+    print("ExecTurn")
+    if CurrentPhase == Phase.ATTACK then
+        -- in this routine, we need to compare enemy and player tables to get phase results.
+        printTable(playerTurnTable)
+        printTable(enemyTurnTable)
+
+    elseif CurrentPhase == Phase.DEFENSE then
+
+    end
 end
 
 --[[
