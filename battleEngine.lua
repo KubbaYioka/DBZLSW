@@ -87,19 +87,20 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     end
     BattleRef = battleTable
     local initPTeam = {"dbGoku"} -- will eventually pull from table RAMSAVE[5]
-    --pDeckCopy = RAMSAVE[4]
-    pDeckCopy = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
-    playerDeck[1],playerDeck[2],playerDeck[3],pDeckCopy = cardShuffle(pDeckCopy,true)
     local initChr = initPTeam[1] -- simply uses the first player in the team
-
     local oppTab = battleTable["oppoParam"]
     local initETeam = oppTab.oppoTeam
     local initEChr = initETeam[1]
-    eDeckCopy = oppTab.enemyDeck
-    --enemyDeck = cardShuffle(eDeckCopy,true)
-    enemyDeck = oppTab.enemyDeck
 
-   
+    printTable(oppTab)
+    --CARD SETUP--
+
+    --pDeckCopy = RAMSAVE[4]
+    pDeckCopy = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
+    playerDeck[1],playerDeck[2],playerDeck[3],pDeckCopy = cardShuffle(pDeckCopy,true)
+    eDeckCopy = oppTab.opponentDeck -- pulls from where the enemy deck info is for this battle
+    print(oppTab.opponentDeck)
+    enemyDeck[1],enemyDeck[2],enemyDeck[3],eDeckCopy = cardShuffle(eDeckCopy,true)
 
     for i,v in pairs(initPTeam) do -- copy current players in team to battle ram
         local mTab = RAMSAVE[1]
@@ -191,7 +192,7 @@ function cardShuffle(deck,initial)
     for i=1,cCount,1 do
         cSelect = nil
         while cSelect == nil do
-            cSelect  = deck[math.random(1, #deck)] 
+            cSelect = deck[math.random(1, #deck)] 
             if cSelect ~= nil then
                 local spec = false
                 for k,c in pairs(deck) do
@@ -717,7 +718,7 @@ function battleUIMenu:new(phase)
 end
 
 function limitQuery() -- check to see if the player has limit deck unlocked and return deck if true
-    if #playerChr.limit ~= 0 then
+    if playerChr.limit ~= nil and #playerChr.limit ~= 0 then
         return true
     else
         return false

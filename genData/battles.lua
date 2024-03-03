@@ -29,6 +29,7 @@ battles = {
             }
             ,opponentAppearance = {"normal"} -- first index in table is for the first index in oppoTeam, aka first chr
             ,opponentTrans = {"none"}
+            ,opponentAIType = {AI.NORMAL}
 
             }
         ,["arenaParam"] = {

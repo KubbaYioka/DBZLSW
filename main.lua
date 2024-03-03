@@ -34,6 +34,7 @@ import 'menuCat'
 import '/genData/story'
 import '/genData/maps'
 import '/genData/battles'
+import '/genData/aiTypes'
 
 --File Access
 import 'fileAccess'
