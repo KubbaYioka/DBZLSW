@@ -22,7 +22,7 @@ battles = {
 
         ,["oppoParam"] = {
             oppoTeam = {"dbKrillin"}
-            ,opponentLvl = {0}
+            ,opponentLvl = {10}
             ,opponentDeck = {1,2,1,2,1,2,1,2,1,3,4,5,6,7,1,2,3,4,5,6}
             ,opponentLimit = {
                 [1] = {"Energy Blast","Cont. Kick"}

@@ -33,8 +33,9 @@ import '/genData/transformations'
 import 'menuCat'
 import '/genData/story'
 import '/genData/maps'
-import '/genData/battles'
 import '/genData/aiTypes'
+import '/genData/battles'
+
 
 --File Access
 import 'fileAccess'

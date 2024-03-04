@@ -20,6 +20,9 @@ function bTabInit()
     pDeckCopy={} -- copy of RAMSAVE[4]
     playerDeck={}
     playerCC = 3
+    playerPoweredUp = false
+    playerStandReady = false
+    playerBattleDamaged = false
     playerSprTab = {
         sprRange = {}
         ,current = 0
@@ -30,14 +33,20 @@ function bTabInit()
 
     enemyChr={}
     enemyTeam={}
+    enemyTeamRO = {} -- for read-only copy of team for reference. 
     eDeckCopy={} -- copy from battle data in the battle database
     enemyDeck={}
     enemyCC = 3
+    enemyPoweredUp = false
+    enemyStandReady = false
+    enemyBattleDamaged = false
     enemySprTab = {
         sprRange = {}
         ,current = 0
         ,position = PositionEnum.GroundAft
     }
+
+    currentAI = nil
 
     Phase = {
         ATTACK = "attack"
@@ -92,14 +101,12 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     local initETeam = oppTab.oppoTeam
     local initEChr = initETeam[1]
 
-    printTable(oppTab)
     --CARD SETUP--
 
     --pDeckCopy = RAMSAVE[4]
     pDeckCopy = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
     playerDeck[1],playerDeck[2],playerDeck[3],pDeckCopy = cardShuffle(pDeckCopy,true)
     eDeckCopy = oppTab.opponentDeck -- pulls from where the enemy deck info is for this battle
-    print(oppTab.opponentDeck)
     enemyDeck[1],enemyDeck[2],enemyDeck[3],eDeckCopy = cardShuffle(eDeckCopy,true)
 
     for i,v in pairs(initPTeam) do -- copy current players in team to battle ram
@@ -122,18 +129,22 @@ function battleInit(battleTable) -- copy values from tables and player save to c
         for j,k in pairs(characters) do
             if v == j then
                 enemyTeam[i] = characters[j]
+                
                 local chrLvlT = oppTab.opponentLvl
                 enemyTeam[i].ability = unlockCheck(characters[j].chrCode,chrLvlT[i])
                 local lmtChk = enemyTeam[i].ability
                 if lmtChk[2] == true then
                     enemyTeam[i].limit = oppTab.opponentLimit[i]
                 end
+                
                 --Next, do calculations to set stats according to [oppoParam].opponentLvl and insert .opponentLimit, .hasFly, hasLimit, transformation etc
+                enemyTeamRO = enemyTeam
             end
         end
     end
     playerChr = playerTeam[1]
     enemyChr = enemyTeam[1]
+    currentAI = oppTab.opponentAIType[1]
 
     gameModeChange(GameMode.BATTLE)
     SubMode = SubEnum.NONE
