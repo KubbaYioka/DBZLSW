@@ -37,6 +37,7 @@ function bTabInit()
     eDeckCopy={} -- copy from battle data in the battle database
     enemyDeck={}
     enemyCC = 3
+    enemyAtkCounter = 1 -- enemy keeps track of how long it has been since the player has used a special attack
     enemyPoweredUp = false
     enemyStandReady = false
     enemyBattleDamaged = false
@@ -136,6 +137,8 @@ function battleInit(battleTable) -- copy values from tables and player save to c
                 if lmtChk[2] == true then
                     enemyTeam[i].limit = oppTab.opponentLimit[i]
                 end
+
+                enemyTeam[i].aiType = oppTab.opponentAIType[i]
                 
                 --Next, do calculations to set stats according to [oppoParam].opponentLvl and insert .opponentLimit, .hasFly, hasLimit, transformation etc
                 enemyTeamRO = enemyTeam
@@ -645,7 +648,7 @@ function battleUIMenu:new(phase)
 
     --establish contents of the entire gridview before continuing
     local STable = nil
-    if limitQuery() == true then
+    if limitQuery("player") == true then
         o.options = {
             [1] = 1
             ,[2] = 1
@@ -728,11 +731,19 @@ function battleUIMenu:new(phase)
     local bNfoBx = battleInfoBox:new(STable)
 end
 
-function limitQuery() -- check to see if the player has limit deck unlocked and return deck if true
-    if playerChr.limit ~= nil and #playerChr.limit ~= 0 then
-        return true
-    else
-        return false
+function limitQuery(side) -- check to see if the player has limit deck unlocked and return deck if true
+    if side == "player" then
+        if playerChr.limit ~= nil and #playerChr.limit ~= 0 then
+            return true
+        else
+            return false
+        end
+    elseif side == "enemy" then
+        if enemyChr.limit ~= nil and #enemyChr.limit ~= 0 then
+            return true
+        else
+            return false
+        end
     end
 end
 
@@ -819,7 +830,7 @@ end
 function changeUIInfo(tableOne)
     local tebN = {}
     if tableOne == nil then
-        if limitQuery() == true then
+        if limitQuery("player") == true then
             tebN = BattleInfoStrings.HasLimit
         else
             tebN = BattleInfoStrings.NoLimit
@@ -1459,11 +1470,12 @@ function getPositionBonus(side)
 end
 
 function execTurn()
-    print("ExecTurn")
+    --print("ExecTurn")
     if CurrentPhase == Phase.ATTACK then
         -- in this routine, we need to compare enemy and player tables to get phase results.
-        printTable(playerTurnTable)
-        printTable(enemyTurnTable)
+        --printTable(playerTurnTable)
+        --printTable(enemyTurnTable)
+        aiGo()
 
     elseif CurrentPhase == Phase.DEFENSE then
 

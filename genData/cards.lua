@@ -1,21 +1,9 @@
---[[
     
-Master Cards List
+--Master Cards List
 
-desig = {"number","desig","name","cc","type","stat","ability","allowedChrs"}
+--Type and SubType Enumeration--
 
-     number= Sequential number in the card list
-      desig= designator name
-       name= Name of the card
-         cc= CC cost of using the card
-       type= Type can be things like Def, Att, or Both (remember that the effect may be different based on phase)
-       stat= what stat the card alters
-    ability= Visible ability the card triggers (afterimage)
-   hAbility= Invisible ability the card triggers
-allowedChrs= list of characters the card can be used by. chrAll for all characters
---]]
-
---Type Enumeration
+--types--
 CCommand = "command"
 CPhysical = "physical"
 CKi = "ki"
@@ -24,7 +12,13 @@ CTrans = "transformation"
 CFocus = "focus"
 CAI = "afterimage"
 CPower = "powerup"
+CHPRestore = "hpRestore"
+CCAdd = "ccAdd"
 
+--subtypes--
+CDefBoost = "defenseBoost"
+CBlock = "block"
+CAvoid = "avoid"
 
 --Phase Enumeration
 
@@ -60,6 +54,7 @@ cards = {
     ,cPower = 1
     ,cAccuracy = 100 
     ,cCost = 0
+    ,cCostGain = 3
     ,cEffect = "Basic Attack."
     ,cDescription = "Gains 3 CC on successful attack."
     ,cPhases = PAttack
@@ -76,6 +71,7 @@ cards = {
     ,cPower = 1
     ,cAccuracy = 100 
     ,cCost = 0
+    ,cCostGain = 4
     ,cEffect = "Basic Attack."
     ,cDescription = "Gains 4 CC on successful attack."
     ,cPhases = PAttack
@@ -92,6 +88,7 @@ cards = {
     ,cPower = 1
     ,cAccuracy = 100 
     ,cCost = 0
+    ,cCostGain = 5
     ,cEffect = "Basic Attack."
     ,cDescription = "Gains 5 CC on successful attack."
     ,cPhases = PAttack
@@ -108,6 +105,7 @@ cards = {
     ,cPower = 1
     ,cAccuracy = 100 
     ,cCost = 0
+    ,cCostGain = 6
     ,cEffect = "Basic Attack."
     ,cDescription = "Gains 6 CC on successful attack."
     ,cPhases = PAttack
@@ -124,6 +122,7 @@ cards = {
     ,cPower = 1
     ,cAccuracy = 100 
     ,cCost = 0
+    ,cCostGain = 7
     ,cEffect = "Basic Attack."
     ,cDescription = "Gains 7 CC on successful attack."
     ,cPhases = PAttack
@@ -201,6 +200,7 @@ cards = {
     cName = "Endurance"
     ,cNumber = 010
     ,cType = CEffect
+    ,cSubType = CDefBoost
     ,cPower = function() enduranceCalc(pDef) end 
     ,cAccuracy = 100 
     ,cCost = 7
