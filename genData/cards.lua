@@ -9,16 +9,8 @@ CPhysical = "physical"
 CKi = "ki"
 CEffect = "effect"
 CTrans = "transformation"
-CFocus = "focus"
-CAI = "afterimage"
+CReady = "ready"
 CPower = "powerup"
-CHPRestore = "hpRestore"
-CCAdd = "ccAdd"
-
---subtypes--
-CDefBoost = "defenseBoost"
-CBlock = "block"
-CAvoid = "avoid"
 
 --Phase Enumeration
 
@@ -40,6 +32,11 @@ PEvaUp = "P Evasion Up"
 OEvaDn = "O Evasion Down"
 PAccUp = "P Accuracy Up"
 OAccDn = "O Accuracy Down"
+CCAdd = "Add CC"
+AfterImage = "AfterImage"
+DefBoost = "Turn Defense Boost" -- raises defense for a single turn, used with Endurance, for instance
+PhysBlock = "Physical Block" -- Blocks physical type moves completely
+KiAvoid = "Avoid Ki" -- Dodges most Ki-based attacks
 None = "none"
 
 --Other Enumeration
@@ -51,7 +48,7 @@ cards = {
     cName = "3 Stage Attack"
     ,cNumber = 001
     ,cType = CCommand
-    ,cPower = 1
+    ,cPower = .15 -- percentage of base power to add to attack
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 3
@@ -68,7 +65,7 @@ cards = {
     cName = "4 Stage Attack"
     ,cNumber = 002
     ,cType = CCommand
-    ,cPower = 1
+    ,cPower = .2 
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 4
@@ -85,7 +82,7 @@ cards = {
     cName = "5 Stage Attack"
     ,cNumber = 003
     ,cType = CCommand
-    ,cPower = 1
+    ,cPower = .25
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 5
@@ -102,7 +99,7 @@ cards = {
     cName = "6 Stage Attack"
     ,cNumber = 004
     ,cType = CCommand
-    ,cPower = 1
+    ,cPower = .3
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 6
@@ -119,7 +116,7 @@ cards = {
     cName = "7 Stage Attack"
     ,cNumber = 005
     ,cType = CCommand
-    ,cPower = 1
+    ,cPower = .45
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 7
@@ -201,7 +198,7 @@ cards = {
     ,cNumber = 010
     ,cType = CEffect
     ,cSubType = CDefBoost
-    ,cPower = function() enduranceCalc(pDef) end 
+    ,cPower = 0.5 -- to increase player defense by 50%
     ,cAccuracy = 100 
     ,cCost = 7
     ,cEffect = "Raise Defense."
@@ -536,8 +533,8 @@ cards = {
   {
   cName = "2 Stage Attack"
   ,cNumber = 031
-  ,cType = CEffect
-  ,cPower = CEffect
+  ,cType = CCommand
+  ,cPower = 0
   ,cAccuracy = 100 
   ,cCost = 0
   ,cEffect = "Basic Attack"
@@ -551,12 +548,33 @@ cards = {
 
 }
 
+BasicOther = { -- for all other actions that are not cards. 
+  ["Guard"] = {
+    cName = "Guard"
+    ,cType = CEffect
+    ,cPower = 0
+    ,cAccuracy = 100
+    ,cCost = 0
+    ,cEffect = "Square Off"
+    ,cDescription = "A simple defensive stance."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+  }
+}
+
 function cardRet(cardName) -- gets the card data from tthe above master table. Not for Save access.
+  for i,v in pairs(BasicOther) do
+    if v.cName == cardName then
+      return v
+    end
+  end
   for i,v in pairs (cards) do
       if v.cName == cardName then
         return v
       end
   end
+
 end
 
 function cardPort(cardName)

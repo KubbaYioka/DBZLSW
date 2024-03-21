@@ -148,7 +148,7 @@ end
 function AINormalDefense()
     local enStats, refStats, limitCards, playerInfo = gatherAllStats()
     local priorities = {timeSinceLastSup(4,playerInfo)
-                        ,hpPriority(enStats.chrHp,refStats.chrHp*0.5)
+                        ,hpPriority(enStats.chrHp,refStats.chrHp*0.5) -- check to see if hp is half of the original value
                         ,statBoost(10,enStats)
                         ,enBasicGuard()
                     }
@@ -244,8 +244,9 @@ end
 -- The only exception is the terminal priority. If all other return none, then the last priority must be executed.
 
 function hpPriority(hp,baseHP)
+    print("hpPriority".."current: "..hp,"base: "..baseHP)
     if hp < baseHP then
-        local moveList = nil --function()-- iterate through cards
+        local moveList = nil --function()-- iterate through cards with an effect with ability HpReg
         if move == "none" then
             return "none"
         else
@@ -255,6 +256,7 @@ function hpPriority(hp,baseHP)
 end
 
 function statBoost(num,enStats)
+    print("statBoost")
     if enStats.CC >= num then
         --search for card with stat boost param
     else
@@ -263,6 +265,7 @@ function statBoost(num,enStats)
 end
 
 function saveCC(num,enStats) -- where num is the minimum threshhold CC to not do this function save CC either with a card or default to a command card in the deck or in the basic options
+    print("saveCC: ",num)
     if num > enStats.CC then
         return "none"
     elseif num <= enStats.CC then
@@ -280,10 +283,17 @@ function timeSinceLastSup(num,playerInfo)
         end
     end
     --maybe make it a possibility that the enemy may randomly decide to use a def card.
+
+    local dStatement = nil
+    if desc == nil then
+        dStatement = "nil"
+    end
+    print("timeSinceLastSup: "..dStatement)
     return desc -- will return a function or "none"
 end
 
 function uselimit(enStats,limit)
+    print("useLimit")
     if enStats.power == true or enStats.ready then
     end
 end
@@ -309,8 +319,10 @@ function defGuard(enStats) -- use card, move to safer location
         if #ccAV > 1 then
 
             local cChosen = multiDefCardDesc(enStats,plrStat,ccAV)-- choose which defensive card is best for the situation. Avoiding, shockwave, endurance, etc.
+            print("defGuard: "..useCard(cChosen))
             --return useCard(cChosen)
         else
+            print("defGuard: "..useCard(ccAV[1]))
             -- return useCard(ccAV[1])
         end
     end
@@ -324,6 +336,9 @@ function useSpecialInDeck(enStats)
 end
 
 function enBasicGuard()
+    print("enBasicGuard")
+
+    return battleCardConfirm("Guard","enemy")
     -- return guard function.
 end
 
@@ -336,6 +351,7 @@ function simpleDefMoveDesc() -- simple random defensive move decision routine
 
     local choice = randomize(options)
     cMove = enemyMove(choice)
+    print("simpleDefMoveDesc: "..cMove)
     if cMove == "none" then
         return "none"
     else
@@ -344,6 +360,7 @@ function simpleDefMoveDesc() -- simple random defensive move decision routine
 end
 
 function enemyMove(location)
+    print("enemyMove")
     local cLoc = enSprTab.position
     if location == "attack" then
         if cLoc == PositionEnum.GroundFore or cLoc == PositionEnum.AirFore then
@@ -381,6 +398,7 @@ function enDeckGet() -- retrieve the deck the enemy has.
 end
 
 function searchType(priority) -- Find card in deck of a certain type
+    print("searchType")
     local crdLst = enDeckGet()
     local priLst ={}
     for i,v in pairs(crdLst) do
@@ -397,10 +415,11 @@ function searchType(priority) -- Find card in deck of a certain type
     end
 end
 
-function searchSubType(subType,list) -- search for card of a specific subType
+function searchAbility(ability,list) -- search for card of a specific ability
+    print("searchAbility")
     local cLst = {}
     for i,v in pairs(list) do
-        if v.cSubType == subType then
+        if v.cAbility == ability then
             cLst[i] = v
         end
     end
@@ -412,6 +431,7 @@ function searchSubType(subType,list) -- search for card of a specific subType
 end
 
 function commandCompare(list) -- compare command cards in desired list and select best one
+    print("CommandCompare")
     local dLst = {}
     for i,v in pairs(list) do
         dLst[i] = v.cCostGain
@@ -428,6 +448,7 @@ function commandCompare(list) -- compare command cards in desired list and selec
 end
 
 function cardChrCompat(enStats,list) -- checks cards in list to see which ones are compatible with the current chr
+    print("cardChrCompat")
     local cLst = {}
     for i,v in pairs(list) do
         if v.cAllowed == AllChrs then
@@ -448,6 +469,7 @@ function cardChrCompat(enStats,list) -- checks cards in list to see which ones a
 end
 
 function ccQualify(enStats,list) -- check to see if enemy has CC for cards in list. 
+    print("ccQualify")
     local cLst = {}
     for i,v in pairs(list) do
         if v.cCost <= enStats.CC then
@@ -463,6 +485,7 @@ end
 
 
 function listCompare(priority,list) -- compare items in returned list to decide on best one.
+    print("listCompare")
     local best = 0 -- where best is going to be the highest number associated with the priority
     local iBest = nil --iBest is the index location in list of the best card
     if #list == 1 then
@@ -482,6 +505,7 @@ function listCompare(priority,list) -- compare items in returned list to decide 
 end
 
 function multiDefCardDesc(enStats,plrStat,list) -- function for deciding on a defense card if multiple are available
+    print("multiDefCardDesc")
     local cLoc = enSprTab.position
     local desc = nil
     if cLoc == PositionEnum.GroundAft or cLoc == PositionEnum.GroundFore then

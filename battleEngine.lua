@@ -1377,12 +1377,13 @@ end
 
 function goOption(selOption,side)
     battleCardConfirm(selOption,side)
-    --enemy card select based on AI type--
-    
+    aiGo() -- perform AI's turn. returns battleCardConfirm
+        
     execTurn()
 end
 
 function battleCardConfirm(selOption,side)
+    print(side.." uses "..selOption)
     if side == "enemy" then
         -- Do enemy calcs for move
         enemyTurnTable = {}
@@ -1411,6 +1412,7 @@ function turnStat(stat,card,mod)
     tempTab.str = stat.chrStr
     tempTab.ki = stat.chrKi
     
+    --apply positional bonuses
     if pBonus["Def"] then
         --print("pBonus Def")
         tempTab.def = tempTab.def + (tempTab.def * pBonus["Def"])
@@ -1421,6 +1423,8 @@ function turnStat(stat,card,mod)
         --print("pBonus Ki")
         tempTab.ki = tempTab.ki + (tempTab.ki * pBonus["Ki"])
     end
+    
+    --apply any defense bonus from position
     if pBonus["KiDef"] then
         --print("pBonus KiDef")
         tempTab.kiDef = true
@@ -1428,12 +1432,32 @@ function turnStat(stat,card,mod)
         --print("pBonus PhysDef")
         tempTab.physDef = true
     end
+
+    --calculate hidden stats
     tempTab.off = tempTab.str + tempTab.ki
     tempTab.eva = calculateEvasion(tempTab.def,tempTab.spd)
     tempTab.mas = tempTab.str + tempTab.def
     if type(card) == "table" then
         tempTab.acc = card.cAccuracy
         tempTab.abi = card.cAbility
+        --examine ability
+        local cType == card.cType
+        if cType == CPhysical then
+            tempTab.str = tempTab.str + card.cPower
+        elseif cType == CKi then
+            tempTab.ki = tempTab.ki + card.cPower
+        elseif cType == CCommand then
+            tempTab.str = tempTab.str + (tempTab.str*card.cPower) -- attacks with a command card are always a percentage of the base strength
+        elseif cType == CEffect then
+            --function evaluateEffect(card)
+        elseif cType == CTrans then
+            --function applyTrans(trans)
+        elseif cType == CReady then
+            --function becomeReady(chr)
+        elseif cType == cPower then
+            --tempTab = powerUp(tempTab)
+        end
+
     end
 
     --/ofzg```````                       
@@ -1475,7 +1499,7 @@ function execTurn()
         -- in this routine, we need to compare enemy and player tables to get phase results.
         --printTable(playerTurnTable)
         --printTable(enemyTurnTable)
-        aiGo()
+        
 
     elseif CurrentPhase == Phase.DEFENSE then
 
