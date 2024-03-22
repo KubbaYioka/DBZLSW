@@ -1378,8 +1378,11 @@ end
 function goOption(selOption,side)
     battleCardConfirm(selOption,side)
     aiGo() -- perform AI's turn. returns battleCardConfirm
-        
-    execTurn()
+    if CurrentPhase == Phase.ATTACK then
+        execTurn(playerTurnTable,enemyTurnTable)
+    elseif CurrentPhase == Phase.DEFENSE then
+        execTurn(enemyTurnTable,playerTurnTable)
+    end
 end
 
 function battleCardConfirm(selOption,side)
@@ -1388,21 +1391,21 @@ function battleCardConfirm(selOption,side)
         -- Do enemy calcs for move
         enemyTurnTable = {}
         enemyTurnTable.card = cardRet(selOption)
-        enemyTurnTable.mStats = turnStat(enemyChr,cardRet(selOption))
+        enemyTurnTable.mStats = turnStat(enemyChr,cardRet(selOption),"enemy")
     elseif side == "player" then
         playerTurnTable = {}
         playerTurnTable.card = cardRet(selOption)
-        playerTurnTable.mStats = turnStat(playerChr,cardRet(selOption))
+        playerTurnTable.mStats = turnStat(playerChr,cardRet(selOption),"player")
     end
 end
 
-function turnStat(stat,card,mod)
+function turnStat(stat,card,side)
     local tempTab = {}
 
     local pBonus = {}
-    if stat == playerChr then
+    if side == "player" then
        pBonus = getPositionBonus("player")
-    elseif stat == enemyChr then
+    elseif side == "enemy" then
        pBonus = getPositionBonus("enemy")
     end
 
@@ -1449,7 +1452,7 @@ function turnStat(stat,card,mod)
         elseif cType == CCommand then
             tempTab.str = tempTab.str + (tempTab.str*card.cPower) -- attacks with a command card are always a percentage of the base strength
         elseif cType == CEffect then
-            --function evaluateEffect(card)
+            tempTab = examineEffect(side,tempTab,card)
         elseif cType == CTrans then
             --function applyTrans(trans)
         elseif cType == CReady then
@@ -1457,12 +1460,9 @@ function turnStat(stat,card,mod)
         elseif cType == cPower then
             --tempTab = powerUp(tempTab)
         end
-
     end
 
-    --/ofzg```````                       
-
-    --apply position bonuses. Calculate positional changes first.
+    --/ofzg```````
 
     return tempTab
 
@@ -1493,42 +1493,30 @@ function getPositionBonus(side)
     return reTab
 end
 
-function execTurn()
-    --print("ExecTurn")
-    if CurrentPhase == Phase.ATTACK then
-        -- in this routine, we need to compare enemy and player tables to get phase results.
-        --printTable(playerTurnTable)
-        --printTable(enemyTurnTable)
-        
+function examineEffect(side,chrTab,card)
+    chrTab = card.cAbility(side,chrTab,card.cPower)
+    return chrTab
+end
 
-    elseif CurrentPhase == Phase.DEFENSE then
 
+function execTurn(attacker,defender)
+    -- apply changes to self
+    -- apply changes inflicted on one another, if any. 
+        -- if CCCommand, then go to input screen
+        -- apply damage for successful input only
+    -- do any partner switches
+    -- conduct animation
+    --update lifebars
+    -- go to post turn
     end
 end
 
---[[
-    {
-	[ability] = {
-		false,
-		false,
-		false,
-		false,
-	},
-	[chrCode] = dbGoku,
-	[chrDef] = 2,
-	[chrExp] = 0,
-	[chrHp] = 80,
-	[chrKi] = 0,
-	[chrName] = Goku,
-	[chrNum] = 1,
-	[chrSpd] = 3,
-	[chrStr] = 2,
-	[chrTrans] = {
-		[trans1] = Base,
-		[trans2] = Oozaru,
-	},
-	[limit] = {
-	},
-}
-
-]]
+function postTurn(attacker,defender)
+    -- set any temporary changes in stats back to normal
+    -- apply any transformation changes
+    -- apply powerup changes
+    -- check to see if anyone is dead
+    -- change to new partner if someone is dead and a partner is available
+    -- if not, give victory or defeat
+    --
+end

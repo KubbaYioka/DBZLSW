@@ -153,7 +153,6 @@ function AINormalDefense()
                         ,enBasicGuard()
                     }
     for _, action in ipairs(priorities) do
-        print("action")
         if action ~= "none" then
             
             local moveFunction = action()
@@ -317,7 +316,6 @@ function defGuard(enStats) -- use card, move to safer location
         return "none"
     else
         if #ccAV > 1 then
-
             local cChosen = multiDefCardDesc(enStats,plrStat,ccAV)-- choose which defensive card is best for the situation. Avoiding, shockwave, endurance, etc.
             print("defGuard: "..useCard(cChosen))
             --return useCard(cChosen)

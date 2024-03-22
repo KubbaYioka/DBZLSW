@@ -18,26 +18,58 @@ PBoth = "both"
 PAttack = "attack"
 PDefense = "defense"
 
---Ability Enumeration
-PDefUp = "P Defense Up"
-ODefDn = "O Defense Down"
-PKiUp =  "P Ki Up"
-OKiDn =  "O Ki Down"
-PStrUp = "P Strength Up"
-PStrDn = "O Strength Down"
-PSpdUp = "P Speed Up"
-OSpdDn = "O Speed Down"
-HpReg = "HP Regen"
-PEvaUp = "P Evasion Up"
-OEvaDn = "O Evasion Down"
-PAccUp = "P Accuracy Up"
-OAccDn = "O Accuracy Down"
-CCAdd = "Add CC"
-AfterImage = "AfterImage"
-DefBoost = "Turn Defense Boost" -- raises defense for a single turn, used with Endurance, for instance
-PhysBlock = "Physical Block" -- Blocks physical type moves completely
-KiAvoid = "Avoid Ki" -- Dodges most Ki-based attacks
-None = "none"
+--Ability Funtions
+function PDefUp(side,tbl,number) --raise Def for user
+end
+function ODefDn(side,tbl,number) --lower enemy defense
+end
+function PKiUp(side,tbl,number) --raise Ki for user 
+end
+function KiDnb(side,tbl,number) --lower ki for opponent
+end
+function PStrUp(side,tbl,number) --raise strength for user"
+end
+function OStrDn(side,tbl,number) -- lower opponent strength
+end
+function PSpdUp(side,tbl,number)--raise user's speed
+end
+function OSpdDn(side,tbl,number) --lower opponent's speed
+end
+function HpReg(side,tbl,number) -- regenerate HP
+end
+function PEvaUp(side,tbl,number)-- raise user's evasion (note that this should be a greater increase than something that raises speed alone)
+end
+function OEvaDn(side,tbl,number)-- lower opponent's evasion
+end
+function PAccUp(side,tbl,number)-- raise user's accuracy
+end
+function OAccDn(side,tbl,number) -- lower opponent's accuracy
+end
+function CCAdd(side,tbl,number) -- add CC to the user
+end
+function AfterImage(side,tbl,number) -- apply afterimage to user
+end
+function DefBoost(side,tbl,number) -- raises defense for a single turn, used with Endurance, for instance
+  side.prevDef =  side.chrDef
+  side.chrDef = side.chrDef + (side.chrDef * number)
+  return side
+end
+function PhysBlock(side,tbl,number) -- Blocks physical type moves completely
+  side.block = true
+  return side
+end
+function KiAvoid(side,tbl,number) -- Dodges most Ki-based attacks
+  side.avoiding = true
+  return side
+end
+function CGuard(side,tbl,number) -- basic guard command
+  return side
+end
+function ChrMove(side,tbl,number) -- basic movement, carries slight penalty
+end
+function NoAbility(side)
+  return side
+end
 
 --Other Enumeration
 AllChrs = "all" -- all characters allowed to use card.
@@ -204,7 +236,7 @@ cards = {
     ,cEffect = "Raise Defense."
     ,cDescription = "Defends against attacks using whole body."
     ,cPhases = PDefense
-    ,cAbility = None
+    ,cAbility = DefBoost
     ,cAllowed = AllChrs
     ,cPortrait = {1,10}
     ,mIcon = 10
@@ -551,7 +583,7 @@ cards = {
 BasicOther = { -- for all other actions that are not cards. 
   ["Guard"] = {
     cName = "Guard"
-    ,cType = CEffect
+    ,cType = CGuard
     ,cPower = 0
     ,cAccuracy = 100
     ,cCost = 0
