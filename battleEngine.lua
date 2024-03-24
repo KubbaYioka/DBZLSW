@@ -1444,7 +1444,7 @@ function turnStat(stat,card,side)
         tempTab.acc = card.cAccuracy
         tempTab.abi = card.cAbility
         --examine ability
-        local cType == card.cType
+        local cType = card.cType
         if cType == CPhysical then
             tempTab.str = tempTab.str + card.cPower
         elseif cType == CKi then
@@ -1500,6 +1500,13 @@ end
 
 
 function execTurn(attacker,defender)
+    local defType = defender[card].cType
+    local attType = attacker[card].cType
+
+    attAnimation = loadMoveAnimation(attacker[card].cName))
+    defAnimation = loadMoveAnimation(defender[card].cName))
+    local damageApply, breakBlock = attWillDamage(attacker)
+    local defApply, willBlock = defKind(defender)
     -- apply changes to self
     -- apply changes inflicted on one another, if any. 
         -- if CCCommand, then go to input screen
@@ -1509,6 +1516,36 @@ function execTurn(attacker,defender)
     --update lifebars
     -- go to post turn
     end
+end
+
+function attWillDamage(attacker)
+    local attType = attacker[card].cType
+    local willDamage = nil
+    local breakBlock = nil -- for attacks that break through all defenses, like Spirit Bomb
+    local willEffect = {}
+    if attType == CCommand then
+        willDamage = true
+        --input prompt
+    elseif attType == CKi or attType == CPhysical or  then --add all other cards capable of damage here
+        willDamage = true
+        -- do conditional for all cards that do breakBlock
+    else -- for everything else including CTrans, power up, or stand ready
+        willDamage = false
+        breakBlock = false
+    end
+
+    return willDamage, breakBlock 
+end
+
+function defKind(defender)
+
+
+end
+
+function loadMoveAnimation(name)
+    -- loads the animation sequence for the name, which will be the card or move used
+    -- animations are a series of moving images punctuated by triggers that move on to the next animation.
+    --        Some moves only have one trigger where others, like Command cards, have multiple 
 end
 
 function postTurn(attacker,defender)
