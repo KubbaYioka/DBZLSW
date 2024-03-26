@@ -369,10 +369,11 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
     elseif selOption == "Focus" then
     elseif selOption == "Power Up" then
     else
-        local oS = optionSelect:new(selOption)
+        if #menuIndex < 3 then -- prevents the optionSelect currently in place from being overwritten
+            local oS = optionSelect:new(selOption)
+        end
     end
 end
-
 
 -- Functions
 local function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
@@ -407,6 +408,7 @@ local function determineAttackOutcome(attacker, defender, card) --only if an att
 
     return doesHit, isCritical
 end
+
 
 local function calculateDamage(attacker, defender, isCritical)
     local damage = defender.DEF - (attacker.STR or attacker.KI) -- Depending on the type of attack
@@ -1062,12 +1064,19 @@ optionSelect = playdate.ui.gridview.new(0,0)
 
 optionSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
-function optionSelect:new(item) -- where item is the selected card
+function optionSelect:new(selItem) -- where item is the selected card
     local o = playdate.ui.gridview.new(50,30)
     setmetatable(o,self)
     self.__index=self
 
-    o.item = item
+    o.parentItem = selItem
+
+    --[[
+    if o.parentItem ~= nil then
+        print("parentItem: "..o.parentItem)
+    else
+        print("parentItem for optionSelect has no value!")
+    end]]
 
     o.menuTable = {"Details","Use"}
 
@@ -1079,20 +1088,20 @@ function optionSelect:new(item) -- where item is the selected card
     o:setScrollDuration(0)
 
     function o:getOption()
-        
         local sS,sR,sC = o:getSelection()
         if o.menuTable[sC] == "Details" then
-            bShowCard(o.item)
+            bShowCard(o.parentItem)
         elseif o.menuTable[sC] == "Use" then
-            goOption(o.item,"player")
+            goOption(o.parentItem,"player")
         end
-        o:spriteKill() -- bounce is making the object reappear after initial kill
+        --o:spriteKill() -- bounce is making the object reappear after initial kill
     end
 
     local menuSprite = gfx.sprite.new()
     menuSprite:setCenter(0, 0)
 
     function o:spriteKill()
+        print("optionSelect removed")
         menuSprite:remove()
         menuIndex[o.index] = nil
     end
@@ -1376,9 +1385,12 @@ function movementConfirm(newPos,side)
 end
 
 function goOption(selOption,side)
+    
     battleCardConfirm(selOption,side)
     aiGo() -- perform AI's turn. returns battleCardConfirm
     if CurrentPhase == Phase.ATTACK then
+        printTable(playerTurnTable)
+        printTable(enemyTurnTable)
         execTurn(playerTurnTable,enemyTurnTable)
     elseif CurrentPhase == Phase.DEFENSE then
         execTurn(enemyTurnTable,playerTurnTable)
@@ -1386,7 +1398,7 @@ function goOption(selOption,side)
 end
 
 function battleCardConfirm(selOption,side)
-    print(side.." uses "..selOption)
+    --print(side.." uses "..selOption)
     if side == "enemy" then
         -- Do enemy calcs for move
         enemyTurnTable = {}
@@ -1498,35 +1510,57 @@ function examineEffect(side,chrTab,card)
     return chrTab
 end
 
-
 function execTurn(attacker,defender)
-    local defType = defender[card].cType
-    local attType = attacker[card].cType
+    local defType = defender.card
+    local attType = attacker.card
 
-    attAnimation = loadMoveAnimation(attacker[card].cName))
-    defAnimation = loadMoveAnimation(defender[card].cName))
-    local damageApply, breakBlock = attWillDamage(attacker)
-    local defApply, willBlock = defKind(defender)
-    -- apply changes to self
-    -- apply changes inflicted on one another, if any. 
-        -- if CCCommand, then go to input screen
-        -- apply damage for successful input only
+    local knockbackDamage = nil
+
+    attAnimation = loadMoveAnimation(attType.cName)
+    defAnimation = loadMoveAnimation(defType.cName)
+    attacker.damageApply, attacker.breakBlock = attWillDamage(attacker)
+    defender.defApply, defender.willBlock = defKind(defender)
+
+
+    local cardHitMiss = nil
+    local statHitMiss = nil
+    if attacker.damageApply then
+        cardHitMiss = moveCompare(attacker,defender) -- checks if cards cause hit or miss due to avoiding, block, etc
+        statHitMiss = statCompare(attacker,defender) -- gets a table with damage, if an attack will land, and if knockback happens
+    else
+        -- conditionals for all other moves possible other than attacks. Effects, powerup, ready, partner switch, etc
+    end
+
+    if statHitMiss[2] == false then
+        -- nohit. Adjust tables and load appropriate animations accordingly.
+
+    else
+        -- subtract attack power from enemy's hp in a new table to be applied after the attack
+    end
+
+    if statHitMiss[3] == true then
+        -- do something with knockbackDamage
+        -- load appropriate animations
+    end
+
+
     -- do any partner switches
     -- conduct animation
     --update lifebars
     -- go to post turn
-    end
 end
 
 function attWillDamage(attacker)
-    local attType = attacker[card].cType
+    local card = attacker.card
+    local attType = card.cType
     local willDamage = nil
     local breakBlock = nil -- for attacks that break through all defenses, like Spirit Bomb
     local willEffect = {}
+
     if attType == CCommand then
         willDamage = true
         --input prompt
-    elseif attType == CKi or attType == CPhysical or  then --add all other cards capable of damage here
+    elseif attType == CKi or attType == CPhysical or attType == CCommand then --add all other cards capable of damage here
         willDamage = true
         -- do conditional for all cards that do breakBlock
     else -- for everything else including CTrans, power up, or stand ready
@@ -1535,6 +1569,138 @@ function attWillDamage(attacker)
     end
 
     return willDamage, breakBlock 
+end
+
+function moveCompare(attacker,defender) -- compare cards to determine hit or miss because of avoiding, block, etc
+    local caCard = attacker.card
+    local cdCard = defender.card
+    local atCardType = caCard.cType
+    local deCardType = cdCard.cType
+
+    local wOutCome = nil
+
+    if attacker.damageApply then 
+        if defender.willBlock ~= nil then
+            if attacker.breakBlock then
+                -- breakBlock. Ignore all willBlock
+                wOutCome = "hit"
+            else
+                if defender.willBlock == "ki" then
+                    if atCardType == CKi then
+                        wOutCome = "kiMiss"
+                    else
+                        wOutCome = "hit"
+                    end
+                elseif defender.willBlock == "phys" then
+                    if atCardType == CPhysical then
+                        wOutCome = "physMiss"
+                    else
+                        wOutCome = "hit"
+                    end
+                elseif defender.willBlock == "com" then
+                    if atCardType == CCommand then
+                        wOutCome = "comMiss"
+                    else
+                        wOutCome = "hit"
+                    end
+                end
+            end
+        else 
+            wOutCome = "hit"
+        end
+    end
+    return wOutCome
+end
+
+function statCompare(attacker,defender)
+    local atStat = attacker.mStats
+    local deStat = defender.mStats
+    local cacKind = attacker.card
+    local atKind = cacKind.cType
+    local attackKind = nil
+
+    if atKind == CKi then
+        attackKind = atStat.ki + cacKind.cPower
+    elseif atKind == CPhysical then
+        attackKind = atStat.str + cacKind.cPower
+    elseif atKind == CCommand then
+        attackKind = atStat.str + (atStat.str * cacKind.cPower)
+    end
+
+
+    local atDamage = attackKind - deStat.def
+    local hitToEvasionChance = calculateHitChance(atStat.acc, deStat.eva)
+
+    local attHit = attackHits(hitToEvasionChance) -- boolean for if the attack has landed
+    local knockbackChance = calcKnockback(atStat.off,deStat.mas)
+    local isKnockback = attackHits(knockbackChance)
+
+    --debug print statements--
+    print("Raw Attack Power: "..attackKind)
+    print("Enemy's Defense: "..deStat.def)
+    local debug1state = "Attack Will Land"
+    local debug2state = "Opponent is not knocked back."
+    if attHit == false then
+        debug1State = "Attack Misses"
+    end
+    if isKnockBack == false then
+        debug2State = "Opponent is knocked back!" 
+    end
+    print("Chance to Hit: "..hitToEvasionChance)
+    print(debug1state)
+    print("Chance of Knockback: "..knockbackChance)
+    print(debug2state)
+    --
+
+    -- at this point, we have determined the amount of damage an attack will cause
+    -- whether or not the attack will hit, and if it will cause knockback.
+
+    return {atDamage,atHit,isKnockback}
+
+end
+
+function calculateHitChance(accuracy, evasion)
+    local minimumHitChance = 1
+    local maximumHitChance = 100
+
+    local evasionImpact = evasion > accuracy and (accuracy / evasion) * evasion or evasion
+    local hitChance = accuracy - evasionImpact
+
+    hitChance = math.max(minimumHitChance, hitChance)
+    hitChance = math.min(maximumHitChance, hitChance)
+
+    return hitChance
+end
+
+function attackHits(hitChance)
+    local rndChance = math.random(1, 100)
+    
+    if rndChance <= hitChance then
+        return true  -- Attack hits
+    else
+        return false  -- Attack misses
+    end
+end
+
+function calcKnockback(offense, mass)
+    local percentage = (offense / mass) * 100
+    print("offense of "..offense.." is "..percentage.." percent of mass "..mass)
+
+    if percentage >= 200 then
+        return 100
+    elseif percentage >= 160 and percentage <= 189 then
+        return 80
+    elseif percentage >= 130 and percentage <= 159 then
+        return 60
+    elseif percentage >= 80 and percentage <= 129 then
+        return 40
+    elseif percentage >= 60 and percentage <= 79 then
+        return 20
+    elseif percentage >= 50 and percentage <= 59 then
+        return 10
+    else
+        return 0
+    end
 end
 
 function defKind(defender)

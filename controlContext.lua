@@ -56,7 +56,6 @@ function battleInputContext(dir)
                 if #menuIndex > 1 then
                     for i,v in pairs(menuIndex) do
                         if v.index == #menuIndex then
-                            print(v.tag)
                             v:spriteKill()
                         end
                     end

@@ -11,6 +11,7 @@ CEffect = "effect"
 CTrans = "transformation"
 CReady = "ready"
 CPower = "powerup"
+CGuard = "guard"
 
 --Phase Enumeration
 
@@ -62,7 +63,7 @@ function KiAvoid(side,tbl,number) -- Dodges most Ki-based attacks
   side.avoiding = true
   return side
 end
-function CGuard(side,tbl,number) -- basic guard command
+function CDGuard(side,tbl,number) -- basic guard command
   return side
 end
 function ChrMove(side,tbl,number) -- basic movement, carries slight penalty
@@ -566,7 +567,7 @@ cards = {
   cName = "2 Stage Attack"
   ,cNumber = 031
   ,cType = CCommand
-  ,cPower = 0
+  ,cPower = .1
   ,cAccuracy = 100 
   ,cCost = 0
   ,cEffect = "Basic Attack"
