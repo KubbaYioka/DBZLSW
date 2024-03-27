@@ -26,6 +26,9 @@ import 'storyEngine'
 --Map Engine 
 import 'mapEngine'
 
+--Battle Animations
+import 'battleAnimation'
+
 --General Data
 import '/genData/characters'
 import '/genData/cards'

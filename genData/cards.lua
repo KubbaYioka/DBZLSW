@@ -20,57 +20,134 @@ PAttack = "attack"
 PDefense = "defense"
 
 --Ability Funtions
-function PDefUp(side,tbl,number) --raise Def for user
+function PDefUp(side,card) --raise Def for user
+  print("Define code for PDefUp in cards.lua")
 end
-function ODefDn(side,tbl,number) --lower enemy defense
+
+function ODefDn(side,card) --lower enemy defense
+  print("Define code for ODefDn in cards.lua")
 end
-function PKiUp(side,tbl,number) --raise Ki for user 
+
+function PKiUp(side,card) --raise Ki for user 
+  print("Define code for PKiUp in cards.lua")
 end
-function KiDnb(side,tbl,number) --lower ki for opponent
+
+function OKiDn(side,card) --lower ki for opponent
+  print("Define code for OKiDn in cards.lua")
 end
-function PStrUp(side,tbl,number) --raise strength for user"
+
+function PStrUp(side,card) --raise strength for user"
+  print("Define code for PStrUp in cards.lua")
 end
-function OStrDn(side,tbl,number) -- lower opponent strength
+
+function OStrDn(side,card) -- lower opponent strength
+  print("Define code for OStrDn in cards.lua")
 end
-function PSpdUp(side,tbl,number)--raise user's speed
+
+function PSpdUp(side,card)--raise user's speed
+  print("Define code for PSpdUp in cards.lua")
 end
-function OSpdDn(side,tbl,number) --lower opponent's speed
+
+function OSpdDn(side,card) --lower opponent's speed
+  print("Define code for OSpdDn in cards.lua")
 end
-function HpReg(side,tbl,number) -- regenerate HP
+
+function HpReg(side,card) -- regenerate HP
+  print("Define code for HpReg in cards.lua")
 end
-function PEvaUp(side,tbl,number)-- raise user's evasion (note that this should be a greater increase than something that raises speed alone)
+
+function PEvaUp(side,card)-- raise user's evasion (note that this should be a greater increase than something that raises speed alone)
+  print("Define code for PEvaUp in cards.lua")
 end
-function OEvaDn(side,tbl,number)-- lower opponent's evasion
+
+function OEvaDn(side,card)-- lower opponent's evasion
+  print("Define code for OEvaDn in cards.lua")
 end
-function PAccUp(side,tbl,number)-- raise user's accuracy
+
+function PAccUp(side,card)-- raise user's accuracy
+  print("Define code for PAccUp in cards.lua")
 end
-function OAccDn(side,tbl,number) -- lower opponent's accuracy
+
+function OAccDn(side,card) -- lower opponent's accuracy
+  print("Define code for OAccDn in cards.lua")
 end
-function CCAdd(side,tbl,number) -- add CC to the user
+
+function CCAdd(side,card) -- add CC to the user
+  print("Define code for CCAdd in cards.lua")
 end
-function AfterImage(side,tbl,number) -- apply afterimage to user
+
+function AfterImage(side,card) -- apply afterimage to user
+  print("Define code for AfterImage in cards.lua")
 end
-function DefBoost(side,tbl,number) -- raises defense for a single turn, used with Endurance, for instance
-  side.prevDef =  side.chrDef
-  side.chrDef = side.chrDef + (side.chrDef * number)
+
+function breakBlock(side,card) -- breaks through avoiding cards
+  side.breakBlock = true
   return side
 end
-function PhysBlock(side,tbl,number) -- Blocks physical type moves completely
-  side.block = true
+
+function DefBoost(side,card) -- raises defense for a single turn, used with Endurance, for instance
+  side.prevDef =  side.def
+  side.def = side.def + (side.def * card.cPower)
   return side
 end
-function KiAvoid(side,tbl,number) -- Dodges most Ki-based attacks
-  side.avoiding = true
+
+function PhysBlock(side,card) -- Blocks physical type moves completely
+  side.willBlock = "phys"
   return side
 end
-function CDGuard(side,tbl,number) -- basic guard command
+
+function KiAvoid(side,card) -- Dodges most Ki-based attacks
+  side.willBlock = "ki"
   return side
 end
-function ChrMove(side,tbl,number) -- basic movement, carries slight penalty
-end
-function NoAbility(side)
+
+function CDGuard(side,card) -- basic guard command
+  print("Define code for CDGuard in cards.lua")
   return side
 end
+
+function ChrMove(side,card) -- basic movement, carries slight penalty
+  print("Define code for ChrMove in cards.lua")
+end
+
+function CommandBlock(side,card)
+  side.willBlock = "com"
+  return side
+end
+
+function NoAbility(side,card)
+  return side
+end
+
+AbilityTableSelf ={ -- abilities applied to the self
+  PDefUp
+  ,PKiUp
+  ,PStrUp
+  ,PSpdUp
+  ,HpReg
+  ,PEvaUp
+  ,PAccUp
+  ,CCAdd
+  ,AfterImage
+  ,breakBlock
+  ,DefBoost
+  ,PhysBlock
+  ,KiAvoid
+  ,CDGuard
+  ,ChrMove
+  ,CommandBlock
+  ,NoAbility
+}
+
+OffensiveAbilities = {
+  ODefDn
+  ,OKiDn
+  ,OStrDn
+  ,OSpdDn
+  ,OEvaDn
+  ,OAccDn
+  ,NoAbility
+}
 
 --Other Enumeration
 AllChrs = "all" -- all characters allowed to use card.
@@ -230,7 +307,6 @@ cards = {
     cName = "Endurance"
     ,cNumber = 010
     ,cType = CEffect
-    ,cSubType = CDefBoost
     ,cPower = 0.5 -- to increase player defense by 50%
     ,cAccuracy = 100 
     ,cCost = 7
@@ -580,6 +656,26 @@ cards = {
   }
 
 }
+
+--[[
+  ,["Avoiding"]=
+  {
+  cName = "Avoiding"
+  ,cNumber = ###
+  ,cType = CEffect
+  ,cPower = 0
+  ,cAccuracy = 100 
+  ,cCost = 12
+  ,cEffect = "Avoid Beam"
+  ,cDescription = "A moment of foresight allows beam dodge."
+  ,cPhases = PDefense
+  ,cAbility = KiAvoid
+  ,cAllowed = AllChrs
+  ,cPortrait = {#,#}
+  ,mIcon = #
+  }
+
+]]
 
 BasicOther = { -- for all other actions that are not cards. 
   ["Guard"] = {

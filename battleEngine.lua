@@ -1513,62 +1513,98 @@ end
 function execTurn(attacker,defender)
     local defType = defender.card
     local attType = attacker.card
-
     local knockbackDamage = nil
 
-    attAnimation = loadMoveAnimation(attType.cName)
-    defAnimation = loadMoveAnimation(defType.cName)
-    attacker.damageApply, attacker.breakBlock = attWillDamage(attacker)
-    defender.defApply, defender.willBlock = defKind(defender)
-
+    attacker.attAnimation = loadMoveAnimation(attType.cName)
+    defender.defAnimation = loadMoveAnimation(defType.cName)
+    attacker = attWillDamage(attacker) -- for determining hits and effects as well as applying them
+    defender = defKind(defender) -- for determining defense type and effects as well as applying them
 
     local cardHitMiss = nil
     local statHitMiss = nil
-    if attacker.damageApply then
+    if attacker.damageApply ~= nil then
         cardHitMiss = moveCompare(attacker,defender) -- checks if cards cause hit or miss due to avoiding, block, etc
         statHitMiss = statCompare(attacker,defender) -- gets a table with damage, if an attack will land, and if knockback happens
-    else
+    elseif attacker.offensiveEffect ~= nil then
         -- conditionals for all other moves possible other than attacks. Effects, powerup, ready, partner switch, etc
     end
 
-    if statHitMiss[2] == false then
-        -- nohit. Adjust tables and load appropriate animations accordingly.
+    --cardHitMiss[1] is a boolean for whether or not the card landed a hit
+    --cardHitMiss[2] is the stat that is affected by the hit.
+    --where atDamage (statusHitMiss[1]) is the numeric value for hp the defender loses
+    --atHit (statHitMiss[2]) is a boolean signaling if the attack lands at all
+    --and isKnockback (statHitMiss[3]) is a boolean for whether or not this is critical
 
-    else
-        -- subtract attack power from enemy's hp in a new table to be applied after the attack
-    end
-
-    if statHitMiss[3] == true then
-        -- do something with knockbackDamage
-        -- load appropriate animations
-    end
-
+    attacker, defender = moveProcessing(attacker, defender, cardHitMiss, statHitMiss)
 
     -- do any partner switches
+    animationGo(attacker,defender)
+
     -- conduct animation
     --update lifebars
     -- go to post turn
+    postTurn(attacker, defender)
 end
 
 function attWillDamage(attacker)
     local card = attacker.card
     local attType = card.cType
-    local willDamage = nil
-    local breakBlock = nil -- for attacks that break through all defenses, like Spirit Bomb
-    local willEffect = {}
+    local damageApply = nil
+    local willEffect = nil
 
-    if attType == CCommand then
-        willDamage = true
-        --input prompt
-    elseif attType == CKi or attType == CPhysical or attType == CCommand then --add all other cards capable of damage here
-        willDamage = true
-        -- do conditional for all cards that do breakBlock
-    else -- for everything else including CTrans, power up, or stand ready
-        willDamage = false
-        breakBlock = false
+    if attType == CCommand or attType == CKi or attType == CPhysical then
+        damageApply = true
+    end
+    if attType == CEffect then
+        willEffect = true
     end
 
-    return willDamage, breakBlock 
+    attacker.damageApply = damageApply
+    attacker.effectApply = willEffect
+
+    attacker = effectProcessing(attacker) --apply effects of card to user, or load them to see if they hit later
+
+    return attacker 
+end
+
+function defKind(defender) 
+    local card = defender.card
+    local defType = card.cType
+    local defAbility = card.cAbility
+    local willEffect = nil
+
+    if defType == CEffect then
+        willEffect = true
+    end
+
+    defender.effectApply = willEffect
+    defender = effectProcessing(defender)
+
+    return defender
+end
+
+function effectProcessing(side)
+    local card = side.card
+    local cardEffect = card.cType
+    local cardAbility = card.cAbility
+
+    if cardEffect == CEffect then
+        for i,v in pairs(AbilityTableSelf) do
+            if cardEffect == v then
+                side = cardAbility(side,card)
+                side.selfEffect = true
+            end
+        end
+        for i,v in pairs(OffensiveAbilities) do
+            if cardEffect == v then
+                side.offensiveEffect = true
+            end
+        end
+    elseif cardEffect == CTrans or cardEffect == CReady or cardEffect == CPower then
+        print(tostring(cardEffect).." not yet implemented. side.selfEffect = true")
+        side.selfEffect = true
+    end
+    return side
 end
 
 function moveCompare(attacker,defender) -- compare cards to determine hit or miss because of avoiding, block, etc
@@ -1578,38 +1614,44 @@ function moveCompare(attacker,defender) -- compare cards to determine hit or mis
     local deCardType = cdCard.cType
 
     local wOutCome = nil
+    local kindOfHit = nil
+    local hitTable = {}
 
     if attacker.damageApply then 
         if defender.willBlock ~= nil then
             if attacker.breakBlock then
                 -- breakBlock. Ignore all willBlock
-                wOutCome = "hit"
+                wOutCome = true
             else
                 if defender.willBlock == "ki" then
                     if atCardType == CKi then
-                        wOutCome = "kiMiss"
+                        wOutCome = false
                     else
-                        wOutCome = "hit"
+                        kindOfHit = "ki"
+                        wOutCome = true
                     end
                 elseif defender.willBlock == "phys" then
                     if atCardType == CPhysical then
-                        wOutCome = "physMiss"
+                        wOutCome = false
                     else
-                        wOutCome = "hit"
+                        kindOfHit = "phys"
+                        wOutCome = true
                     end
                 elseif defender.willBlock == "com" then
                     if atCardType == CCommand then
-                        wOutCome = "comMiss"
+                        wOutCome = false
                     else
-                        wOutCome = "hit"
+                        kinfOfHit = "com"
+                        wOutCome = true
                     end
                 end
             end
         else 
-            wOutCome = "hit"
+            wOutCome = true
         end
     end
-    return wOutCome
+    hitTable = {wOutCome, kindOfHit}
+    return hitTable
 end
 
 function statCompare(attacker,defender)
@@ -1626,7 +1668,6 @@ function statCompare(attacker,defender)
     elseif atKind == CCommand then
         attackKind = atStat.str + (atStat.str * cacKind.cPower)
     end
-
 
     local atDamage = attackKind - deStat.def
     local hitToEvasionChance = calculateHitChance(atStat.acc, deStat.eva)
@@ -1646,6 +1687,7 @@ function statCompare(attacker,defender)
     if isKnockBack == false then
         debug2State = "Opponent is knocked back!" 
     end
+
     print("Chance to Hit: "..hitToEvasionChance)
     print(debug1state)
     print("Chance of Knockback: "..knockbackChance)
@@ -1703,15 +1745,9 @@ function calcKnockback(offense, mass)
     end
 end
 
-function defKind(defender)
-
-
-end
-
-function loadMoveAnimation(name)
-    -- loads the animation sequence for the name, which will be the card or move used
-    -- animations are a series of moving images punctuated by triggers that move on to the next animation.
-    --        Some moves only have one trigger where others, like Command cards, have multiple 
+function moveProcessing(atta, defe, cardHit, statHit)
+    if cardHit == true and statHit[2] == true then
+    end
 end
 
 function postTurn(attacker,defender)
