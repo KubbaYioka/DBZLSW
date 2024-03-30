@@ -194,6 +194,22 @@ function phaseChange()
     return cPhase
 end
 
+function nextPhase()
+    for i,v in pairs(menuIndex) do
+        v:spriteKill()
+        menuIndex[i] = nil
+        if v.tag == "optionSelect" then
+            v:spriteKill()
+        end
+    end
+    for i,v in pairs(UIIndex) do
+        if v.tag == "UIInfo" then
+            v:spriteKill()
+            UIIndex[i] = nil
+        end
+    end
+end
+
 function cardShuffle(deck,initial)
     local cSelect = nil
     local cCount = 1
@@ -368,7 +384,8 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
         local gC = moveField:new(playerChr.ability[1])
     elseif selOption == "Focus" then
     elseif selOption == "Power Up" then
-    else
+    elseif selOption and selOption ~= nil then
+        print("seloption:"..tostring(selOption))
         if #menuIndex < 3 then -- prevents the optionSelect currently in place from being overwritten
             local oS = optionSelect:new(selOption)
         end
@@ -1071,12 +1088,7 @@ function optionSelect:new(selItem) -- where item is the selected card
 
     o.parentItem = selItem
 
-    --[[
-    if o.parentItem ~= nil then
-        print("parentItem: "..o.parentItem)
-    else
-        print("parentItem for optionSelect has no value!")
-    end]]
+    print(selItem)
 
     o.menuTable = {"Details","Use"}
 
@@ -1389,8 +1401,8 @@ function goOption(selOption,side)
     battleCardConfirm(selOption,side)
     aiGo() -- perform AI's turn. returns battleCardConfirm
     if CurrentPhase == Phase.ATTACK then
-        printTable(playerTurnTable)
-        printTable(enemyTurnTable)
+        --printTable(playerTurnTable)
+        --printTable(enemyTurnTable)
         execTurn(playerTurnTable,enemyTurnTable)
     elseif CurrentPhase == Phase.DEFENSE then
         execTurn(enemyTurnTable,playerTurnTable)
@@ -1456,7 +1468,7 @@ function turnStat(stat,card,side)
         tempTab.acc = card.cAccuracy
         tempTab.abi = card.cAbility
         --examine ability
-        local cType = card.cType
+       --[[ local cType = card.cType
         if cType == CPhysical then
             tempTab.str = tempTab.str + card.cPower
         elseif cType == CKi then
@@ -1464,14 +1476,14 @@ function turnStat(stat,card,side)
         elseif cType == CCommand then
             tempTab.str = tempTab.str + (tempTab.str*card.cPower) -- attacks with a command card are always a percentage of the base strength
         elseif cType == CEffect then
-            tempTab = examineEffect(side,tempTab,card)
+            --tempTab = examineEffect(side,tempTab,card)
         elseif cType == CTrans then
             --function applyTrans(trans)
         elseif cType == CReady then
             --function becomeReady(chr)
         elseif cType == cPower then
             --tempTab = powerUp(tempTab)
-        end
+        end--]]
     end
 
     --/ofzg```````
@@ -1520,22 +1532,25 @@ function execTurn(attacker,defender)
     attacker = attWillDamage(attacker) -- for determining hits and effects as well as applying them
     defender = defKind(defender) -- for determining defense type and effects as well as applying them
 
-    local cardHitMiss = nil
-    local statHitMiss = nil
     if attacker.damageApply ~= nil then
-        cardHitMiss = moveCompare(attacker,defender) -- checks if cards cause hit or miss due to avoiding, block, etc
-        statHitMiss = statCompare(attacker,defender) -- gets a table with damage, if an attack will land, and if knockback happens
-    elseif attacker.offensiveEffect ~= nil then
-        -- conditionals for all other moves possible other than attacks. Effects, powerup, ready, partner switch, etc
+        attacker.cardHitMiss = moveCompare(attacker,defender) -- checks if cards cause hit or miss due to avoiding, block, etc
+        attacker.statHitMiss = statCompare(attacker,defender) -- gets a table with damage, if an attack will land, and if knockback happens
     end
 
-    --cardHitMiss[1] is a boolean for whether or not the card landed a hit
+    if attacker.offensiveEffect ~= nil or defender.offensiveEffect ~= nil then
+        attacker, defender = effectCompare(attacker,defender) -- returns a table with an offensive effect and its number
+        -- conditionals for all other moves possible other than attacks. Effects, powerup, ready, partner switch, etc
+        attacker, defender = effectHit(attacker, defender) -- returns booleans for if the attack hits
+    end
+
+    --cardHitMiss[1] is a boolean for whether or not the card landed a hit or if the opponent's card blocked it
     --cardHitMiss[2] is the stat that is affected by the hit.
     --where atDamage (statusHitMiss[1]) is the numeric value for hp the defender loses
-    --atHit (statHitMiss[2]) is a boolean signaling if the attack lands at all
+    --attHit (statHitMiss[2]) is a boolean signaling if the attack lands at all
     --and isKnockback (statHitMiss[3]) is a boolean for whether or not this is critical
+    --finally, knockbackMulti (statHitMiss[4]) is the amount of damage to add for a crit
 
-    attacker, defender = moveProcessing(attacker, defender, cardHitMiss, statHitMiss)
+    attacker, defender = moveProcessing(attacker, defender)
 
     -- do any partner switches
     animationGo(attacker,defender)
@@ -1560,6 +1575,7 @@ function attWillDamage(attacker)
     end
 
     attacker.damageApply = damageApply
+
     attacker.effectApply = willEffect
 
     attacker = effectProcessing(attacker) --apply effects of card to user, or load them to see if they hit later
@@ -1615,9 +1631,15 @@ function moveCompare(attacker,defender) -- compare cards to determine hit or mis
 
     local wOutCome = nil
     local kindOfHit = nil
-    local hitTable = {}
-
+    local retTable = {}
     if attacker.damageApply then 
+        if atCardType == CKi then
+            kindOfHit = "ki"
+        elseif atCardType == CPhysical then
+            kindOfHit = "phys"
+        elseif atCardType == CCommand then
+            kindOfHit = "com"
+        end
         if defender.willBlock ~= nil then
             if attacker.breakBlock then
                 -- breakBlock. Ignore all willBlock
@@ -1627,21 +1649,18 @@ function moveCompare(attacker,defender) -- compare cards to determine hit or mis
                     if atCardType == CKi then
                         wOutCome = false
                     else
-                        kindOfHit = "ki"
                         wOutCome = true
                     end
                 elseif defender.willBlock == "phys" then
                     if atCardType == CPhysical then
                         wOutCome = false
                     else
-                        kindOfHit = "phys"
                         wOutCome = true
                     end
                 elseif defender.willBlock == "com" then
                     if atCardType == CCommand then
                         wOutCome = false
                     else
-                        kinfOfHit = "com"
                         wOutCome = true
                     end
                 end
@@ -1650,8 +1669,34 @@ function moveCompare(attacker,defender) -- compare cards to determine hit or mis
             wOutCome = true
         end
     end
-    hitTable = {wOutCome, kindOfHit}
-    return hitTable
+    
+    retTable = {wOutCome, kindOfHit}
+
+    return retTable
+end
+
+function effectCompare(attacker,defender) -- compare cards to determine hit or miss because of avoiding, block, etc
+    local caCard = attacker.card
+    local cdCard = defender.card
+    local attackerEffOffense = {}
+    local defenderEffOffense = {}
+
+    if attacker.offensiveEffect == true then
+        attackerEffOffense = card.cAbility(defender,card) -- will return stat and how much to change it by
+    else
+        attackerEffOffense = nil
+    end
+    if defender.offensiveEffect == true then
+        defenderEffOffense = card.cAbility(attacker,card)
+    else
+        defenderEffOffense = nil
+    end
+
+    attacker.EffOffense = attackerEffOffense
+    defender.EffOffense = defenderEffOffense
+
+    return attacker, defender
+
 end
 
 function statCompare(attacker,defender)
@@ -1660,31 +1705,39 @@ function statCompare(attacker,defender)
     local cacKind = attacker.card
     local atKind = cacKind.cType
     local attackKind = nil
-
+    local retTable = {}
     if atKind == CKi then
         attackKind = atStat.ki + cacKind.cPower
     elseif atKind == CPhysical then
         attackKind = atStat.str + cacKind.cPower
     elseif atKind == CCommand then
-        attackKind = atStat.str + (atStat.str * cacKind.cPower)
+        local ccPwr = atStat.str * cacKind.cPower
+        print(ccPwr)
+        attackKind = atStat.str + ccPwr
     end
-
     local atDamage = attackKind - deStat.def
+    print(atDamage)
     local hitToEvasionChance = calculateHitChance(atStat.acc, deStat.eva)
 
     local attHit = attackHits(hitToEvasionChance) -- boolean for if the attack has landed
     local knockbackChance = calcKnockback(atStat.off,deStat.mas)
     local isKnockback = attackHits(knockbackChance)
 
+    local knockbackMulti = nil
+    if isKnockback == true then
+        knockbackMulti = calculateKnockDamage(atKind, atStat, knockbackChance)
+    end
+
     --debug print statements--
     print("Raw Attack Power: "..attackKind)
     print("Enemy's Defense: "..deStat.def)
     local debug1state = "Attack Will Land"
     local debug2state = "Opponent is not knocked back."
+
     if attHit == false then
         debug1State = "Attack Misses"
     end
-    if isKnockBack == false then
+    if isKnockback == false then
         debug2State = "Opponent is knocked back!" 
     end
 
@@ -1692,13 +1745,49 @@ function statCompare(attacker,defender)
     print(debug1state)
     print("Chance of Knockback: "..knockbackChance)
     print(debug2state)
-    --
 
     -- at this point, we have determined the amount of damage an attack will cause
-    -- whether or not the attack will hit, and if it will cause knockback.
+    -- whether or not the attack will hit, and if it will cause knockback and if so, how much damage
 
-    return {atDamage,atHit,isKnockback}
+    retTable = {atDamage,attHit,isKnockback,knockbackMulti}
+    print("statCompare retTable")
+    printTable(retTable)
 
+    return retTable
+
+end
+
+function effectHit(attacker, defender)
+    local atStat = attacker.mStats
+    local deStat = defender.mStats
+    local cacKind = attacker.card
+    local cdcKind = defender.card
+
+    if attacker.EffOffense ~= nil then
+        local atHitToEvasionChance = calculateHitChange(atStat.acc, deStat.eva)
+        local attHit = attackHits(atHitToEvasionChance)
+        if attHit == true then
+            print("Attacker's Effect Has Hit!")
+            attacker.effecthits = true
+        else
+            print("Attacker's Effect Has Missed!")
+            attacker.effectHits = false
+        end
+    end
+
+    if defender.EffOffense ~= nil then
+        local deHitToEvasionChance = calculateHitChange(deStat.acc, atStat.eva)
+        local deHit = attackHits(atHitToEvasionChance)
+        if deHit == true then
+            print("Defender's Effect Has Hit!")
+            defender.effectHits = true
+        else
+            print("Defender's Effect Has Missed!")
+            defender.effectHits = false
+        end
+    end
+
+    return attacker, defender
 end
 
 function calculateHitChance(accuracy, evasion)
@@ -1745,13 +1834,109 @@ function calcKnockback(offense, mass)
     end
 end
 
-function moveProcessing(atta, defe, cardHit, statHit)
-    if cardHit == true and statHit[2] == true then
+function calculateKnockDamage(atType, stats, scale) -- criticals scale with difference in power
+    local stt = nil
+    for i,v in pairs(stats) do
+        if atType == v then
+            stt = v
+        end
     end
+    local per = scale * .01
+    local critDamage = stt * per
+    return critDamage
+end
+
+function moveProcessing(atta, defe)
+    local cardHitTable = atta.cardHitMiss
+    local statHitTable = atta.statHitMiss
+    local attackerEffect = atta.EffOffense
+    local defenderEffect = defe.EffOffense
+    local deStat = defe.mStats
+    local atStat = atta.mStats
+
+    print(tostring(statHitTable.attHit))
+    print("----------------------")
+    print("cardHitTable. Generated by moveCompare. Should have {wOutCome, kindOfHit}")
+    for i,v in pairs(cardHitTable) do
+        print("index: "..i.." value: "..tostring(v))
+    end
+    
+    print("----------------------")
+    print("statHitTable. Generated by statCompare. Should have {atDamage,attHit,isKnockback,knockbackMulti}")
+    
+    for i,v in pairs(statHitTable) do
+        print("index: "..i.." value: "..tostring(v))
+    end
+    print("----------------------")
+
+    local cardHit = cardHitTable[1] -- boolean
+    local hitType = cardHitTable[2] -- string
+    local damageAmount = statHitTable[1] --number
+    local statHit = statHitTable[2] -- boolean
+    local knockbackHit = statHitTable[3] --boolean
+    local knockbackDamage = statHitTable[4] -- amount
+
+    if cardHit == true and statHit == true then
+        print("attack hit in eval")
+        if knockbackHit == true then
+            damageAmount = damageAmount + knockbackDamage
+        end
+
+        deStat.hp = deStat.hp - damageAmount
+
+    elseif cardHit == false and statHit == true then
+        -- Attack dodged
+    elseif cardHit == true and statHit == false then
+        -- Enemy dodges attack
+    else
+        -- complete miss (critical miss?)
+    end
+    
+    if atta.offensiveEffect == true then -- apply changes to defender's stats if true
+        for i,v in pairs (deStats) do
+            if v == attackerEffect.stat then
+                v = v - attackerEffect.num
+            end
+        end
+    end
+
+    defe.mStats = deStat
+
+    if defe.offensiveEffect == true then -- apply changes to attacker's stats if true
+        for i,v in pairs (atStats) do
+            if v == defenderrEffect.stat then
+                v = v - defenderEffect.num
+            end
+        end
+    end
+
+    atta.mStats = atStat
+
+    return atta, defe
+end
+
+function newStats(original,turnStats)
+    original.chrDef = turnStats.def
+    original.chrStr = turnStats.str
+    original.chrHp = turnStats.hp
+    original.chrSpd = turnStats.spd
+
+    return original
 end
 
 function postTurn(attacker,defender)
-    -- set any temporary changes in stats back to normal
+    local atStat = attacker.mStats
+    local deStat = defender.mStats
+    local aHP = atStat.hp
+    local dHP = deStat.hp
+    print("Attacker HP is: "..aHP)
+    print("Defender HP is: "..dHP)
+
+    playerChr = newStats(playerChr, atStat)
+    enemyChr = newStats(enemyChr,deStat)
+    phaseChange()
+    nextPhase()
+    -- if it is a new turn, set any temporary changes in stats back to normal using the table in side.prevStats
     -- apply any transformation changes
     -- apply powerup changes
     -- check to see if anyone is dead

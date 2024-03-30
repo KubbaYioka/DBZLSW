@@ -39,7 +39,6 @@ import '/genData/maps'
 import '/genData/aiTypes'
 import '/genData/battles'
 
-
 --File Access
 import 'fileAccess'
 

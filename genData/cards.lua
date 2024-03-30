@@ -25,7 +25,11 @@ function PDefUp(side,card) --raise Def for user
 end
 
 function ODefDn(side,card) --lower enemy defense
+  local stat = nil
+  local num = nil
   print("Define code for ODefDn in cards.lua")
+  local tab = {stat,num}
+  return tab
 end
 
 function PKiUp(side,card) --raise Ki for user 
@@ -86,8 +90,10 @@ function breakBlock(side,card) -- breaks through avoiding cards
 end
 
 function DefBoost(side,card) -- raises defense for a single turn, used with Endurance, for instance
-  side.prevDef =  side.def
+  local tempTab = {}
+  tempTab.def =  side.def
   side.def = side.def + (side.def * card.cPower)
+  side.prevStats = tempTab
   return side
 end
 
@@ -158,7 +164,7 @@ cards = {
     cName = "3 Stage Attack"
     ,cNumber = 001
     ,cType = CCommand
-    ,cPower = .15 -- percentage of base power to add to attack
+    ,cPower = .5 -- percentage of base power to add to attack
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 3
@@ -175,7 +181,7 @@ cards = {
     cName = "4 Stage Attack"
     ,cNumber = 002
     ,cType = CCommand
-    ,cPower = .2 
+    ,cPower = .5 
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 4
@@ -192,7 +198,7 @@ cards = {
     cName = "5 Stage Attack"
     ,cNumber = 003
     ,cType = CCommand
-    ,cPower = .25
+    ,cPower = .5
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 5
@@ -209,7 +215,7 @@ cards = {
     cName = "6 Stage Attack"
     ,cNumber = 004
     ,cType = CCommand
-    ,cPower = .3
+    ,cPower = .5
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 6
@@ -226,7 +232,7 @@ cards = {
     cName = "7 Stage Attack"
     ,cNumber = 005
     ,cType = CCommand
-    ,cPower = .45
+    ,cPower = .5
     ,cAccuracy = 100 
     ,cCost = 0
     ,cCostGain = 7
@@ -643,7 +649,7 @@ cards = {
   cName = "2 Stage Attack"
   ,cNumber = 031
   ,cType = CCommand
-  ,cPower = .1
+  ,cPower = .5
   ,cAccuracy = 100 
   ,cCost = 0
   ,cEffect = "Basic Attack"
