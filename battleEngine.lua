@@ -155,7 +155,7 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     --Battle start screen
     battleIntro(playerChr.chrCode,#playerTeam,enemyChr.chrCode,#enemyTeam)
     battleSpriteSet(BattleRef)
-    drawUI()
+    drawUI(CurrentPhase)
 end
 
 function initTurn(playerChr,enemyChr)
@@ -194,7 +194,17 @@ function phaseChange()
     return cPhase
 end
 
+function turnTableClear()
+    enemyTurnTable = nil
+    playerTurnTable = nil
+    attacker = nil
+    defender = nil
+end
+
 function nextPhase()
+    turnTableClear()
+    CurrentPhase = phaseChange()
+    --if new turn, then do the speed check again
     for i,v in pairs(menuIndex) do
         v:spriteKill()
         menuIndex[i] = nil
@@ -208,6 +218,10 @@ function nextPhase()
             UIIndex[i] = nil
         end
     end
+    local battleSMenu battleUIMenu:new(phase)
+
+    SubMode = SubEnum.MENU
+
 end
 
 function cardShuffle(deck,initial)
@@ -330,7 +344,7 @@ function drawArena()
 
 end
 
-function drawUI()
+function drawUI(phase)
     local pName, eName = playerChr.chrName, enemyChr.chrName
     local pUI = topUI:new("left",pName)
     local eUI = topUI:new("right",eName)
@@ -341,10 +355,11 @@ function drawUI()
     local plrSprite = BattleMiniSpr("player")
     fillGauge()
     --compare speeds to see who attacks first.
-    local battleSMenu = battleUIMenu:new(Phase.ATTACK) --also spawns battleInfoBox
+    local battleSMenu = battleUIMenu:new(phase) --also spawns battleInfoBox
 
     SubMode = SubEnum.MENU
 end
+
 
 function fillGauge()
     local enLife = LifeBar("enemy",enemyChr.chrHp)
@@ -379,6 +394,7 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
     elseif selOption == "Character" then
         chrData(playerTeam,"battle")
     elseif selOption == "Guard" then
+        goOption(selOption,"player")
     elseif selOption == "Movement" then
         SubMode = SubEnum.MOVE
         local gC = moveField:new(playerChr.ability[1])
@@ -391,6 +407,8 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
         end
     end
 end
+
+
 
 -- Functions
 local function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
@@ -570,6 +588,11 @@ function BattleMiniSpr:init(tag)
     local numberO = #sprBIndex + 1
     self.index = numberO
     sprBIndex[numberO] = self
+end
+
+function BattleMiniSpr:changePosition(tag) -- change depiction of position in arena.
+    self.x,self.y = areaPosition(tag)
+    mSpr:moveTo(self.x,self.y)
 end
 
 class('VsEmblem').extends(gfx.sprite)
@@ -1716,7 +1739,7 @@ function statCompare(attacker,defender)
         attackKind = atStat.str + ccPwr
     end
     local atDamage = attackKind - deStat.def
-    print(atDamage)
+    --print(atDamage)
     local hitToEvasionChance = calculateHitChance(atStat.acc, deStat.eva)
 
     local attHit = attackHits(hitToEvasionChance) -- boolean for if the attack has landed
@@ -1729,8 +1752,8 @@ function statCompare(attacker,defender)
     end
 
     --debug print statements--
-    print("Raw Attack Power: "..attackKind)
-    print("Enemy's Defense: "..deStat.def)
+    --print("Raw Attack Power: "..attackKind)
+    --print("Enemy's Defense: "..deStat.def)
     local debug1state = "Attack Will Land"
     local debug2state = "Opponent is not knocked back."
 
@@ -1741,17 +1764,17 @@ function statCompare(attacker,defender)
         debug2State = "Opponent is knocked back!" 
     end
 
-    print("Chance to Hit: "..hitToEvasionChance)
-    print(debug1state)
-    print("Chance of Knockback: "..knockbackChance)
-    print(debug2state)
+    --print("Chance to Hit: "..hitToEvasionChance)
+    --print(debug1state)
+   -- print("Chance of Knockback: "..knockbackChance)
+    --print(debug2state)
 
     -- at this point, we have determined the amount of damage an attack will cause
     -- whether or not the attack will hit, and if it will cause knockback and if so, how much damage
 
     retTable = {atDamage,attHit,isKnockback,knockbackMulti}
-    print("statCompare retTable")
-    printTable(retTable)
+    --print("statCompare retTable")
+    --printTable(retTable)
 
     return retTable
 
@@ -1767,10 +1790,10 @@ function effectHit(attacker, defender)
         local atHitToEvasionChance = calculateHitChange(atStat.acc, deStat.eva)
         local attHit = attackHits(atHitToEvasionChance)
         if attHit == true then
-            print("Attacker's Effect Has Hit!")
+            --print("Attacker's Effect Has Hit!")
             attacker.effecthits = true
         else
-            print("Attacker's Effect Has Missed!")
+            --print("Attacker's Effect Has Missed!")
             attacker.effectHits = false
         end
     end
@@ -1847,6 +1870,10 @@ function calculateKnockDamage(atType, stats, scale) -- criticals scale with diff
 end
 
 function moveProcessing(atta, defe)
+
+    print("Data For: "..CurrentPhase)
+    printTable(atta)
+
     local cardHitTable = atta.cardHitMiss
     local statHitTable = atta.statHitMiss
     local attackerEffect = atta.EffOffense
@@ -1854,6 +1881,7 @@ function moveProcessing(atta, defe)
     local deStat = defe.mStats
     local atStat = atta.mStats
 
+    --[[
     print(tostring(statHitTable.attHit))
     print("----------------------")
     print("cardHitTable. Generated by moveCompare. Should have {wOutCome, kindOfHit}")
@@ -1868,7 +1896,7 @@ function moveProcessing(atta, defe)
         print("index: "..i.." value: "..tostring(v))
     end
     print("----------------------")
-
+    ]]
     local cardHit = cardHitTable[1] -- boolean
     local hitType = cardHitTable[2] -- string
     local damageAmount = statHitTable[1] --number
@@ -1877,7 +1905,7 @@ function moveProcessing(atta, defe)
     local knockbackDamage = statHitTable[4] -- amount
 
     if cardHit == true and statHit == true then
-        print("attack hit in eval")
+        --print("attack hit in eval")
         if knockbackHit == true then
             damageAmount = damageAmount + knockbackDamage
         end
@@ -1929,12 +1957,21 @@ function postTurn(attacker,defender)
     local deStat = defender.mStats
     local aHP = atStat.hp
     local dHP = deStat.hp
-    print("Attacker HP is: "..aHP)
-    print("Defender HP is: "..dHP)
+    --print("Attacker HP is: "..aHP)
+    --print("Defender HP is: "..dHP)
 
     playerChr = newStats(playerChr, atStat)
     enemyChr = newStats(enemyChr,deStat)
-    phaseChange()
+
+    for i,v in pairs(otherIndex) do -- apply damage to HP, if any
+        if v.tag == "playerHP" then
+            v:updateHP("player",playerChr.chrHp)
+        end
+        if v.tag == "enemyHP" then
+            v:updateHP("enemy",enemyChr.chrHp)
+        end
+    end
+    
     nextPhase()
     -- if it is a new turn, set any temporary changes in stats back to normal using the table in side.prevStats
     -- apply any transformation changes

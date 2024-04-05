@@ -54,11 +54,11 @@ sysFNT = {} -- table that stores all fonts.
 --Font
 sysFNT.dbFont = gfx.font.new('assets/fonts/DBLSW2')
 sysFNT.smDBFont = gfx.font.new('assets/fonts/DBLSWSM')
-gfx.setFont(sysFNT.dbFont) 
+gfx.setFont(sysFNT.dbFont)
 
 --Master Tables
 
-menuIndex = {} -- for all menu objects. Cleared between gamemodes. 
+menuIndex = {} -- for all menu objects. Cleared between gamemodes.
 portIndex = {} -- for keeping track of portraits in story mode.
 tagIndex = {} -- for keeping track of dialogue tags
 dataBoxIndex = {} -- for individually drawn data boxes like fields for card info

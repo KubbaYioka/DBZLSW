@@ -129,23 +129,31 @@ end
 --NORMAL AI functions--
 
 function AINormalAttack() 
+    print("AINormalAttack Used")
     local enStats, refStats, limitCards, playerInfo = gatherAllStats()
-    local priorities = {}
-    if enStats.CC < 8 then
-        --priority is getting CC
-    elseif enStats.power or enStats.ready then
-        -- priority is attacking with the limit deck if available
-        if limitCards ~= nil then
-            --select card if enough CC
-        elseif limitCards then
-            --priority is an attack card from the deck
+    local priorities = {saveCC(8,enStats)
+                        ,useLimit(enStats)
+                        ,hpPriority(enStats.chrHp,refStats.chrHp*0.7)
+                        --,gather power\ready if CC > #
+                        --,use attack if available and CC > #
+                        ,enBasicAttack()
+
+
+                    }
+    for _, action in ipairs(priorities) do
+        if action ~= "none" then
+            
+            local moveFunction = action()
+            if moveFunction then
+                moveFunction()
+                return -- Exit the function once a valid move is executed
+            end
         end
-    else
-        --stuff
     end
 end
 
 function AINormalDefense()
+    print("AINormalDefense Used")
     local enStats, refStats, limitCards, playerInfo = gatherAllStats()
     local priorities = {timeSinceLastSup(4,playerInfo)
                         ,hpPriority(enStats.chrHp,refStats.chrHp*0.5) -- check to see if hp is half of the original value
@@ -291,10 +299,11 @@ function timeSinceLastSup(num,playerInfo)
     return desc -- will return a function or "none"
 end
 
-function uselimit(enStats,limit)
+function useLimit(enStats,limit)
 
     if enStats.power == true or enStats.ready then
     end
+    return "none"
 end
 
 function defGuard(enStats) -- use card, move to safer location
@@ -332,10 +341,14 @@ function useSpecialInDeck(enStats)
 end
 
 function enBasicGuard()
-
-
     return battleCardConfirm("Guard","enemy")
     -- return guard function.
+end
+
+function enBasicAttack()
+    -- determine what card is in basic command. Will be 2 Stage for now
+    local basCard = "2 Stage Attack"
+    return battleCardConfirm(basCard,"enemy")
 end
 
 function simpleDefMoveDesc() -- simple random defensive move decision routine
