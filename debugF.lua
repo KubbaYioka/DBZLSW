@@ -2,6 +2,9 @@
 
 local gfx = playdate.graphics
 
+print("Message from debugF.lua:")
+print("Next, add cards at the beginning of each turn.")
+
 --view loaded file
 function callRam()
     printTable(RAMSAVE)

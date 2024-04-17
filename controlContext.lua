@@ -60,7 +60,6 @@ function battleInputContext(dir)
                         end
                     end
                 end
-                
             end
         elseif SubMode == SubEnum.STAT then
             -- specifically for status screens of cards and characters
@@ -90,11 +89,9 @@ function battleInputContext(dir)
             elseif dir == "up" then
                 fs:selectPreviousRow(true,true,false)
                 gt:selectNextColumn(false,true,false)
-                
             elseif dir == "down" then
                 fs:selectNextRow(true,true,false)
                 gt:selectPreviousColumn(false,true,false)
-                
             elseif dir == "a" then
                 movementConfirm(fs:getOption(),"player")
             elseif dir == "b" then

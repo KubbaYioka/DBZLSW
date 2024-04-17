@@ -173,6 +173,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,1}
     ,mIcon = 2
   }
@@ -190,6 +191,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,2}
     ,mIcon = 2
   }
@@ -207,6 +209,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,3}
     ,mIcon = 2
   }
@@ -224,6 +227,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,4}
     ,mIcon = 2
   }
@@ -241,6 +245,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,5}
     ,mIcon = 2
   }
@@ -257,6 +262,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,6}
     ,mIcon = 3
   }
@@ -273,6 +279,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,7}
     ,mIcon = 3
   }
@@ -289,6 +296,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,8}
     ,mIcon = 4
   }
@@ -305,6 +313,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,9}
     ,mIcon = 4
   }
@@ -321,6 +330,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = DefBoost
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {1,10}
     ,mIcon = 10
   }
@@ -337,6 +347,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = {"dbzFTrunks","dbYamcha","dbBearThief","dbzKidGohan","dbzTeenGohan","dbzDabura","dbMurasaki","dbTao"}
+    ,cNForms = None
     ,cPortrait = {2,1}
     ,mIcon = 20
   }
@@ -353,6 +364,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = {"dbGoku","dbKorin","dbRoshi"}
+    ,cNForms = None
     ,cPortrait = {2,2}
     ,mIcon = 20
   }
@@ -369,6 +381,7 @@ cards = {
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = {"dbBulma"}
+    ,cNForms = None
     ,cPortrait = {2,3}
     ,mIcon = 20
   }
@@ -385,6 +398,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {2,4}
     ,mIcon = 6
   }
@@ -401,6 +415,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {2,5}
     ,mIcon = 6
   }
@@ -417,6 +432,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {2,6}
     ,mIcon = 6
   }
@@ -433,6 +449,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {2,7}
     ,mIcon = 6
   }
@@ -449,6 +466,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {2,8}
     ,mIcon = 6
   }
@@ -465,6 +483,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {2,9}
     ,mIcon = 6
   }
@@ -481,6 +500,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {2,10}
     ,mIcon = 6
   }
@@ -497,6 +517,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,1}
     ,mIcon = 6
   }
@@ -513,6 +534,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,2}
     ,mIcon = 6
   }
@@ -529,6 +551,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,3}
     ,mIcon = 6
   }
@@ -545,6 +568,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,4}
     ,mIcon = 6
   }
@@ -561,6 +585,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,5}
     ,mIcon = 6
   }
@@ -577,6 +602,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,6}
     ,mIcon = 6
   }
@@ -593,6 +619,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,7}
     ,mIcon = 6
   }
@@ -609,6 +636,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,8}
     ,mIcon = 6
   }
@@ -625,6 +653,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,9}
     ,mIcon = 6
   }
@@ -641,6 +670,7 @@ cards = {
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
     ,cPortrait = {3,10}
     ,mIcon = 6
   }
@@ -657,6 +687,7 @@ cards = {
   ,cPhases = PDefense
   ,cAbility = None
   ,cAllowed = AllChrs
+  ,cNForms = None
   ,cPortrait = {4,1}
   ,mIcon = 6
   }
@@ -695,6 +726,7 @@ BasicOther = { -- for all other actions that are not cards.
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs
+    ,cNForms = None
   }
 }
 

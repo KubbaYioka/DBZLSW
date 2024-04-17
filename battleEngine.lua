@@ -400,15 +400,12 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
         local gC = moveField:new(playerChr.ability[1])
     elseif selOption == "Focus" then
     elseif selOption == "Power Up" then
-    elseif selOption and selOption ~= nil then
-        print("seloption:"..tostring(selOption))
+    elseif selOption and selOption ~= nil and selOption ~= "notAvailable" then
         if #menuIndex < 3 then -- prevents the optionSelect currently in place from being overwritten
             local oS = optionSelect:new(selOption)
         end
     end
 end
-
-
 
 -- Functions
 local function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
@@ -798,16 +795,19 @@ function battleInfoBox:new(selTable)
 
     o.sTable = selTable
     o.oldTable = {}
-
+    o.available = {} -- for availability of a selection in joint deck based on current phase
     o:setNumberOfColumns(1)
     o:setNumberOfRows(#o.sTable)
     o:setCellPadding(0,0,0,0)
     o:setContentInset(0,0,0,0)
 
-    function o:newTable(newTable)
+    function o:newTable(newTable,phaseTable)
         local tempT = o.sTable
         o.oldTable = tempT
         o.sTable = newTable
+        if phaseTable then
+            o.available = phaseTable
+        end
         o:updateSelection()
     end
 
@@ -869,7 +869,7 @@ function battleInfoBox:new(selTable)
 
 end
 
-function changeUIInfo(tableOne)
+function changeUIInfo(tableOne,tableTwo)
     local tebN = {}
     if tableOne == nil then
         if limitQuery("player") == true then
@@ -883,7 +883,11 @@ function changeUIInfo(tableOne)
     if UIIndex ~= nil then
         for i,v in pairs(UIIndex) do
             if v.tag == "UIInfo" then
-                v:newTable(tebN)
+                if tableTwo then
+                    v:newTable(tebN,tableTwo)
+                else
+                    v:newTable(tebN)
+                end
             end
         end
     end
@@ -891,14 +895,13 @@ end
 
 jointDeck = playdate.ui.gridview.new(20,20)
 
-function jointDeck:new()
-
+function jointDeck:new() -- This is created when the player selects the Joint Deck in the battle menu
     o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
     self.__index=self
 
-    o.icons,o.names,o.ports,o.costs = getDeck(playerDeck)
-    
+    o.icons,o.names,o.ports,o.costs,o.conditions = getDeck(playerDeck)
+    o.selectable = {}
 
     o:setNumberOfColumns(#o.icons)
     o:setNumberOfRows(1)
@@ -910,7 +913,6 @@ function jointDeck:new()
     jointSpr:setCenter(0,0)
 
     function o:spriteKill()
-
         jointSpr:remove()
         menuIndex[o.index] = nil
         changeUIInfo()
@@ -922,7 +924,12 @@ function jointDeck:new()
         local itemS = nil
         for i,v in pairs(UIIndex) do
             if v.tag == "UIInfo" then
-                itemS = v.sTable[v:getSelectedRow()]
+                
+                if o.selectable[v:getSelectedRow()] == true then
+                    itemS = v.sTable[v:getSelectedRow()]
+                else
+                    itemS = "notAvailable"
+                end
             end
         end
         return itemS
@@ -945,17 +952,20 @@ function jointDeck:new()
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
         gfx.setColor(gfx.kColorWhite)
-
         if selected then
             gfx.fillRect(x+2,y,24,16)
             gfx.fillTriangle(x+25,y,x+36,y+16,x+25,y+16)
         end
-
         local fontHeight = gfx.getFont():getHeight()
-
         for i,v in pairs(o.icons) do
             if i == column then
-                gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+                local cardAvailable = availabilityCheck(i,o.conditions)
+                o.selectable[i] = cardAvailable
+                if cardAvailable == false then
+                    gfx.setImageDrawMode(gfx.kDrawModeBlackTransparent)
+                elseif cardAvailable == true then
+                    gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+                end
                 miniIcons:drawImage(v,x+5,y)
             end
         end
@@ -966,7 +976,7 @@ function jointDeck:new()
 
     o.index = #menuIndex + 1
     menuIndex[o.index] = o
-    changeUIInfo(o.names)
+    changeUIInfo(o.names,o.conditions)
 end
 
 function getDeck(deck) -- get icons to appear for each item in the deck.
@@ -974,6 +984,10 @@ function getDeck(deck) -- get icons to appear for each item in the deck.
     local nameTable = {}
     local portTable = {}
     local costTable = {}
+    local phaseTable = {}
+    local characterTable = {}
+    local notAllowedForms = {}
+    local ccAmountTable = {}
     for i,v in pairs(deck) do
         for k,c in pairs(cards) do
             if v == c.cNumber then
@@ -984,15 +998,63 @@ function getDeck(deck) -- get icons to appear for each item in the deck.
                 nameTable[i] = c.cName
                 portTable[i] = c.cPortrait
                 costTable[i] = c.cCost
+                phaseTable[i] = c.cPhases
+                characterTable[i] = c.cAllowed
+                notAllowedForms[i] = c.cNForms
+                ccAmountTable[i] = c.cCost 
             end
         end
     end
-    return iconTable,nameTable,portTable,costTable
+    local availability = {phaseTable,characterTable,notAllowedForms,ccAmountTable}
+    return iconTable,nameTable,portTable,costTable,availability
+end
+
+function availabilityCheck(cardNumber,conditionTable) -- will need to revisit for attacks that require 2 chrs
+    local phaseTable = conditionTable[1]
+    local chrTable = conditionTable[2]
+    local formTable = conditionTable[3]
+    local ccTable = conditionTable[4]
+
+
+    -- phase compatibility block
+    if phaseTable[cardNumber] ~= CurrentPhase and phaseTable[cardNumber] ~= "both" then
+        print("Card not available in current phase")
+        return false
+    end
+
+    --chr compatibility block
+    local chrFlag = false
+    for i,v in pairs(chrTable) do
+        if v == playerChr.chrCode then
+            chrFlag = true
+        end
+    end
+    if chrFlag == true then
+        print("Card not compatible with current character")
+        return false
+    end
+
+    --form compatibility block
+    --[[
+    for i,v in pairs(formTable) do
+        if v == playerChr.trans then
+            print("Transformations not yet implemented. Must be implemented in save file, battle init, and functions need to be made for determining available transformations based on level")
+        end
+    ]]
+    
+    --cc Amount Check
+    for i,v in pairs(ccTable) do
+        if ccTable[cardNumber] > playerCC then
+            return false
+        end
+    end
+
+    return true
 end
 
 batCom = playdate.ui.gridview.new(0,0)
 
-function batCom:new()
+function batCom:new() -- This is created when the player selects basic commands
     o = playdate.ui.gridview.new(20,20)
     setmetatable(o,self)
     self.__index=self
@@ -1111,8 +1173,6 @@ function optionSelect:new(selItem) -- where item is the selected card
 
     o.parentItem = selItem
 
-    print(selItem)
-
     o.menuTable = {"Details","Use"}
 
     o:setNumberOfRows(1)
@@ -1136,7 +1196,6 @@ function optionSelect:new(selItem) -- where item is the selected card
     menuSprite:setCenter(0, 0)
 
     function o:spriteKill()
-        print("optionSelect removed")
         menuSprite:remove()
         menuIndex[o.index] = nil
     end
@@ -1433,16 +1492,29 @@ function goOption(selOption,side)
 end
 
 function battleCardConfirm(selOption,side)
-    --print(side.." uses "..selOption)
     if side == "enemy" then
         -- Do enemy calcs for move
         enemyTurnTable = {}
         enemyTurnTable.card = cardRet(selOption)
         enemyTurnTable.mStats = turnStat(enemyChr,cardRet(selOption),"enemy")
+        for i,v in pairs(enemyDeck) do
+            if cardRemove.cNumber == v then
+                table.remove(enemyDeck,i)
+            end
+        end
     elseif side == "player" then
+        printTable(playerDeck)
+        print(selOption)
+
         playerTurnTable = {}
         playerTurnTable.card = cardRet(selOption)
         playerTurnTable.mStats = turnStat(playerChr,cardRet(selOption),"player")
+        local cardRemove = playerTurnTable.card
+        for i,v in pairs(playerDeck) do
+            if cardRemove.cNumber == v then
+                table.remove(playerDeck,i)
+            end
+        end
     end
 end
 
@@ -1536,7 +1608,6 @@ function getPositionBonus(side)
         reTab["Ki"] = 0.10
         reTab["PhyDef"] = true
     end
-
     return reTab
 end
 
@@ -1577,11 +1648,25 @@ function execTurn(attacker,defender)
 
     -- do any partner switches
     animationGo(attacker,defender)
+    ccChange(attacker,defender)
 
     -- conduct animation
     --update lifebars
     -- go to post turn
     postTurn(attacker, defender)
+end
+
+function ccChange(attacker, defender)
+    local attackerCard = attacker.card
+    local defenderCard = defender.card
+    playerCC = playerCC - attackerCard.cCost
+    enemyCC = enemyCC - defenderCard.cCost
+    if attackerCard.cCostGain then
+        playerCC = playerCC + attackerCard.cCostGain
+    end
+    if defenderCard.cCostGain then
+        enemyCC = enemyCC + defenderCard.cCostGain
+    end
 end
 
 function attWillDamage(attacker)
@@ -1735,11 +1820,10 @@ function statCompare(attacker,defender)
         attackKind = atStat.str + cacKind.cPower
     elseif atKind == CCommand then
         local ccPwr = atStat.str * cacKind.cPower
-        print(ccPwr)
         attackKind = atStat.str + ccPwr
     end
     local atDamage = attackKind - deStat.def
-    --print(atDamage)
+
     local hitToEvasionChance = calculateHitChance(atStat.acc, deStat.eva)
 
     local attHit = attackHits(hitToEvasionChance) -- boolean for if the attack has landed
@@ -1772,6 +1856,8 @@ function statCompare(attacker,defender)
     -- at this point, we have determined the amount of damage an attack will cause
     -- whether or not the attack will hit, and if it will cause knockback and if so, how much damage
 
+    
+
     retTable = {atDamage,attHit,isKnockback,knockbackMulti}
     --print("statCompare retTable")
     --printTable(retTable)
@@ -1802,10 +1888,10 @@ function effectHit(attacker, defender)
         local deHitToEvasionChance = calculateHitChange(deStat.acc, atStat.eva)
         local deHit = attackHits(atHitToEvasionChance)
         if deHit == true then
-            print("Defender's Effect Has Hit!")
+            --print("Defender's Effect Has Hit!")
             defender.effectHits = true
         else
-            print("Defender's Effect Has Missed!")
+            --print("Defender's Effect Has Missed!")
             defender.effectHits = false
         end
     end
@@ -1838,7 +1924,7 @@ end
 
 function calcKnockback(offense, mass)
     local percentage = (offense / mass) * 100
-    print("offense of "..offense.." is "..percentage.." percent of mass "..mass)
+    --print("offense of "..offense.." is "..percentage.." percent of mass "..mass)
 
     if percentage >= 200 then
         return 100
@@ -1859,10 +1945,10 @@ end
 
 function calculateKnockDamage(atType, stats, scale) -- criticals scale with difference in power
     local stt = nil
-    for i,v in pairs(stats) do
-        if atType == v then
-            stt = v
-        end
+    if atType == "command" or atType == "physical" then
+        stt = stats.str
+    elseif atType == "ki" then
+        stt = stats.ki
     end
     local per = scale * .01
     local critDamage = stt * per
@@ -1870,10 +1956,6 @@ function calculateKnockDamage(atType, stats, scale) -- criticals scale with diff
 end
 
 function moveProcessing(atta, defe)
-
-    print("Data For: "..CurrentPhase)
-    printTable(atta)
-
     local cardHitTable = atta.cardHitMiss
     local statHitTable = atta.statHitMiss
     local attackerEffect = atta.EffOffense
@@ -1943,12 +2025,8 @@ function moveProcessing(atta, defe)
     return atta, defe
 end
 
-function newStats(original,turnStats)
-    original.chrDef = turnStats.def
-    original.chrStr = turnStats.str
+function newHPStats(original,turnStats)
     original.chrHp = turnStats.hp
-    original.chrSpd = turnStats.spd
-
     return original
 end
 
@@ -1957,11 +2035,35 @@ function postTurn(attacker,defender)
     local deStat = defender.mStats
     local aHP = atStat.hp
     local dHP = deStat.hp
-    --print("Attacker HP is: "..aHP)
-    --print("Defender HP is: "..dHP)
 
-    playerChr = newStats(playerChr, atStat)
-    enemyChr = newStats(enemyChr,deStat)
+    --[[
+    local atStatement = nil
+    local deStatement = nil
+    if CurrentPhase == "attack" then
+        atStatement = "Player"
+        deStatement = "Enemy"
+    else
+        deStatement = "Player"
+        atStatement = "Enemy"
+    end
+    print(atStatement)
+    printTable(atStat)
+    print(" ")
+    print(deStatement)
+    printTable(deStat)
+    ]]--
+
+    if CurrentPhase == Phase.ATTACK then
+        playerChr = newHPStats(playerChr, atStat)
+        enemyChr = newHPStats(enemyChr,deStat)
+        
+    elseif CurrentPhase == Phase.DEFENSE then
+        playerChr = newHPStats(playerChr, deStat)
+        enemyChr = newHPStats(enemyChr,atStat)
+    end
+
+    print("Player's HP is: "..playerChr.chrHp)
+    print(" Enemy's HP is: "..enemyChr.chrHp)
 
     for i,v in pairs(otherIndex) do -- apply damage to HP, if any
         if v.tag == "playerHP" then

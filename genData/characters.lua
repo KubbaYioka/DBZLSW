@@ -66,7 +66,7 @@ characters = {
     }
 }
 
-UnlockTables = { -- in format ["chrName"] = {flyunlock, limitunlock, focusunlock, powerupunlock}
+UnlockTables = { -- in format ["chrName"] = {flyunlock, limitunlock, focusunlock, powerupunlock} Specifies levels at which they unlock these things. 0 means never unlock.
     ["dbGoku"] = {10,4,3,10}
     ,["dbKrillin"] = {10,4,3,10}
     ,["dbBulma"] = {0,0,0,0}
