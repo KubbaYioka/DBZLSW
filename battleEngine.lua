@@ -55,6 +55,7 @@ function bTabInit()
     }
 
     CurrentTurn = 0
+    PhaseTrig = false
     CurrentPhase = nil
 
     ---------------------
@@ -75,6 +76,9 @@ function bTabInit()
         },
         noEntryD = {}
     }
+
+    PlayerSelection = "None"
+    EnemySelection = "None"
 
     ---------------------
     --Joint Deck Info ---
@@ -182,6 +186,19 @@ end
 
 function turnInc()
     CurrentTurn = CurrentTurn + 1
+    PhaseTrig = false
+end
+
+function phaseCheck()
+    if PhaseTrig == false then
+        PhaseTrig = true
+        return 0
+    elseif PhaseTrig == true then
+        turnInc()
+        PhaseTrig = false
+        drawCard()
+        return 0
+    end
 end
 
 function phaseChange()
@@ -194,6 +211,13 @@ function phaseChange()
     return cPhase
 end
 
+function drawCard()
+    local enCardNum = #enemyDeck + 1
+    local plCardNum = #playerDeck + 1
+    enemyDeck[enCardNum], eDeckCopy = cardShuffle(eDeckCopy,false)
+    playerDeck[plCardNum], pDeckCopy = cardShuffle(pDeckCopy,false)
+end
+
 function turnTableClear()
     enemyTurnTable = nil
     playerTurnTable = nil
@@ -203,7 +227,9 @@ end
 
 function nextPhase()
     turnTableClear()
+    phaseCheck() -- check to see if a new turn begins and draw one card if available
     CurrentPhase = phaseChange()
+
     --if new turn, then do the speed check again
     for i,v in pairs(menuIndex) do
         v:spriteKill()
@@ -218,6 +244,7 @@ function nextPhase()
             UIIndex[i] = nil
         end
     end
+
     local battleSMenu battleUIMenu:new(phase)
 
     SubMode = SubEnum.MENU
@@ -1182,12 +1209,22 @@ function optionSelect:new(selItem) -- where item is the selected card
     o.scrollCellsToCenter = false
     o:setScrollDuration(0)
 
+    o.selectionType = menuIndex[#menuIndex].tag
+    
+
     function o:getOption()
         local sS,sR,sC = o:getSelection()
         if o.menuTable[sC] == "Details" then
             bShowCard(o.parentItem)
         elseif o.menuTable[sC] == "Use" then
-            goOption(o.parentItem,"player")
+            PlayerSelection = o.selectionType
+            local deckCheck = deckCheck()
+            if deckCheck == false then
+                goOption(o.parentItem,"player")
+            elseif deckCheck == true then
+                print("Next, you will need to make a ""Hand is Full"" message and then bring up a discard menu item like a clone of joint deck that eliminates a card from the playerDeck. ")
+                fullHand:new()
+            end
         end
         --o:spriteKill() -- bounce is making the object reappear after initial kill
     end
@@ -1234,6 +1271,14 @@ function optionSelect:new(selItem) -- where item is the selected card
     o.index = countI + 1
     menuIndex[o.index] = o
     return o
+end
+
+function deckCheck()
+    if #playerDeck >= 6 then
+        return true
+    else
+        return false
+    end
 end
 
 function bShowCard(card)
@@ -1493,10 +1538,14 @@ end
 
 function battleCardConfirm(selOption,side)
     if side == "enemy" then
+        if #enemyDeck >= 6 then
+            enemyDiscard()
+        end
         -- Do enemy calcs for move
         enemyTurnTable = {}
         enemyTurnTable.card = cardRet(selOption)
         enemyTurnTable.mStats = turnStat(enemyChr,cardRet(selOption),"enemy")
+        local cardRemove = enemyTurnTable.card
         for i,v in pairs(enemyDeck) do
             if cardRemove.cNumber == v then
                 table.remove(enemyDeck,i)
@@ -1510,12 +1559,19 @@ function battleCardConfirm(selOption,side)
         playerTurnTable.card = cardRet(selOption)
         playerTurnTable.mStats = turnStat(playerChr,cardRet(selOption),"player")
         local cardRemove = playerTurnTable.card
-        for i,v in pairs(playerDeck) do
-            if cardRemove.cNumber == v then
-                table.remove(playerDeck,i)
+        if PlayerSelection == "jointDeck" then
+            for i,v in pairs(playerDeck) do
+                if cardRemove.cNumber == v then
+                    table.remove(playerDeck,i)
+                end
             end
         end
     end
+end
+
+function enemyDiscard()
+    local discard = math.random(1,6)
+    table.remove(enemyDeck,discard)
 end
 
 function turnStat(stat,card,side)
@@ -2035,23 +2091,6 @@ function postTurn(attacker,defender)
     local deStat = defender.mStats
     local aHP = atStat.hp
     local dHP = deStat.hp
-
-    --[[
-    local atStatement = nil
-    local deStatement = nil
-    if CurrentPhase == "attack" then
-        atStatement = "Player"
-        deStatement = "Enemy"
-    else
-        deStatement = "Player"
-        atStatement = "Enemy"
-    end
-    print(atStatement)
-    printTable(atStat)
-    print(" ")
-    print(deStatement)
-    printTable(deStat)
-    ]]--
 
     if CurrentPhase == Phase.ATTACK then
         playerChr = newHPStats(playerChr, atStat)
