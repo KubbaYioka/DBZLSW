@@ -1222,8 +1222,9 @@ function optionSelect:new(selItem) -- where item is the selected card
             if deckCheck == false then
                 goOption(o.parentItem,"player")
             elseif deckCheck == true then
-                print("Next, you will need to make a ""Hand is Full"" message and then bring up a discard menu item like a clone of joint deck that eliminates a card from the playerDeck. ")
-                fullHand:new()
+                print("Next, you will need to make a Hand is Full message and then bring up a discard menu item like a clone of joint deck that eliminates a card from the playerDeck. ")
+                fullHand()
+                goOption(o.parentItem,"player")
             end
         end
         --o:spriteKill() -- bounce is making the object reappear after initial kill
@@ -2122,3 +2123,80 @@ function postTurn(attacker,defender)
     -- if not, give victory or defeat
     --
 end
+
+function fullHand()
+    --show dialogue box: "Hand is full."
+    --clone of Joint Deck with banner: "Select Card to Toss"
+    --options are "inspect" and "Toss"
+    batDialogue:new("fullHand")
+end
+
+--Generic battle dialogue box
+
+batDialogue = playdate.ui.gridview.new(0,20)
+batDialogue:setNumberOfColumns(1)
+
+batDialogue:setCellPadding(0,0,4,0)
+batDialogue:setContentInset(5,5,5,5)
+
+batDialogue.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+
+function batDialogue:new(diTable) -- indicate which dialogue from dialogueTable to be rendered.
+    local o = o or {}
+    setmetatable(o,self)
+    self.__index=self
+
+    local menuX, menuY = 150, 25 --size of background box
+    local xPos, yPos = 200, 10
+    o:setScrollDuration(0)
+
+    o.optionsRow = dialogueTable[tostring(diTable)]
+    batDialogue:setNumberOfRows(#o.optionsRow)
+
+    local regSprite = gfx.sprite.new()
+    regSprite:setCenter(0,0)
+    function o:spriteKill()
+        regSprite:remove()
+    end
+    regSprite:add()
+
+    function o:menuUpdate()
+        if o.needsDisplay then
+            local regImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
+            regSprite:moveTo(xPos,yPos)
+            regSprite:setZIndex(130)
+            gfx.pushContext(regImage)
+                o:drawInRect(0,0,menuX,menuY)
+            gfx.popContext()
+            regSprite:setImage(regImage)
+        end
+    end
+
+    function o:drawCell(section,row,column,selected,x,y,width,height)
+        local menuText = {}
+        menuText = o.optionsRow
+        local fontHeight = gfx.getSystemFont():getHeight()
+        local rCount = row
+        for i,v in pairs(menuText) do
+            if rCount == i then
+                local rowCom = " "..v
+                gfx.drawTextInRect(rowCom, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+            end
+        end
+    end
+
+    function o:menuControl(direction) 
+        if direction == "a" then
+            o:selectPreviousRow(true)
+        end
+    end
+
+    local countI = #menuIndex
+    o.index = countI + 1
+    menuIndex[o.index] = o
+    return o
+end
+
+dialogueTable = {
+    ["fullHand"] = "Your hand is full."
+}

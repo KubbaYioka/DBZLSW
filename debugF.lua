@@ -44,6 +44,7 @@ function regularBox:new(optionsTable) -- pass a table to this menu to get those 
     function o:spriteKill()
         regSprite:remove()
     end
+    
     regSprite:add()
 
     function o:menuUpdate()
