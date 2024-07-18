@@ -1,0 +1,25 @@
+AI Types and descriptions
+
+AI is simply a subroutine with a set of priorities when making a decision in a turn ingame
+
+AI has several different types. The differences between them is what they will
+prioritize in a match. 
+
+For instance, one AI will strike only after gaining a certain amount of CC
+for a move, whereas another will strike only after a CC threshhold is met.
+
+Some will favor attacking, some may favor stat boosts, and some may favor 
+preserving HP as much as possible.
+
+The first thing an AI will do is gather information. This information will
+be in regards to themselves and the player. 
+
+The priorities they have determines what move they will make. This could be
+a decision to power-up, use a basic attack in a CC saving method, or using a
+card from the deck, among many other things. 
+
+AI types will use different kinds of decision trees based on the information
+they collect. 
+
+While they will share many info gathering code, they will have separate decision
+code.

@@ -1,0 +1,93 @@
+Battle System - 
+
+The basics: two players battle on a playing field in turn based combat. A Turn is divided into two phases: One Defense Phase and One Offense Phase
+
+Players use cards to battle each other. We will come back to this later.
+
+Characters have the following stats:
+
+HP - Hit Points
+STR - Power of physical attacks and effects
+SPD - Determines who goes first in a turn.
+KI - Power of energy attacks, effects, and strength of boost to all other stats when "powering up"
+DEF - "Armor," or the amount of defensive points the opponent must break through before causing damage. Resistance to effects. 
+EXP - Total Experience 
+
+There are other stats that are calculated from the base stats:
+
+OFFENSE: STR + KI | Power Level
+EVASION: sqrt(SPD + DEF) | Chance to dodge and base strength of after-image (a technique that can be powered up to cause a miss)
+MASS: STR + DEF | Resistance to knockback (which can cause additional damage)
+ACCURACY: Assists in the chance of a successful hit. Also has a combined effect with cards to cause a critical hit.
+
+Stats work against each other between opponents:
+
+STR vs DEF - calculates damage by the formula: DEF - STR = DMG
+OFF vs MAS - for knockback liklihood : MAS - OFF = chance of knockback
+EVA vs ACC - Hit and Miss liklihood along with crit chance: (Base ACC + Card ACC) - EVA
+SPD vs SPD - Determines who goes first by comparison formula (which player SPD is higher)
+
+Knockback is calculated as a simple percentage. 
+If Power Level (OFF) is x percentage of MASS then the chance of knockback is:
+>200% - 190% | 100%
+ 189% - 160% | 80%
+ 159% - 130% | 60%
+ 129% - 80%  | 40%
+ 79%  - 60%  | 20%
+ 59%  - 50%  | 10%
+<49%         |  0%
+
+Hit and Miss is calculated with the following information:
+
+Each character has a base accuracy stat that can go up with experience. Each card has an accuracy rating that can be a positive or negative number. Players also have a base Evasion stat that affects the accuracy of an attack.
+
+So: ACC - EVA = CALC_ACC
+    CALC_ACC + CARD_ACC = FINAL_ACC
+
+if FINAL_ACC is over 100, the remainder percentage is the chance of a crit.
+
+___
+
+There are three types of cards. Attack, Defense, and Support.
+Attack cards can be Physical or Beam, have an attack rating that has a base damage that is added to the corresponding stat, an accuracy rating, and some have an effect.
+
+Defense cards can be for physical or beam attacks, a number added to the defense stat, and some have an effect.
+
+Support cards can alter the stats of the user or the opponent. Some of these cards have an accuracy rating as well. 
+
+___
+
+All cards require CC to use, which are gathered at a base rate of 3 in a new turn. Additional CC are gathered through the completion of "Stage Attacks" which are basic moves that require no CC, and come in 3, 4, 5, 6, and 7 varieties. The Stage Attacks require no CC.
+
+In the attack phase, a player can choose from the following options: 
+
+Limit: 3 cards that are set aside for use when in a "powered up" state. - Note, this is unlocked on a per-character basis.
+Deck: The cards that are currently in the player's "hand" that are taken at random from the master deck during each attack phase. In the attack phase, only attack and support cards can be used. Can only have 6 at once.
+Basic: List of basic commands. STAGE ATK, Gather Power (Must be Unlocked. More Later)
+Stats: Display character stats
+
+Limit: 3 cards that are set aside for use when in a "powered up" state. Same as in attack phase, but only defense cards can be used.
+Deck: Same as in attack, but only Defense and Support cards can be used.
+Basic: Guard - relies on base stats for defense | Movement - Allows player to move to one of four positions on the playfield (more later)
+Stat: Display character stats
+___
+
+
+1) Get actions of both sides. Load into temporary table
+2) If movement, get new destination. Apply destination parameters.
+3) If Buff and player is attacking, the buff occurs after the other player conducts their move.
+    a) If buff and player is defending, the buff occurs before the other player moves.
+4) If attack, calculate player power and accuracy of attack based on card base and player stats
+    a) Requires calculating attacker stats+card and defender stats+card
+5) If defensive card, calculate accuracy and defense level based on card and player stats
+    a) Requires calculating attacker stats+card and defender stats+card
+6) If regular guard, calculate probability of random dodge, block, evasion, counter, w\each
+    a) Requires calculating attacker card+stats and defender stats. 
+7) Calculate outcome. Apply to temporary table.
+8) Reduce or add to CC accordingly.
+9) Animate according to outcome. Load player animations to occur according to outcome. Execute at defined times and triggers.
+10) Apply stat or HP changes.
+11) Clear temp tables. Go to next phase.
+12) If new turn, do new turn calcs for speed and such.
+
+

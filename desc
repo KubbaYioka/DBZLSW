@@ -1,0 +1,186 @@
+Dragon Ball: Legendary Super Warriors
+
+Premise: A longer and more developed version of Dragon Ball Z Legendary Super Warriors that begins with the Emperor Pilaf Saga and ends with The Tournament of Power Saga or the Omega Shenron Saga.
+Differences from LSW:
+•	 Characters are more pronounced in their power differences. In LSW, a person playing Base Goku could feasibly stomp Fat Buu, but in this game, this would be waaaay harder.
+•	Longer story
+•	More Attacks
+•	Way more characters and secret characters.
+•	Secret Stories
+•	Multiple versions of characters with ingame transformations and set limits.
+Character Power Scaling
+A simple formula will determine the character’s level and each character starts at . Each character has base stats that can be improved upon by leveling. The base stat is multiplied by the level the character is currently at. Each character also has potential, which is simply their level cap. A character with a high potential may have a max level of 99, whereas a character with low potential may have a level cap at 20. 
+Characters have the following stats
+HP
+Strength
+Ki
+Defense
+Speed
+Ki Defense
+
+Gameplay
+Much like LSW, this game will have sagas with 10 chapters. Each chapter contains a main battle with strategic combat just like LSW. Each 10th chapter is a “boss fight.” Depending on the difficulty of implementing it, there may be room for an overworld system that gives players the opportunity to grind, or immediate access to the Battle System that lets players grind. Regardless, players should get regular chances to build their decks. Characters are unlocked throughout the game automatically, or are unlocked by defeating an enemy with a certain character.  EX Stories are unlocked in this way as well.
+
+
+
+
+Story
+The Sagas are as follows:
+
+Son Goku Saga-21st Budokai Tenkaichi	Red Ribbon Army Saga – Baba	22nd Budokai Tenkaichi-23rd Budokai Tenkaichi
+Saiyan Saga	Namek Saga – Frieza	Trunks-Android Saga
+Imperfect Cell – Cell Games Saga	Saiyaman-25th Budokai Tenkaichi	Babidi-Majin Buu(Vegeta dies)
+Fusion Saga-Kid Buu	Beerus-Golden Frieza	Zamasu
+Universe 7	Black Star Saga-Baby Saga	Super 17-Shadow Dragon
+
+EX Stories
+Dragon Ball
+	Elsewhere (Vegeta, Raditz, Nappa adventures)
+	Bardock The Father of Goku
+Dragon Ball Z
+World’s Strongest, Tree of Might, Lord Slug, LSS Goku, Super Saiyan Vegeta (Densetsu secret battle), Garlic Jr. Saga, Super Android 13, Broly, History of Trunks,  Otherworld Saga, Hirudegarn, Janemba, 
+Dragon Ball Super
+	Resurrection F, Earth Destroyed (Golden Frieza), The Story of Jiren
+Dragon Ball GT
+
+Characters:
+Goku (Kid), Goku (Adult), Yamcha (Teenager), Yamcha (Adult), Krillin (Kid), Krillin (Adult), Chi Chi (Kid) Chi Chi (Adult), Tien Shinhan (Teenager), Tien Shinhan (Adult), Chiaotzu, Yajirobe, Master Roshi, Jackie Chun, Mr. Popo, Hero (Kami borrowed), Piccolo, Bardock, 
+Unlockable Characters:
+All the Bad Guys when defeated under special circumstances.
+Secret Characters:
+Master Mutaito, Vegeta (Kid), Arale, Ox King, Kami, Farmer, Oolong, Puar, Nail, Android 1, Android 8, Mr. Lao, Mr. Satan, Olibu, Grand Kai, Paragus, Taipon, King Yemma, King Kai, Dai Kaio, Majin Neko, Majin Spopovich, Majin Yamu, Videl, Trunkten, Suppaiman, Superman (for realsies), Ultraperfect Cell, King Vegeta, Bibidi, Grand Xeno, Mai, Future Gohan, Grandpa Gohan, 
+
+
+
+Unfun stuff:
+The game will have several distinct modes that must be able to share, overwrite, modify, and read from a common data set. This data will be things like characters, cards, place in the story, etc.
+These modes are as follows:
+
+Menus
+Intro Menu	The menu players encounter when starting the game. Consists of New Game, Continue, Options, Battle Mode, etc.
+Pause Menu	Available on the Map Screen only. Allows players to access Battle Menu
+Battle Menu	The menu screen that players can use to choose characters, check status, cards, save, etc.
+Post-Battle Menu	The menu where players can select a new card after winning a battle
+
+Map Screen – The screen that consists of the top-down mode for the game. In this mode, players can explore a small map and obtain new cards and get special interactions that may affect gameplay later; essentially, this is a way to trigger flags within the game’s code to unlock special occurrences in subsequent battles, etc. The map screen may also have dialogue, or choices to make that borrow from menu elements.
+
+Battle
+Battle Screen	The main battle screen portrays the player and computer’s position on the battlefield, current health, and other status indicators for battle. 
+This screen is also where players choose their tactics and such. 
+Input Mode	This is specifically for any attack or move that requires input on the player’s part, such as the # Stage Attacks. Other input modes may be added to consider the crank, and ways to pull off more advanced attacks
+Cinematic Mode	Here is where the attacks, tactics, and defenses of the players take place. The players watch their strategy play out in this mode. At the end of this mode, any tactics are then used to compute changes to status, such as damage taken from attacks, cards used to be removed from play, or status effects such as Afterimage added to the player or computer.
+Story Mode – This mode is where the player reads through dialogue in the current chapter of the game. 
+
+
+The Data
+The data that the game keeps is saved in the player’s save file. The save file initially takes its information from a base “new game” template that gets modified as the player progresses. This save file must be able to be modified by all other game modes as necessary to allow the player to progress. The save file is read for what data is available to the game at a given time, and works in conjunction with a master table of what stories, characters, available prize cards, etc the player will encounter in a map screen or battle.
+The Master Table:
+Characters	Master list of all characters, level table, compatible cards, transformations, etc. Cannot be modified; only accessed.
+Cards	Master list of all cards available in the game. All are flagged for compatibility with characters. Only characters who have a compatibility flag in a card can use a card.
+Story	Contains the story table. This is the sequence of images and corresponding dialogue that the current point in the game uses to get though a story. The game will read the save file for its point in the story to see if the player can move on to a different\next point in the story. 
+
+A player must have completed certain tasks to go on to the next story. For most stories, this is simply completing the last story. However, secret stories may be unlocked by completing the previous one with a certain character.
+	
+	
+	
+
+The Save File:
+Characters	A data tree that allows characters to be selected according to whether or not the save file has an unlock flag for that character enabled.
+Chr. Level	The current level for any unlocked player. It is a multiplier that increases character stats based on table data for that character. The level also unlocks transformations for certain characters upon reaching a certain level or point in the story.
+Chr. Appearance	A flag that allows for different character appearances based on the point in the story or player preference (but the latter is only after playing through the game once)
+Game Complete	Flags whether or not the player has completed the game once. If they have, the Battle Mode is unlocked, along with the ability to use any character on any point in the story. This flag also enables the player to unlock players and stories not available the first time around.
+Current Story	Keeps track of what point in the story the player is at
+Cards	Keeps track of the types and number of each card the player has
+Deck	Keeps track of what cards are currently in the player’s deck
+Team	Keeps track of who is currently in the player’s team. This can be modified by the point in the story the game is at (only certain characters can be used at any given time in the story the first time through) and of course, the player
+Limit	Keeps track of what cards are currently in the Limit slot of each character. Can be modified in the battle or pause menu
+	
+
+ 
+ 
+--
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--
+ 
+Mode Interpreter
+The Mode Interpreter (MI) is the master control program for the entire game. It does the following:
+1)	Tells the Machine what to draw and what sound to play
+2)	Interprets what mode the game should be in and what options are available to the player within that mode
+3)	Switches between modes based on input and the game’s code. 
+
+Raw Character Data Tree 
+Each character has a series of base attributes. These attributes can be modified by the current level that the character has reached.
+The Attribute table is as follows:
+	
+Designator	Hex designator for the character. Program reference. Ex. 8900 is Kid Goku. 8901 is Kid Krillin, etc
+Name 	Character’s Name.
+HP	Hit Points for the Character
+Ki	Available Ki for the Character. Power of energy attacks
+Strength	Power of physical attacks
+Speed	Speed of the character
+Defense	Defense against physical attacks
+Ki Defense	Defense against energy attacks
+Experience	Current experience for that character. Determines level stat multipliers
+Flight	Boolean for whether the character can take positions in the sky or not
+Transformation	A list of transformations and stat boosts for them. Boolean for each. Some characters get access to many transformations. Some get none.
+GFX	The graphics set for the character. Changes based on forms and appearance
+Level Cap	A number that determines the level cap for the character. Exp no longer raises level at this point.
+Knockback Level (tentative)	This determines the character’s resistance to being knocked around or even displaying hit graphics upon being attacked by another character. This also affects the damage a character will take from a stronger or weaker character.
+Gather power	Determines whether the character can gather power. If they cannot, they get the “Prepare for Special Attack” option that prepares them to attack for a minor stat boost, whereas gather power geta a much higher stat boost.
+
+
+
+
+
+
+
+
+
+
+Transformations
+A list of transformations is kept in the game’s code. Certain characters can gain access to these transformations depending on compatibility and what level they are at.
+	
+Designator	Hex designator for transformation. Two values. A0 is no transformation. A1 is Oozaru, etc
+Name	Name of transformation
+HP	Change to hit points
+Ki	Change to Ki
+Strength	Change to Strength
+Speed	Change to Speed
+Defense	Change to Defense
+Ki Defense	Change to Ki Defense
+	
+
+	Unlocking Transformations: When a character reaches a certain level, or when the game reaches a certain point, the character can gain access to a transformation. The story or level triggers a flag that changes a Boolean within the character’s attributes in the save file. The player may then use that transformation by selecting it in battle or transforming mid-battle for a slight stat bump over selecting it before a fight.
+	Transforming also tells the game to first read the character’s Designator, then the Transformation Designator to determine what graphics set to use.
+			Tentative and Very Incomplete Transformation List	
+A0	Base
+A1	Oozaru
+A2	Kaio-Ken
+A3	Super Saiyan
+A4	Max Power
+A5	Semi-Perfect (Cell Only)
+A6	Perfect (Cell Only)
+A7	Super Perfect (Cell Only)
+
+Of course, this presents an issue of how this game will handle transformations vs how LSW handled it. For now, we’ll just say that transformations are attained through levels or story progress. So, in this game, you would not unlock Semi-Perfect Cell by fighting him with Imperfect Cell, you would unlock him by training with him in Battle Mode.
+
+Feature unlockable
+
+Battles start by letting you use 3-stg attack but at first, the player cannot fly, power up, or even use limit deck. These are unlocked as the dragon ball story progresses.

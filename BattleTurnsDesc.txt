@@ -1,0 +1,41 @@
+At battle start:
+
+Character parameters are copied from a master table found in the save file and in the story table to the players' characters on either side of the match.
+
+These "player battle tables" are modified instead of their original values they were copied from. 
+
+A Turn consists of two Phases: Attack and Defend
+At the beginning of each Turn, the following parameters are checked: 
+
+1)Is the player or opponent powered up?
+Which character is faster? If a character has higher speed, that player will go first.
+
+2)The faster character will then select an offensive action.
+The slower character will select a defensive action.
+
+3)Once the players have made their selections, the program will then calculate the following:
+
+4)Check Action of attacker.
+Check Action of the defender. 
+
+5)If the attacker has selected an action that can cause damage, such as a command card, beam, or physical attack, the game loads their current STR for command or physical attacks, and KI for beam attacks. The attacker's power level (OFFENSE) and ACCURACY are also calculated. We'll come back to other actions that can be done in the attack phase later.
+
+The calculations for the attacker's accuracy are Base ACC + Card ACC
+
+6)After this, the defender's action is taken into account. If they are relying on a mere defensive posture by selecting the Guard command, they rely on their base stats for a chance to dodge or block. In this instance, the defender's DEF is loaded, along with their MASS and EVASION (which is the square root of (SPD + DEF)). We'll come back to other actions that can be done in the defense phase later.
+
+7)The attack commences. To see if the attack lands, The Defender's EVASION is subtracted from the Attacker's ACCURACY. This leaves with a final percentage chance of a hit. So the program then calculates if the attack hits given the percentage. If the percentage is over 100, the game calculates if there is a critical hit given the remainder past 100 (so 102 would mean 2% chance of a hit). The chance of a crit may not exceed 50%. 
+
+We will come back to what happens in a miss later.
+
+If the attack hits, the DEF(of defender)-STR\KI (of attacker) = damage. 
+
+8)Additionally, the knockback calculation occurs. Knockback is calculated as a percentage of MASS. The table above details the formula. We will come back to what happens if a knockback occurs later.
+
+9)Once the attack has ceased, the total Damage is subtracted from the defender's HP. 
+
+10) Before the next phase, the game checks the following:
+
+Is the player and opponent's HP 1 or greater? If so continue. If not, check to see if anymore characters are in the team. If so, bring out that character. If not, the other opponent wins the match.
+
+Return to 1) except the Defender is now the Attacker regardless of speed. The next speed check will happen at the beginning of the next Turn. 
