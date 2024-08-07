@@ -20,6 +20,7 @@ function bTabInit()
     pDeckCopy={} -- copy of RAMSAVE[4]
     playerDeck={}
     playerCC = 3
+    playerTemp = nil -- to hold card data temporarily.
     playerPoweredUp = false
     playerStandReady = false
     playerBattleDamaged = false
@@ -357,18 +358,118 @@ function areaPosition(tag)
 
 end
 
+function getPositionDistance()
+    local playerDist = playerSprTab.position
+    local enemyDist = enemySprTab.position
+    local attackerTime = 2000
+    local att = 1
+    local def = 1
+    local attSpeed = 1
+    local defSpeed = 2
+    local res = 0
+    if CurrentPhase == Phase.ATTACK then
+        att = playerDist
+        def = enemyDist
+        attSpeed, defSpeed = getSpeeds("player")
+        res = (attSpeed/defSpeed) * 100
+
+    elseif CurrentPhase == Phase.DEFENSE then
+        def = playerDist
+        att = enemyDist
+        attSpeed, defSpeed = getSpeeds("enemy")
+        res = (attSpeed/defSpeed) * 100
+    end
+    if att == "groundfore" then
+        if def == "groundfore" then
+            attackerTime = attackerTime + 500
+        elseif def == "groundaft" then
+            attackerTime = attackerTime - 200
+        elseif def == "airfore" then
+            attackerTime = attackerTime + 300
+        elseif def == "airaft" then
+            attackerTime = attackerTime - 400
+        end
+    elseif att == "groundaft" then
+        if def == "groundfore" then
+            attackerTime = attackerTime - 200
+        elseif def == "groundaft" then
+            attackerTime = attackerTime - 700
+        elseif def == "airfore" then
+            attackerTime = attackerTime - 300
+        elseif def == "airaft" then
+            attackerTime = attackerTime - 800
+        end
+    elseif att == "airfore" then
+        if def == "groundfore" then
+            attackerTime = attackerTime + 300
+        elseif def == "groundaft" then
+            attackerTime = attackerTime - 400
+        elseif def == "airfore" then
+            attackerTime = attackerTime + 500
+        elseif def == "airaft" then
+            attackerTime = attackerTime - 200
+        end
+    elseif att == "airaft" then
+        if def == "groundfore" then
+            attackerTime = attackerTime - 300
+        elseif def == "groundaft" then
+            attackerTime = attackerTime - 800
+        elseif def == "airfore" then
+            attackerTime = attackerTime - 200
+        elseif def == "airaft" then
+            attackerTime = attackerTime - 700
+        end
+    end
+
+    local spdFactor = getSpdFactor(res)
+    attackerTime = attackerTime + spdFactor
+    return attackerTime
+    
+
+end
+
+function getSpeeds(attackerS)
+    if attackerS == "player" then
+        local sp = playerChr["chrSpd"]
+        local ds = enemyChr["chrSpd"]
+        print("player Speed: "..sp)
+        print("enemy Speed: "..ds)
+        return playerChr["chrSpd"], enemyChr["chrSpd"]
+    elseif attackerS == "enemy" then
+        return enemyChr["chrSpd"], playerChr["chrSpd"]
+    end
+end
+
+function getSpdFactor(num)
+    if num < 50 then
+        return -500
+    elseif num >= 51 and num <= 60 then
+        return -400
+    elseif num >= 61 and num <= 75 then
+        return -200
+    elseif num >= 76 and num <= 90 then
+        return -100
+    elseif num >= 91 and num <= 110 then
+        return 0
+    elseif num >= 111 and num <= 120 then
+        return 200
+    elseif num >= 121 and num <= 130 then
+        return 300
+    elseif num >= 131 and num <= 145 then
+        return 400
+    elseif num >= 146 and num <= 160 then
+        return 500
+    elseif num > 161 then
+        return 700
+    else
+        return 0
+    end
+end
+
 function drawChr(chr)
     if chr == "player" then
     elseif chr == "enemy" then
     end
-end
-
-function drawArena()
--- Draw players in the different positions. 
---draw UI and lifebars
---Do top UI turn animations and Defense\attack animations
---create gridview after animations that have options based on above characteristics
-
 end
 
 function drawUI(phase)
@@ -408,6 +509,9 @@ end
 ----------------------
 
 function getNextBMenu(selOption,phase) --gets the selected option and creates the next menu level based on that.
+    if selOption ~= nil then
+        print("selOption in getNextBMenu: "..selOption)
+    end
     --Limit
     if selOption == "Limit" then
 
@@ -428,8 +532,11 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
     elseif selOption == "Focus" then
     elseif selOption == "Power Up" then
     elseif selOption and selOption ~= nil and selOption ~= "notAvailable" then
-        if #menuIndex < 3 then -- prevents the optionSelect currently in place from being overwritten
+        if #menuIndex < 3 and menuIndex[#menuIndex].tag ~= "tossMenu" then -- prevents the optionSelect currently in place from being overwritten
             local oS = optionSelect:new(selOption)
+        elseif menuIndex[#menuIndex].tag == "tossMenu" then
+            print("options: Details, Toss.")
+            local oS = tossSelect:new(selOption)
         end
     end
 end
@@ -507,7 +614,7 @@ end
 topUI = playdate.ui.gridview.new(0, 25)
 topUI.__index = topUI
 
-function topUI:new(side, cName)
+function topUI:new(side, cName) -- sprite text for character names.
     local o = setmetatable({}, topUI)
 
     o.text = cName
@@ -610,11 +717,6 @@ end
 
 function BattleMiniSpr:spriteKill()
     self:remove()
-    for i, v in pairs(sprBIndex) do
-        if v.tag == "enemy" or v.tag == "player" then
-            sprBIndex[i] = nil
-        end
-    end
 end
 
 function BattleMiniSpr:changePosition(tag) -- change depiction of position in arena.
@@ -991,7 +1093,6 @@ function jointDeck:menuUpdate()
     if self.needsDisplay then
         local JDImage = gfx.image.new(304, 20, gfx.kColorBlack)
         self.jointSpr:moveTo(96, 200)
-
         gfx.pushContext(JDImage)
             self:drawInRect(0, 0, 304, 20)
         gfx.popContext()
@@ -1207,87 +1308,84 @@ function abilityGet()
     return retuTable,nameTable,portTable
 end
 
-optionSelect = playdate.ui.gridview.new(0,0)
+optionSelect = playdate.ui.gridview.new(0, 0)
+optionSelect.__index = optionSelect
 
-optionSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
+optionSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder", 10, 10, 16, 16)
 
-function optionSelect:new(selItem) -- where item is the selected card
-    local o = playdate.ui.gridview.new(50,30)
-    setmetatable(o,self)
-    self.__index=self
-
-    o.parentItem = selItem
-
-    o.menuTable = {"Details","Use"}
-
-    o:setNumberOfRows(1)
-    o:setNumberOfColumns(#o.menuTable)
-    o:setCellPadding(0,30,0,0)
-    o:setContentInset(0,0,0,0)
-    o.scrollCellsToCenter = false
-    o:setScrollDuration(0)
-
-    o.selectionType = menuIndex[#menuIndex].tag
+function optionSelect:new(selItem)
+    local o = setmetatable(playdate.ui.gridview.new(50, 30), self)
     
-
-    function o:getOption()
-        local sS,sR,sC = o:getSelection()
-        if o.menuTable[sC] == "Details" then
-            bShowCard(o.parentItem)
-        elseif o.menuTable[sC] == "Use" then
-            PlayerSelection = o.selectionType
-            local deckCheck = deckCheck()
-            if deckCheck == false then
-                goOption(o.parentItem,"player")
-            elseif deckCheck == true then
-                fullHand(o.parentItem)
-            end
-        end
-        --o:spriteKill() -- bounce is making the object reappear after initial kill
-    end
-
-    local menuSprite = gfx.sprite.new()
-    menuSprite:setCenter(0, 0)
-    local zInd = #menuIndex + 170
-    menuSprite:setZIndex(zInd)
-
-    function o:spriteKill()
-        menuSprite:remove()
-        menuIndex[o.index] = nil
-    end
-
-    menuSprite:add()
-
-    function o:menuUpdate()
-        if o.needsDisplay then
-            local menuImage = gfx.image.new(150,30,gfx.kColorWhite)
-            menuSprite:moveTo(120, 180)
-            gfx.pushContext(menuImage)
-                o:drawInRect(0,0,150,30)
-            gfx.popContext()
-            menuSprite:setImage(menuImage)
-        end
-    end
-
-    function o:drawCell(section,row,column,selected,x,y,width,height)
-
-        if selected then
-            gfx.fillTriangle(x+15,y+8,x+15,y+23,x+25,y+15)
-        end
-        local fontHeight = gfx.getFont():getHeight()
-        gfx.drawTextInRect(o.menuTable[column], x+26, y+10, width, height, nil, truncationString, kTextAlignment.left)
-    end
-
+    o:initOptions(selItem)
+    o:initSprite()
+    
     o.tag = "optionSelect"
+    o.index = #menuIndex + 1
+    menuIndex[o.index] = o
+    
+    return o
+end
 
-    local countI = 0
-    for _ in pairs(menuIndex) do 
-        countI = countI + 1 
+function optionSelect:initOptions(selItem)
+    self.parentItem = selItem
+    self.menuTable = {"Details", "Use"}
+    
+    self:setNumberOfRows(1)
+    self:setNumberOfColumns(#self.menuTable)
+    self:setCellPadding(0, 30, 0, 0)
+    self:setContentInset(0, 0, 0, 0)
+    self.scrollCellsToCenter = false
+    self:setScrollDuration(0)
+    
+    self.selectionType = menuIndex[#menuIndex].tag
+end
+
+function optionSelect:initSprite()
+    self.menuSprite = gfx.sprite.new()
+    self.menuSprite:setCenter(0, 0)
+    self.menuSprite:setZIndex(#menuIndex + 170)
+    self.menuSprite:add()
+end
+
+function optionSelect:spriteKill()
+    self.menuSprite:remove()
+    menuIndex[self.index] = nil
+end
+
+function optionSelect:getOption()
+    local sS, sR, sC = self:getSelection()
+    if self.menuTable[sC] == "Details" then
+        bShowCard(self.parentItem)
+    elseif self.menuTable[sC] == "Use" then
+        PlayerSelection = self.selectionType
+        print(PlayerSelection)
+        if not deckCheck() or PlayerSelection == "jointDeck" or PlayerSelection == "limit" then
+            goOption(self.parentItem, "player")
+        else
+            fullHand(self.parentItem)
+        end
+    end
+end
+
+function optionSelect:menuUpdate()
+    if self.needsDisplay then
+        local menuImage = gfx.image.new(150, 30, gfx.kColorWhite)
+        self.menuSprite:moveTo(120, 180)
+
+        gfx.pushContext(menuImage)
+            self:drawInRect(0, 0, 150, 30)
+        gfx.popContext()
+        
+        self.menuSprite:setImage(menuImage)
+    end
+end
+
+function optionSelect:drawCell(section, row, column, selected, x, y, width, height)
+    if selected then
+        gfx.fillTriangle(x + 15, y + 8, x + 15, y + 23, x + 25, y + 15)
     end
 
-    o.index = countI + 1
-    menuIndex[o.index] = o
-    return o
+    gfx.drawTextInRect(self.menuTable[column], x + 26, y + 10, width, height, nil, truncationString, kTextAlignment.left)
 end
 
 function deckCheck()
@@ -1541,8 +1639,7 @@ function movementConfirm(newPos,side)
     print(newPos)
 end
 
-function goOption(selOption,side)
-    
+function goOption(selOption,side) -- execute selected battle menu command
     battleCardConfirm(selOption,side)
     aiGo() -- perform AI's turn. returns battleCardConfirm
     if CurrentPhase == Phase.ATTACK then
@@ -1555,6 +1652,8 @@ function goOption(selOption,side)
 end
 
 function battleCardConfirm(selOption,side)
+    print("selOption is "..selOption)
+    print("Here is where selOption (a card name string) is compared with a table containing card names that can trigger the command input screen and can be expanded with other tables for other actions")
     if side == "enemy" then
         if #enemyDeck >= 6 then
             enemyDiscard()
@@ -1695,8 +1794,22 @@ function execTurn(attacker,defender)
     local attType = attacker.card
     local knockbackDamage = nil
 
-    attacker.attAnimation = loadMoveAnimation(attType.cName)
-    defender.defAnimation = loadMoveAnimation(defType.cName)
+    --attacker.attAnimation = loadMoveAnimation(attType.cName)
+    --defender.defAnimation = loadMoveAnimation(defType.cName)
+    animationGo(attacker,defender)
+
+    
+    --ccChange(attacker,defender)
+
+    -- conduct animation
+    --update lifebars
+    -- go to post turn
+    
+    
+    --postTurn(attacker, defender)
+end
+
+function turnFunctionsDuringAnimation(attacker, defender)
     attacker = attWillDamage(attacker) -- for determining hits and effects as well as applying them
     defender = defKind(defender) -- for determining defense type and effects as well as applying them
 
@@ -1708,7 +1821,7 @@ function execTurn(attacker,defender)
     if attacker.offensiveEffect ~= nil or defender.offensiveEffect ~= nil then
         attacker, defender = effectCompare(attacker,defender) -- returns a table with an offensive effect and its number
         -- conditionals for all other moves possible other than attacks. Effects, powerup, ready, partner switch, etc
-        attacker, defender = effectHit(attacker, defender) -- returns booleans for if the attack hits
+        attacker, defender = effectHit(attacker, defender) -- returns booleans for if the attack hits. If a card is supposed to be a command card, the player must enter the commands for this to process.
     end
 
     --cardHitMiss[1] is a boolean for whether or not the card landed a hit or if the opponent's card blocked it
@@ -1721,13 +1834,6 @@ function execTurn(attacker,defender)
     attacker, defender = moveProcessing(attacker, defender)
 
     -- do any partner switches
-    animationGo(attacker,defender)
-    ccChange(attacker,defender)
-
-    -- conduct animation
-    --update lifebars
-    -- go to post turn
-    postTurn(attacker, defender)
 end
 
 function ccChange(attacker, defender)
@@ -2142,21 +2248,16 @@ function postTurn(attacker,defender)
 end
 
 function fullHand(execItem) --where execItem is the o.parentItem to be used after a card is discarded
-    --show dialogue box: "Hand is full."
-    --clone of Joint Deck with banner: "Select Card to Toss"
-    --options are "inspect" and "Toss"
     SubMode = SubEnum.DIAG
     local tossCheck = false
 
     batDialogue:new("fullHand")
 
-    if tossCheck == true then
-        goOption(execItem, "player")
-    end
+    playerTemp = execItem
+
 end
 
 --Generic battle dialogue box
-
 
 batDialogue = playdate.ui.gridview.new(0, 20)
 batDialogue.__index = batDialogue
@@ -2180,13 +2281,20 @@ function batDialogue:new(diTable) -- indicate which dialogue from dialogueTable 
 end
 
 function batDialogue:initOptions(diTable)
-    local menuX, menuY = 150, 25 -- size of background box
+    local menuX, menuY = 200, 50 -- size of background box
     local xPos, yPos = 10, 200
     self:setScrollDuration(0)
-    self.optionsRow = dialogueTable[diTable]
 
-    for i, v in pairs(self.optionsRow) do
-        print(v)
+    if dialogueTable[diTable] then
+        self.optionsRow = dialogueTable[diTable]
+        self.type = "diTable"
+    else
+        self.optionsRow = {diTable}
+        self.type = "msg"
+    end
+    if self.type == "msg" then
+        menuX, menuY = 400,50
+        xPos, yPos = 0, 200
     end
 
     self:setNumberOfRows(#self.optionsRow)
@@ -2199,7 +2307,7 @@ end
 function batDialogue:initSprite()
     self.batDSprite = gfx.sprite.new()
     self.batDSprite:setCenter(0, 0)
-    self.batDSprite:setZIndex(980)
+    self.batDSprite:setZIndex(480)
     self.batDSprite:add()
 end
 
@@ -2233,18 +2341,201 @@ function batDialogue:drawCell(section, row, column, selected, x, y, width, heigh
 end
 
 function batDialogue:menuControl(direction)
-    if direction == "a" then
+    if direction == "a" and self.type == "diTable" then
         self:spriteKill()
         for i, v in pairs(menuIndex) do
             if v.tag == "batDialogue" then
                 table.remove(menuIndex, i)
-                print("batDialogue removed.")
+                tossMenuInit()
                 break
             end
         end
     end
 end
 
+function batDialogue:killTimer(duration)
+    local kTimer = playdate.timer.new(duration, function() self:spriteKill() end)
+end
+
 dialogueTable = {
-    ["fullHand"] = {"Your hand is full."}
+    ["fullHand"] = {"Your hand is full."},
+    ["cardToss"] = {"Select a card to toss."}
 }
+
+function tossMenuInit()
+    for i,v in pairs(menuIndex) do
+        v:spriteKill()
+    end
+    tossMenu:new()
+    SubMode = SubEnum.MENU
+end
+
+
+tossMenu = playdate.ui.gridview.new(20, 20)
+tossMenu.__index = tossMenu
+
+function tossMenu:new() -- This is created when the player must discard an item from their hand.
+    local o = playdate.ui.gridview.new(20, 20)
+    setmetatable(o, self)
+    
+    o.icons, o.names, o.ports, o.costs = getDeck(playerDeck) -- returns no conditions. Any card can be tossed.
+    o.selectable = {}
+
+    o:initGridView()
+    o:initSprite()
+
+    o.tag = "tossMenu"
+    o.index = #menuIndex + 1
+    menuIndex[o.index] = o
+
+    changeUIInfo(o.names)
+    
+    return o
+end
+
+function tossMenu:initGridView()
+    self:setNumberOfColumns(#self.icons)
+    self:setNumberOfRows(1)
+    self:setCellPadding(5, 5, 0, 0)
+    self:setContentInset(0, 0, 0, 0)
+    self:setScrollDuration(0)
+end
+
+function tossMenu:initSprite()
+    self.jointSpr = gfx.sprite.new()
+    self.jointSpr:setCenter(0, 0)
+    self.jointSpr:setZIndex(107 + #menuIndex)
+    self.jointSpr:add()
+end
+
+function tossMenu:spriteKill()
+    self.jointSpr:remove()
+    menuIndex[self.index] = nil
+    changeUIInfo()
+end
+
+function tossMenu:getOption()
+    for _, v in pairs(UIIndex) do
+        if v.tag == "UIInfo" then
+            local selectedRow = v:getSelectedRow()
+            return v.sTable[selectedRow]
+        end
+    end
+    return nil
+end
+
+function tossMenu:menuUpdate()
+    if self.needsDisplay then
+        local JDImage = gfx.image.new(304, 20, gfx.kColorBlack)
+        self.jointSpr:moveTo(96, 200)
+
+        gfx.pushContext(JDImage)
+            self:drawInRect(0, 0, 304, 20)
+        gfx.popContext()
+        self.jointSpr:setImage(JDImage)
+    end
+end
+
+function tossMenu:drawCell(section, row, column, selected, x, y, width, height)
+    gfx.setColor(gfx.kColorWhite)
+    if selected then
+        gfx.fillRect(x + 2, y, 24, 16)
+        gfx.fillTriangle(x + 25, y, x + 36, y + 16, x + 25, y + 16)
+    end
+
+    local fontHeight = gfx.getFont():getHeight()
+    for i, v in pairs(self.icons) do
+        if i == column then
+            gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+            miniIcons:drawImage(v, x + 5, y)
+        end
+    end
+end
+
+
+tossSelect = playdate.ui.gridview.new(0, 0)
+tossSelect.__index = tossSelect
+
+tossSelect.backgroundImage = gfx.nineSlice.new("assets/images/textBorder", 10, 10, 16, 16)
+
+function tossSelect:new(selItem)
+    local o = setmetatable(playdate.ui.gridview.new(50, 30), self)
+    
+    o:initOptions(selItem)
+    o:initSprite()
+    
+    o.tag = "tossSelect"
+    o.index = #menuIndex + 1
+    menuIndex[o.index] = o
+    
+    return o
+end
+
+function tossSelect:initOptions(selItem)
+    self.parentItem = selItem
+    self.menuTable = {"Details", "Toss"}
+    
+    self:setNumberOfRows(1)
+    self:setNumberOfColumns(#self.menuTable)
+    self:setCellPadding(0, 30, 0, 0)
+    self:setContentInset(0, 0, 0, 0)
+    self.scrollCellsToCenter = false
+    self:setScrollDuration(0)
+    
+    self.selectionType = menuIndex[#menuIndex].tag
+end
+
+function tossSelect:initSprite()
+    self.menuSprite = gfx.sprite.new()
+    self.menuSprite:setCenter(0, 0)
+    self.menuSprite:setZIndex(#menuIndex + 170)
+    self.menuSprite:add()
+end
+
+function tossSelect:spriteKill()
+    self.menuSprite:remove()
+    menuIndex[self.index] = nil
+end
+
+function tossSelect:getOption()
+    local sS, sR, sC = self:getSelection()
+    if self.menuTable[sC] == "Details" then
+        bShowCard(self.parentItem)
+    elseif self.menuTable[sC] == "Toss" then
+        print(self.parentItem)
+        tossCard(self.parentItem)
+    end
+end
+
+function tossSelect:menuUpdate()
+    if self.needsDisplay then
+        local menuImage = gfx.image.new(150, 30, gfx.kColorWhite)
+        self.menuSprite:moveTo(120, 180)
+
+        gfx.pushContext(menuImage)
+            self:drawInRect(0, 0, 150, 30)
+        gfx.popContext()
+        
+        self.menuSprite:setImage(menuImage)
+    end
+end
+
+function tossSelect:drawCell(section, row, column, selected, x, y, width, height)
+    if selected then
+        gfx.fillTriangle(x + 15, y + 8, x + 15, y + 23, x + 25, y + 15)
+    end
+
+    gfx.drawTextInRect(self.menuTable[column], x + 26, y + 10, width, height, nil, truncationString, kTextAlignment.left)
+end
+
+function tossCard(item)
+    local remCard = cardRet(item)
+    for i,v in pairs(playerDeck) do
+        if remCard.cNumber == v then -- will remove the first card with the same cNumber in playerDeck. This means that if there are two identical cards, the first one found will be removed.
+            table.remove(playerDeck,i)
+        end
+    end
+    goOption(playerTemp, "player")
+    playerTemp = nil
+    return 0
+end

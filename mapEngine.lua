@@ -1,9 +1,15 @@
 import 'CoreLibs/graphics'
 import 'CoreLibs/sprites'
 
-local tlp = playdate.graphics.tilemap
 local gfx = playdate.graphics
-local GRID_SIZE = 16 -- size of all grid tiles.
+local GRID_SIZE = 16 -- size of all grid tiles
+
+-- Map Initialization and Management
+local currentMapImage = nil
+local currentMap = nil
+local currentPlrSprite = nil
+local mapInitFlag = false
+GlobalCurrentMapRef = nil
 
 -- Wall Class (if needed)
 Wall = {}
@@ -110,6 +116,11 @@ function PlayerMSprite:handleInput(button)
             local overlappingSprites = gfx.sprite.allOverlappingSprites()
             -- Handle collisions if needed
         end
+
+        -- Update camera after player position update
+        if isMapInitialized then
+            updateCamera(self)
+        end
     end
 end
 
@@ -169,13 +180,25 @@ function PlayerMSprite:updatePosition()
             self.isMovingY = false
         end
     end
+
+    if mapInitFlag then
+        updateCamera(self)
+    end
 end
 
--- Map Initialization and Management
-local currentMapImage = nil
-local currentMap = nil
-local currentPlrSprite = nil
-GlobalCurrentMapRef = nil
+function updateCamera(player)
+    local screenWidth = playdate.display.getWidth()
+    local screenHeight = playdate.display.getHeight()
+    local mapWidth = currentMap:getSize() * GRID_SIZE
+    local mapHeight = currentMap:getSize() * GRID_SIZE
+
+    local camX = math.max(math.min(player.x - screenWidth / 2, mapWidth - screenWidth), 0)
+    local camY = math.max(math.min(player.y - screenHeight / 2, mapHeight - screenHeight), 0)
+
+    gfx.setDrawOffset(-camX, -camY)
+end
+
+
 
 function mapInit(map)
     GlobalCurrentMapRef = map
@@ -206,6 +229,10 @@ function mapInit(map)
     for _, v in pairs(map.mObjLayout) do
         createMapObj(v)
     end
+
+    -- center camera
+    updateCamera(pMapSprite)
+    mapInitFlag = true
 end
 
 function goMap(mapNumber)

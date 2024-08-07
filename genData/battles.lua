@@ -14,6 +14,10 @@ local arenaList = {
     tenkaichi = "bgTourn" -- reference to the .png in the background folder
     ,noko = nil
 }
+local turnBGList = {
+    tenkaichi = "bgTournAni"
+    ,noko = nil
+}
 
 battles = {
 
@@ -36,7 +40,8 @@ battles = {
 
             }
         ,["arenaParam"] = {
-            bField = arenaList.tenkaichi
+            bField = arenaList.tenkaichi,
+            turnField = turnBGList.tenkaichi
         }
         ,["eventParam"] = {
             winCondition = healthZero

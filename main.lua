@@ -6,6 +6,8 @@ import "CoreLibs/timer"
 import "CoreLibs/ui"
 import "CoreLibs/nineSlice"
 import 'CoreLibs/ui/gridview.lua'
+import 'CoreLibs/frameTimer'
+import 'CoreLibs/timer'
 
 --Other Libraries
 import "assets/secondlib/AnimatedSprite"
@@ -17,8 +19,8 @@ import 'controlContext'
 import 'menuEngine'
 import 'gameModeEnum'
 
---Battle Engine
-import 'battleEngine' 
+--Battle Enginel9l
+import 'battleEngine'
 
 --Story Engine
 import 'storyEngine'
@@ -27,7 +29,7 @@ import 'storyEngine'
 import 'mapEngine'
 
 --Battle Animations
-import 'battleAnimation'
+import 'battleAnimations'
 
 --General Data
 import '/genData/characters'
@@ -44,6 +46,7 @@ import 'fileAccess'
 
 --Debug Functions
 import 'debugF'
+import 'animationTesting'
 
 --Basic graphics setup
 local gfx <const> = playdate.graphics
@@ -65,18 +68,16 @@ dataBoxIndex = {} -- for individually drawn data boxes like fields for card info
 otherIndex = {} -- for misc objects that will not be used at the same time as any other misc object (e.g, menu icons)
 mapObjIndex = {} -- for map objects
 rectBoxIndex = {} -- table for the UI elements in the menu
+battleSpriteIndex = {} -- table for battle sprites.
 
 --Background Image
-local backgroundImage = gfx.image.new('assets/images/background/dragonBallTitle.png')
-assert(backgroundImage)
-
-gfx.sprite.setBackgroundDrawingCallback(function( x, y, width, height )backgroundImage:draw( 0, 0 )end)
 
 function bgChange(bgImage)
     local backgroundImage = gfx.image.new('assets/images/background/'..bgImage..'.png')
-    assert( backgroundImage )
     gfx.sprite.setBackgroundDrawingCallback(function( x, y, width, height)backgroundImage:draw( 0, 0 )end)
 end
+
+bgChange("dragonBallTitle")
 
 gameBoot = 0
 gameMode = GameMode.MENU 
@@ -88,6 +89,9 @@ function playdate.update()
         ramSave()
         gameBoot = 1
     end
+
+    playdate.frameTimer.updateTimers()
+    playdate.timer.updateTimers()
 
     menuInputContext()
 
@@ -127,6 +131,9 @@ function playdate.update()
         getInput()
         for i,v in pairs(UIIndex) do
             v:menuUpdate()
+        end
+        for i,v in pairs(battleSpriteIndex) do
+            v:drawBtl()
         end
     end
     

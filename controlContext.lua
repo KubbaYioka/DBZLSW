@@ -53,7 +53,7 @@ function battleInputContext(dir)
                 local fs = menuIndex[#menuIndex]
                 getNextBMenu(fs:getOption())
             elseif dir == "b" then
-                if #menuIndex > 1 then
+                if #menuIndex > 1 and menuIndex[#menuIndex].tag ~= "tossMenu" then
                     for i,v in pairs(menuIndex) do
                         if v.index == #menuIndex then
                             v:spriteKill()
