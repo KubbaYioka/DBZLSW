@@ -1,0 +1,98 @@
+---- Map ----
+Create graphics for more locations and characters.
+
+---- Cards ----
+Create graphics for cards. 
+Create more cards
+
+---- Battle ----
+
+Insert graphics\animation display between turns. Should design animation engine
+Create in-battle sprites for players
+Provide move logic for changing places on the battlefield.
+Create logic for limit deck.
+Create logic for power-up, fighting stance.
+Command Input
+
+---- Story ----
+Create more dialogue
+create graphics
+
+---- General ----
+Create more triggers for different things to happen (special cards, stories, etc)
+Create sounds
+create some music.
+
+--- Credits ---
+Original DBZLSW Staff
+
+SquidGod - for Playdate tutorials
+Lexou - for sprite dumps on Spriter's Resource
+Mochi - For their work on WISH and documentation
+Playdate Developer Community - For help and support
+
+cards:
+
+Kikoho
+4 Witches technique
+Multiform
+Shin Kikoho
+Rising Knee Finisher- move that broke Yamcha's leg. Lowers speed.
+Kiai - a risky move that completly blocks a ki attack if used in defense, but causes twice the damage if it fails.
+Drill Attack - Chiaotzu's attack against Krillin
+Telekinesis - physical ranged. Devise limits so it isn't OP.
+Paralysis - lower speed or immobile
+Suicide - Used by several characters. Perhaps Tien's is the Spirit Tri-Beam, Roshi's is Evil Containment, etc
+Sokidan - Spirit Ball - guided ball of pure energy
+Rogafufuken - Wolf Fang Fist
+Tokudai Sokidan  - Super spirit ball
+Shin Rogafufuken
+Giant Rock Throw
+Iaigiri - kinda like quick attack Roshi
+Max Power Kamehameha - Only max power Roshi
+Bankoku Bikkuri Sho - Trapping move. Used against Goku in the 21st Tournament
+Jan Ken- Roshi, Goku, Grandpa Gohan, Oolong
+Suiken - drunken fist
+Stay Away From Me! - Chi Chi's blade attack. Kid only
+Okkaneyo - Chi Chi's green beam. kid only
+Fury Jabs - As seen in her training with Goten
+Kame Senryū Fūrinkazan - Used by Grandpa Gohan
+Slam - Grandpa Gohan used against Goku
+Pilaf Robot moves
+Mai and Shu moves
+Bazooka
+
+
+Transform - Oolong, Puar
+
+Chou Makouhou - mouth beam. Enhanced barrage of the Cho Makoho
+
+8-Arm Technique - Kid Goku
+
+Tsuranuke! -- Goku's attack that killed King Piccolo
+
+Hasshu-ken - 8 arm technique. King Chappa, Kid Goku
+
+Meditation - support card
+
+Shura Gekiretsuken - Nam's foresight attack. Dodges then counterattacks.
+
+Tenkū Pekeji Ken - Nam's strongest attack
+
+------------------How does a character who cannot fly attack someone who can? If they have a high enough speed, they can land 3 stage attacks before falling back down to the ground. The disadvantage is a good challenge
+
+Finger Beam
+
+
+
+
+
+
+
+
+Hyakushu-ken 100 arms technique used by Tambourine
+Cho Marengeki
+
+Bakurikimaha - Explosive Demon Wave
+
+Pokopen - Spits an egg. Kills the user? Places an ally in the team with 1\4th the stats of the original user. Cannot be used twice. 

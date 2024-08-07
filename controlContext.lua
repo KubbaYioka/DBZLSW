@@ -53,7 +53,7 @@ function battleInputContext(dir)
                 local fs = menuIndex[#menuIndex]
                 getNextBMenu(fs:getOption())
             elseif dir == "b" then
-                if #menuIndex > 1 then
+                if #menuIndex > 1 and menuIndex[#menuIndex].tag ~= "tossMenu" then
                     for i,v in pairs(menuIndex) do
                         if v.index == #menuIndex then
                             v:spriteKill()
@@ -107,6 +107,15 @@ function battleInputContext(dir)
                     end
                 end
             end
+        elseif SubMode == SubEnum.DIAG then
+            for i,v in pairs(menuIndex) do
+                if v.tag == "batDialogue" then
+                    local fs = menuIndex[#menuIndex]
+                    if dir == "a" then
+                        fs:menuControl("a")
+                    end
+                end
+            end            
         end
     elseif bounceProtect == true then
         bounceProtectSwi("off")
@@ -186,22 +195,10 @@ function menuInputContext()
     if controlContext == GameMode.MAP then
         
         if playdate.buttonJustPressed("b") then
-            if bounceProtect == false then
-                pauseMenu()
-            elseif bounceProtect == true then
-                if playdate.buttonJustPressed("b") then
-                    bounceProtectSwi("off")
-                end
-            end
+            pauseMenu()
         end
         if playdate.buttonJustPressed("a") then
-            if bounceProtect == false then
-                pMapSprite:handleInput("a")
-            elseif bounceProtect == true then
-                if playdate.buttonJustPressed("a") then
-                    bounceProtect = false
-                end
-            end
+            pMapSprite:handleInput("a")
         end
         if playdate.buttonIsPressed("right") then
 
@@ -247,7 +244,6 @@ function ctrlConSwi(item)
         elseif item == "story" then
             controlContext = GameMode.STORY
         elseif item == "map" then
-            bounceProtectSwi("on")
             controlContext = GameMode.MAP
         elseif item == "battle" then
             controlContext = GameMode.BATTLE

@@ -1,189 +1,178 @@
 --debug functions
 
 local gfx = playdate.graphics
+local ui = playdate.ui
 
 print("Message from debugF.lua:")
-print("Next, add cards at the beginning of each turn.")
 
 --view loaded file
 function callRam()
     printTable(RAMSAVE)
 end
 
-regularBox = playdate.ui.gridview.new(0,20)
+regularBox = ui.gridview.new(0, 20)
+regularBox.__index = regularBox
+
 regularBox:setNumberOfColumns(1)
+regularBox:setCellPadding(0, 0, 4, 0)
+regularBox:setContentInset(5, 5, 5, 5)
+regularBox.backgroundImage = gfx.nineSlice.new("assets/images/textBorder", 10, 10, 16, 16)
 
-regularBox:setCellPadding(0,0,4,0)
-regularBox:setContentInset(5,5,5,5)
-
-regularBox.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
-
-function regularBox:new(optionsTable) -- pass a table to this menu to get those options drawn
-    local o = o or {}
-    setmetatable(o,self)
-    self.__index=self
-
-    local menuX, menuY = 150, 80 --size of background box
-    local xPos, yPos = menuPosition(menuPosEnum.menuPosStart)
-    o:setScrollDuration(0)
-
-    o.optionsRow = optionsTable
-    regularBox:setNumberOfRows(#o.optionsRow)
-
-    function o:getOption() -- item selection in menu
-        local s = o:getSelectedRow()
-        for i,v in pairs(o.optionsRow) do
-            if s==i then
-                return v
-            end
-        end
-    end
-
-    local regSprite = gfx.sprite.new()
-    regSprite:setCenter(0,0)
-    function o:spriteKill()
-        regSprite:remove()
-    end
-    
-    regSprite:add()
-
-    function o:menuUpdate()
-        if o.needsDisplay then
-            local regImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
-            regSprite:moveTo(xPos,yPos)
-            regSprite:setZIndex(130)
-            gfx.pushContext(regImage)
-                o:drawInRect(0,0,menuX,menuY)
-            gfx.popContext()
-            regSprite:setImage(regImage)
-        end
-    end
-
-    function o:drawCell(section,row,column,selected,x,y,width,height)
-        local menuText = {}
-        if selected then
-            gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
-        end
-        menuText = o.optionsRow
-        local fontHeight = gfx.getSystemFont():getHeight()
-        local rCount = row
-        for i,v in pairs(menuText) do
-            if rCount == i then
-                local rowCom = " "..v
-                gfx.drawTextInRect(rowCom, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-            end
-        end
-    end
-    function o:menuControl(direction) 
-        if direction == "up" then
-            o:selectPreviousRow(true)
-        elseif direction == "down" then
-            o:selectNextRow(true)
-        elseif direction == "b" then
-            regSprite:remove()
-            menuIndex[o.index] = nil
-        end
-    end
-    local countI = 0
-    for _ in pairs(menuIndex) do 
-        countI = countI + 1 
-    end
-
-    o.index = countI + 1
-    menuIndex[o.index] = o
+function regularBox:new(optionsTable)
+    local o = setmetatable(ui.gridview.new(0, 20), self)
+    o:init(optionsTable)
     return o
 end
+
+function regularBox:init(optionsTable)
+    local menuX, menuY = 150, 80
+    local xPos, yPos = menuPosition(menuPosEnum.menuPosStart)
+
+    self.optionsRow = optionsTable
+    self:setNumberOfRows(#self.optionsRow)
+    self:setScrollDuration(0)
+
+    self.regSprite = gfx.sprite.new()
+    self.regSprite:setCenter(0, 0)
+    self.regSprite:add()
+
+    self.menuX = menuX
+    self.menuY = menuY
+    self.xPos = xPos
+    self.yPos = yPos
+
+    self.tag = "regularBox"
+    self.index = #menuIndex + 1
+    menuIndex[self.index] = self
+end
+
+function regularBox:getOption()
+    local s = self:getSelectedRow()
+    return self.optionsRow[s]
+end
+
+function regularBox:spriteKill()
+    self.regSprite:remove()
+end
+
+function regularBox:menuUpdate()
+    if self.needsDisplay then
+        local regImage = gfx.image.new(self.menuX, self.menuY, gfx.kColorWhite)
+        self.regSprite:moveTo(self.xPos, self.yPos)
+        self.regSprite:setZIndex(130)
+        gfx.pushContext(regImage)
+            self:drawInRect(0, 0, self.menuX, self.menuY)
+        gfx.popContext()
+        self.regSprite:setImage(regImage)
+    end
+end
+
+function regularBox:drawCell(section, row, column, selected, x, y, width, height)
+    if selected then
+        gfx.fillTriangle(x, y + 5, x, y + 20, x + 10, y + 12)
+    end
+    local fontHeight = gfx.getSystemFont():getHeight()
+    local text = " " .. self.optionsRow[row]
+    gfx.drawTextInRect(text, x + 2, y + (height / 2 - fontHeight / 2) + 2, width, height, nil, truncationString, kTextAlignment.left)
+end
+
+function regularBox:menuControl(direction)
+    if direction == "up" then
+        self:selectPreviousRow(true)
+    elseif direction == "down" then
+        self:selectNextRow(true)
+    elseif direction == "b" then
+        self:spriteKill()
+        menuIndex[self.index] = nil
+    end
+end
+
 
 function loadTestBattle()
     clearAll()
     battleInit(battles["battleTest"])
 end
 
+function loadTestMap()
+    clearAll()
+    gameModeChange(GameMode.MAP,maps.mapNumberT)
+end
 
-titleMenu = playdate.ui.gridview.new(0,20) -- initial gridview object 
+function animationTestEnv()
+    clearAll()
+    invokeAnimationTest()
+end
 
-titleMenu.backgroundImage = gfx.nineSlice.new("assets/images/textBorder",10,10,16,16)
 
-function titleMenu:new(gType,name)
-    local o = o or {}
-    setmetatable(o,self)
-    self.__index=self
+
+
+titleMenu = playdate.ui.gridview.new(0, 20) -- initial gridview object 
+titleMenu.backgroundImage = gfx.nineSlice.new("assets/images/textBorder", 10, 10, 16, 16)
+
+function titleMenu:new(gType, name)
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+
     o.type = gType
-    local menuX, menuY, xPos, yPos = 0,0,0,0 
-
-    o.options = {}
     o.options = name
+    o:setCellPadding(0, 0, 4, 0)
+    o:setContentInset(5, 5, 5, 5)
+    o:setNumberOfColumns(1)
+    o:setNumberOfRows(#o.options)
 
-    titleMenu:setCellPadding(0,0,4,0)
-    titleMenu:setContentInset(5,5,5,5)
-    titleMenu:setNumberOfColumns(1)
-    titleMenu:setNumberOfRows(#o.options)
+    o.menuY = (#o.options * 25) + 10
+    o.menuX = 130
+    o.xPos, o.yPos = menuPosition(name)
 
-    menuY = (#o.options * 25) + 10
-    menuX = (130)
+    o.titleMenuSprite = gfx.sprite.new()
+    o.titleMenuSprite:setCenter(0, 0)
+    o.titleMenuSprite:add()
 
-    xPos, yPos = menuPosition(name)
-    
-    function o:getOption() -- item selection in menu
-        local s = o:getSelectedRow()
-        for i,v in pairs(o.options) do
-            if s==i then
+    function o:getOption()
+        local s = self:getSelectedRow()
+        for i, v in pairs(self.options) do
+            if s == i then
                 return v
             end
         end
     end
 
-    local titleMenuSprite = gfx.sprite.new()
-    titleMenuSprite:setCenter(0, 0)
-
     function o:spriteKill()
-        titleMenuSprite:remove()
+        self.titleMenuSprite:remove()
     end
-
-    titleMenuSprite:add()
 
     function o:menuUpdate()
-        if o.needsDisplay then
-            local gridviewImage = gfx.image.new(menuX,menuY,gfx.kColorWhite)
-            titleMenuSprite:moveTo(xPos, yPos) -- same location as where the grid is drawn
-            titleMenuSprite:setZIndex(130)
+        if self.needsDisplay then
+            local gridviewImage = gfx.image.new(self.menuX, self.menuY, gfx.kColorWhite)
+            self.titleMenuSprite:moveTo(self.xPos, self.yPos)
+            self.titleMenuSprite:setZIndex(130)
             gfx.pushContext(gridviewImage)
-                o:drawInRect(0,0,menuX,menuY)
+                self:drawInRect(0, 0, self.menuX, self.menuY)
             gfx.popContext()
-            titleMenuSprite:setImage(gridviewImage)
+            self.titleMenuSprite:setImage(gridviewImage)
         end
     end
 
-    function o:drawCell(section,row,column,selected,x,y,width,height)
-        local menuText={}
-        local nN = nil
+    function o:drawCell(section, row, column, selected, x, y, width, height)
         if selected then
-            gfx.fillTriangle(x,y+5,x,y+20,x+10,y+12)
+            gfx.fillTriangle(x, y + 5, x, y + 20, x + 10, y + 12)
         end
-        menuText = o.options
         local fontHeight = gfx.getSystemFont():getHeight()
-        for i,v in pairs(menuText) do
-            if row == i then
-                nN = " "..v
-                gfx.drawTextInRect(nN, x+2, y + (height/2 - fontHeight/2) + 2, width, height, nil, truncationString, kTextAlignment.left)
-            end
-        end
+        local text = " " .. self.options[row]
+        gfx.drawTextInRect(text, x + 2, y + (height / 2 - fontHeight / 2) + 2, width, height, nil, truncationString, kTextAlignment.left)
     end
 
-    function o:menuControl(direction) 
+    function o:menuControl(direction)
         if direction == "up" then
-            o:selectPreviousRow(true,true,false)
+            self:selectPreviousRow(true, true, false)
         elseif direction == "down" then
-            o:selectNextRow(true,true,false)
+            self:selectNextRow(true, true, false)
         end
     end
 
-    local countI = 0
-    for _ in pairs(menuIndex) do 
-        countI = countI + 1 
-    end
-
-    o.index = countI + 1
+    o.index = #menuIndex + 1
     menuIndex[o.index] = o
+
     return o
 end

@@ -110,7 +110,7 @@ local menuFunc = {
         gameModeChange(nMode, loc) 
     end,
     ["Options"] = function()
-        local iHTab = {"Battle Test","Menu Test","Map Test"}
+        local iHTab = {"Battle Test","Menu Test","Map Test","Ani Test"}
         regularBox:new(iHTab)
     end,
     ["Battle"] = function()
@@ -153,7 +153,10 @@ local menuFunc = {
         print("No Function Yet")
     end,
     ["Map Test"] = function()
-        print("No Function Yet")
+        loadTestMap() -- in debugF.lua
+    end,
+    ["Ani Test"] = function()
+        animationTestEnv() -- in debugF.lua
     end,
     ["eof"] = 0
     -- Add more menu items and their corresponding functions here
