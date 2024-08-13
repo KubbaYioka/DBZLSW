@@ -1,12 +1,17 @@
 -- battle animations
+local gfx = playdate.graphics
+local ui = playdate.ui
 
 import 'CoreLibs/graphics'
 import 'CoreLibs/sprites'
 import 'genData/spriteMetadata'
 import 'CoreLibs/timer'
+import 'CoreLibs/ui/gridview.lua'
 
 local gfx = playdate.graphics
 local ui = playdate.ui
+
+commandButtons = {}
 
 local animationInterrupts = {
     ["Stage Attacks"] = {"2 Stage Attack", "3 Stage Attack", "4 Stage Attack", "5 Stage Attack", "6 Stage Attack", "7 Stage Attack"},
@@ -105,8 +110,27 @@ function clearField() -- function that clears the battle graphics
     SubMode = SubEnum.NONE
     fadeInWhite("normal")
     clearBattleMenus()
-    clearBattleSprites()
+    clearBattleFieldSprites()
     clearBottomUIInfo()
+    clearStgElements()
+    clearBattleSprites()
+end
+
+function clearStgElements()
+    for i,v in pairs(otherIndex) do
+        if v.tag =="timerC" then
+            v:spriteKill()
+        end
+    end
+    for i,v in pairs(commandButtons) do
+        v:spriteKill()
+    end
+end
+
+function clearBattleSprites()
+    for i,v in pairs (battleSpriteIndex) do
+        v:spriteKill()
+    end
 end
 
 function clearBattleMenus()
@@ -115,7 +139,7 @@ function clearBattleMenus()
     end
 end
 
-function clearBattleSprites()
+function clearBattleFieldSprites()
     for i,v in pairs(sprBIndex) do
         v:spriteKill()
     end
@@ -310,7 +334,7 @@ function animationGo(attacker, defender) -- The main animation subroutine. All a
     
     local attackerAnimation, defenderAnimation = loadAnimationTable(attacker, defender)
     local attackerSprite = btlSprite:new("attacker",attackerAnimation)
-    --local defenderSprite = btlSprite:new("defender",defenderAnimation)
+    local defenderSprite = btlSprite:new("defender",defenderAnimation)
     bgChange(BattleRef["arenaParam"].turnField)
 
     local attMsg = getAttackMessage(attacker)
@@ -327,6 +351,22 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
 
     --local functions
 
+    local function getDefenderAniTable()
+        if #commandButtonResults > 0 then
+            return "stgReady"
+        else
+            print("Defender anitable will be normal.")
+            return
+        end
+    end
+
+    local function defenderTransition()
+        clearField()
+        --local defenderAniTable = getDefenderAniTable()
+        --local defenderSprite = btlSprite:new("defender",defenderAniTable)
+
+    end
+
     local function continueAfterSpecialAttack()
 
     end
@@ -335,18 +375,65 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
 
     end
 
+    local function commandButtonResultsInit()
+        if #commandButtonResults > 0 then
+            for i,v in pairs(commandButtonResults) do
+                table.remove(commandButtonResults, i)
+            end
+        end
+        commandButtonResults = {}
+    end
+
+    local function compareInputToStageLength()
+        if #commandButtonResults < #stepTable[2] then
+            local diff = #stepTable[2] - #commandButtonResults
+            local fin = diff + #commandButtonResults
+            for n=#commandButtonResults+1,fin do
+                commandButtonResults[n] = {false,0,stepTable[2][n]}
+            end
+        elseif #commandButtonResults == #stepTable[2] then
+            return
+        else
+            print("Error in commandButtonRestults length.")
+            return
+        end
+    end
+
     local function continueAfterStgPrep()
+        commandButtonResults = {}
+        commandButtonResultsInit()
         for i,v in pairs(stepTable[2]) do  
            local btn = cmdButton:new(v,i)
         end
+        SubMode = SubEnum.COMM
         local stgTime = 2000
-        --get distance time(stgTime) returns table of values for {total time to input, total time until player sprite begins to move offscreen}
         stgTime = getPositionDistance() -- gets the time the user has to input their stage attack
+        local stgTimer = stgCountdown:new(stgTime)
+
 
         local stgInitTimer = playdate.timer.new(stgTime, function() --stage Input time
-
+            compareInputToStageLength()
+            printTable(commandButtonResults)
+            --control context returned to none
+            --calculate presses/wrongs/etc
+            --fadeout to enemy\defender screen. Call to locally scoped function needed here. 
+            SubMode = SubEnum.NONE
+            defenderTransition()
         end)
-        
+
+        local chargeAnimationStartTimer = playdate.timer.new((stgTime-500), function()
+            local chargeAnimation = "string"
+            if CurrentPhase == Phase.ATTACK then
+                chargeAnimation = getMoveAnimationType("player")
+            elseif CurrentPhase == Phase.DEFENSE then
+                chargeAnimation = getMoveAnimationType("enemy")
+            end
+            for i,v in pairs(battleSpriteIndex) do
+                if v.tag == "attacker" then
+                    v:playAni(chargeAnimation)
+                end
+            end
+        end) 
     end
 
     local attMsgTimer = playdate.timer.new(2500, function()
@@ -360,9 +447,7 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
                 if v.type == "msg" then
                     v:spriteKill()
                 end
-            end
-            --function to retrieve animation table established earlier. Add or otherwise factor all times for animation. See if player input is necessary.
-            --local initAnimation = playdate.timer.new()    
+            end 
             
             local pressDialogue = batDialogue:new("Press: ")
                         
@@ -372,14 +457,84 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
                     end
                 end
             end)
+
         elseif stepTable[1] == "attack" then -- or whatever
 
         elseif stepTable[1] == "support" then
 
         elseif stepTable[1] == "powerUp" then
+
+        elseif stepTable[1] == "partnerSwap" then
             
         end
     end)
+end
+
+
+
+function getStageResults()
+    return commandButtonResults
+end
+
+function getMoveAnimationType(side)
+    local flyParam = "string"
+    local chrPos = "string"
+    local oppPos = "string"
+
+    if side == "enemy" then
+        flyParam = enemyChr["ability"][1] -- because index 1 is where the fly ability is kept.
+        chrReference = enemyChr.chrCode
+        chrPos = enemySprTab.position
+        opponentReference = playerChr.chrCode
+        oppPos = playerSprTab.position
+    elseif side == "player" then
+        flyParam = playerChr["ability"][1]
+        chrReference = playerChr.chrCode
+        opponentReference = enemyChr.chrCode
+        chrPos = playerSprTab.position
+        oppPos = enemySprTab.position
+    end
+
+    if flyParam == true then
+        if chrPos == "airaft" or chrPos == "airfore" then
+            if oppPos == "airaft" or oppPos == "airfore" then
+                return "flyForward"
+            elseif oppPos == "groundfore" or oppPos == "groundaft" then
+                return "flyDown"
+            end
+        elseif chrPos == "groundfore" or chrPos == "groundaft" then
+            if oppPos == "airaft" or oppPos == "airfore" then
+                return "flyUp"
+            elseif oppPos == "groundfore" or oppPos == "groundaft" then
+                return "runForward"
+            end
+        end
+        
+    elseif flyParam == false then
+        if chrPos == "airaft" or chrPos == "airfore" then -- this will never happen
+            if oppPos == "airaft" or oppPos == "airfore" then
+                return "none"
+            elseif oppPos == "groundfore" or oppPos == "groundaft" then
+                return "flyDown"
+            end
+        elseif chrPos == "groundfore" or chrPos == "groundaft" then
+            if oppPos == "airaft" then 
+                return "jumpForward"
+            elseif oppPos == "airfore" then
+                return "jumpUp"
+            elseif oppPos == "groundfore" then
+                return "runForward"
+            elseif oppPos == "groundaft" then
+                return "dashRunForward"
+            end
+        end
+    else
+        print("Position or parameter not found in getMoveAnimationType(): ")
+        print("flyParam:"..tostring(flyParam))
+        print("attacker position: "..chrPos)
+        print("opponent position: "..oppPos)
+        print("Side that needs animation: "..side)
+    end
 end
 
 function setAttStep(interrupt)
@@ -415,6 +570,13 @@ function getAttackMessage(attacker)
     return attMsgString
 end
 
+function checkStgCard(card)
+    for i,v in pairs(animationInterrupts["Stage Attacks"]) do
+        if card == v then
+            return true
+        end
+    end
+end
 -- objects --
 
 class('fadeBox').extends(gfx.sprite)
@@ -441,16 +603,23 @@ end
 
 -- create player and enemy objects from a common sprite class
 
-btlSprite = gfx.sprite:new()
+btlSprite = {}
+btlSprite.__index = btlSprite
+
+setmetatable(btlSprite, {
+    __index = gfx.sprite
+})
 
 function btlSprite:new(side, aniTable)
-    local self = gfx.sprite.new(self)
-    setmetatable(self, { __index = btlSprite })
+    print("The side variable is coming up nil in btlSprite after the object is created above. Problem may stem from local variables.")
+    local self = gfx.sprite.new()
+    setmetatable(self, btlSprite)
 
     self.chrCode = getChar(side)
     self.aniTable = aniTable
     self.visible = false
-    self.spriteTable = gfx.imagetable.new(self:getSpriteSheet()) -- battledamage or transformation sheets can be loaded over this with playdate.graphics.imagetable:load(path) 
+
+    self.spriteTable = gfx.imagetable.new(self:getSpriteSheet()) 
     self.frameData = self:getFrameData()
     self.currentFrame = {}
 
@@ -458,38 +627,45 @@ function btlSprite:new(side, aniTable)
     
     self:moveTo(200,120)
     self.tag = side
-    local number = 5
-    if side == "attacker" then
-        number = number + 5
+    print(side)
+    if self.tag == "attacker" then
         self.visible = true
     end
-    self.index = #otherIndex + number
-    self:setZIndex(self.index)
+    self.index = #battleSpriteIndex + 1
+    self:setZIndex(85)
     battleSpriteIndex[self.index] = self
-
+    self:initEffectTimers()
     self:add()
 
     return self
 end
 
-function btlSprite:drawBtl()
-    
+function btlSprite:spriteKill()
+    for i, sprite in ipairs(gfx.sprite.getAllSprites()) do
+        if getmetatable(sprite) == btlSprite then
+            if sprite.effectTimers then
+                for effectName, timer in pairs(sprite.effectTimers) do
+                    sprite:stopEffect(effectName)
+                end
+            end
+            sprite:remove()
+        end
+    end
+    self:remove()
+    table.remove(battleSpriteIndex, self.index)
 end
 
 function btlSprite:updateFrame(frameKey)
-    --print("framekey coords: ")
-    --printTable(self.frameData[frameKey])
-
     local x, y = self:getMatrixCoords(self.frameData[frameKey])
-    -- Ensure x and y are properly calculated
-    --print("Matrix coords:", x, y)
-
-    -- Calculate the index in the imagetable based on the matrix coordinates
     local index = x + (y - 1) * self.spriteTable:getLength()
-    --print("Calculated index:", index)
-
     self.currentFrame = self.spriteTable:getImage(index)
-    self:setImage(self.currentFrame)
+    if self.tag == "defender" then
+        print("image flipped")
+        self:setImage(self.currentFrame, gfx.kImageFlippedX)
+    else
+        print(self.tag)
+        self:setImage(self.currentFrame)
+    end
 end
 
 function btlSprite:getMatrixCoords(tab)
@@ -510,7 +686,7 @@ function btlSprite:getFrameData() -- returns matrix values on the sprite sheet
     return spriteMetadata[self.chrCode]
 end
 
-function btlSprite:playAni(ani,trigFunction, ...)
+function btlSprite:playAni(ani,trigFunction)
     local aniS = characterAnimationTables[self.chrCode][ani] or characterAnimationTables["generic"][ani]
     if not aniS then
         print("animation not found or not yet defined: "..tostring(aniS))
@@ -518,15 +694,12 @@ function btlSprite:playAni(ani,trigFunction, ...)
             printTable(aniS)
         end
     end
-    local tab = {}
-    if ... then
-        tab = {...}
-    end
-    self:runAnimationSequence(aniS,1,trigFunction,tab)
+    self:runAnimationSequence(aniS,1,trigFunction)
 end
 
 function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, effectTab)
     if frameIndex > #animation then
+
         if trigFunction then
             trigFunction()
         end
@@ -536,13 +709,50 @@ function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, eff
     local frame = animation[frameIndex]
     self:updateFrame(frame[1])
 
+    if #frame > 2 then
+        for i = 3, #frame do
+            local effect = frame[i]
+            if effect then
+                effect(self)
+            end
+        end
+    end
+
     local frameDuration = frame[2] or 500
     playdate.timer.new(frameDuration, function()
         self:runAnimationSequence(animation, frameIndex + 1, trigFunction, effectTab)
     end)
 end
 
-buttonTable = {}
+function btlSprite:initEffectTimers()
+    self.effectTimers = {}
+end
+
+function btlSprite:stopEffect(effectName)
+    if self.effectTimers and self.effectTimers[effectName] then
+        self.effectTimers[effectName]:remove()
+        self.effectTimers[effectName] = nil
+    end
+end
+
+---sprite effect functions---
+function btlSprite:moveInDirection(traj, speed)
+    local function move()
+        local x, y = self:getPosition()
+        if traj == "right" then
+            self:moveTo(x + speed, y)
+        elseif traj == "left" then
+            self:moveTo(x - speed, y)
+        elseif traj == "up" then
+            self:moveTo(x, y - speed)
+        elseif traj == "down" then
+            self:moveTo(x, y + speed)
+        end
+    end
+
+    self.effectTimers["move"] = playdate.timer.new(10, move)
+    self.effectTimers["move"].repeats = true
+end
 
 cmdButton = gfx.sprite:new()
 
@@ -551,6 +761,7 @@ function cmdButton:new(button, number)
     setmetatable(self, { __index = cmdButton })
 
     self.button = button
+    self.physicalButton = getPhysicalButton(button)
     self.number = number
     
     self.pressed = false
@@ -572,11 +783,40 @@ function cmdButton:new(button, number)
     self.tag = "btnPrompt"
     self:setZIndex(510)
 
-    otherIndex[self.number] = self
+    commandButtons[self.number] = self
 
     self:add()
 
     return self
+end
+
+function getPhysicalButton(button)
+    if button == "back" then
+        return "right"
+    else
+        return button
+    end
+end
+
+function cmdButton:cmdInput(dir)
+    if dir == self.physicalButton then
+        self.pressed = true
+        commandButtonResults[self.number] = {true,1,self.physicalButton}
+    elseif dir ~= self.physicalButton then
+        self.pressed = true
+        self.wrong = true
+        commandButtonResults[self.number] = {false,0,self.physicalButton}
+    end
+    return
+end
+
+function cmdButton:spriteKill()
+    self:remove()
+    for i, v in pairs(commandButtons) do
+        if v == self then
+            commandButtons[i] = nil
+        end
+    end
 end
 
 function cmdButton:updateButton()
@@ -602,3 +842,88 @@ function cmdButton:assignIcon(button)
     end
 end
 
+
+stgCountdown = ui.gridview:new(20, 20)
+stgCountdown.__index = stgCountdown
+stgCountdown:setNumberOfColumns(1)
+stgCountdown:setCellPadding(0, 0, 0, 0)
+stgCountdown:setContentInset(0, 0, 0, 0)
+
+function stgCountdown:new(countDown)
+    local self = setmetatable(ui.gridview.new(50,30), stgCountdown)
+    self:init(countDown)
+    return self
+end
+
+function stgCountdown:init(countDown)
+    local sizeX, sizeY = 100, 15
+    local xPos, yPos = 0, 190
+    self.sizeX = sizeX
+    self.sizeY = sizeY
+    self.xPos = xPos
+    self.yPos = yPos
+
+    self.initialTime = 0
+    self.active = true
+    self.startTime = playdate.getCurrentTimeMilliseconds()
+    
+    -- Ensure displayTime is set correctly
+    self.displayTime = countDown
+
+    self:setNumberOfRows(1)
+    self:setScrollDuration(0)
+    
+    self.countSprite = gfx.sprite.new()
+    self.countSprite:setCenter(0, 0)
+    self.countSprite:setZIndex(610)
+    self.countSprite:moveTo(self.xPos, self.yPos)
+    self.countSprite:add()
+
+    self.tag = "timerC"
+
+    self.index = #otherIndex + 1
+    otherIndex[self.index] = self
+end
+
+function stgCountdown:spriteKill()
+    self.countSprite:remove()
+    for i, v in pairs(otherIndex) do
+        if v.tag == "timerC" then
+            otherIndex[i] = nil
+        end
+    end
+end
+
+function stgCountdown:timerUpdate()
+    --if self.needsDisplay then
+        local currentTime = playdate.getCurrentTimeMilliseconds()
+        local elapsedTime = currentTime - self.startTime
+        local stgImage = gfx.image.new(self.sizeX,self.sizeY,gfx.kColorBlack)
+        self.countSprite:moveTo(self.xPos,self.yPos)
+        self.initialTime = elapsedTime
+
+        gfx.pushContext(stgImage)
+            self:drawInRect(0,0,self.sizeX,self.sizeY)
+        gfx.popContext()
+        self.countSprite:setImage(stgImage)
+        --print("Timer Update - initialTime (ms):", self.initialTime, "displayTime (ms):", self.displayTime)
+
+        if self.initialTime >= self.displayTime then
+            self.active = false
+        end
+    --end
+end
+
+function stgCountdown:drawCell(section, row, column, selected, x, y, width, height)
+    gfx.fillRect(self.xPos, self.yPos, self.sizeX, self.sizeY)
+    gfx.setFont(sysFNT.smDBFont)
+    local fontHeight = gfx.getFont():getHeight()
+    
+    local dispTime = self.initialTime / 1000
+    local fullTime = self.displayTime / 1000
+    local text = string.format("%.2f / %.2f", dispTime, fullTime)
+    local original_draw_mode = gfx.getImageDrawMode()
+        gfx.setImageDrawMode(gfx.kDrawModeInverted)
+        gfx.drawTextInRect(text, x, y --[[+ (height / 2 - fontHeight / 2) + 2]], 80, height, nil, truncationString, kTextAlignment.center)
+    gfx.setImageDrawMode(original_draw_mode)
+end

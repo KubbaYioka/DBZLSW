@@ -34,7 +34,7 @@ battles = {
             ,opponentAppearance = {"normal"} -- first index in table is for the first index in oppoTeam, aka first chr
             ,opponentTrans = {"none"}
             ,opponentAIType = {AI.NORMAL}
-            ,opponentTransformations = { -- only for initial state. Available transformations should be calculated based on level tables in another function.
+            ,opponentInitialTransformations = { -- only for initial state. Available transformations should be calculated based on level tables in another function.
                 [1] = "normal"
             }
 

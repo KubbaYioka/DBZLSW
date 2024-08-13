@@ -1652,8 +1652,8 @@ function goOption(selOption,side) -- execute selected battle menu command
 end
 
 function battleCardConfirm(selOption,side)
-    print("selOption is "..selOption)
-    print("Here is where selOption (a card name string) is compared with a table containing card names that can trigger the command input screen and can be expanded with other tables for other actions")
+    print("selOption for "..side.." is "..selOption)
+    --print("Here is where selOption (a card name string) is compared with a table containing card names that can trigger the command input screen and can be expanded with other tables for other actions")
     if side == "enemy" then
         if #enemyDeck >= 6 then
             enemyDiscard()
@@ -2139,7 +2139,7 @@ function moveProcessing(atta, defe)
     local cardHitTable = atta.cardHitMiss
     local statHitTable = atta.statHitMiss
     local attackerEffect = atta.EffOffense
-    local defenderEffect = defe.EffOffense
+    local defenderEffect = defe.EffOffense -- check correctness
     local deStat = defe.mStats
     local atStat = atta.mStats
 
@@ -2159,8 +2159,9 @@ function moveProcessing(atta, defe)
     end
     print("----------------------")
     ]]
-    local cardHit = cardHitTable[1] -- boolean
-    local hitType = cardHitTable[2] -- string
+
+    local cardHit = cardHitTable[1] -- boolean for if the attack lands
+    local hitType = cardHitTable[2] -- string for stat that is affected by the hit
     local damageAmount = statHitTable[1] --number
     local statHit = statHitTable[2] -- boolean
     local knockbackHit = statHitTable[3] --boolean
@@ -2313,6 +2314,7 @@ end
 
 function batDialogue:spriteKill()
     self.batDSprite:remove()
+    table.remove(menuIndex,self.index)
 end
 
 function batDialogue:menuUpdate()
@@ -2410,7 +2412,7 @@ end
 
 function tossMenu:spriteKill()
     self.jointSpr:remove()
-    menuIndex[self.index] = nil
+    table.remove(menuIndex,self.index)
     changeUIInfo()
 end
 
