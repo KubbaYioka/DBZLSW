@@ -132,8 +132,13 @@ function playdate.update()
         for i,v in pairs(UIIndex) do
             v:menuUpdate()
         end
-        for i,v in pairs(battleSpriteIndex) do
-            v:drawBtl()
+        for i,v in pairs(otherIndex) do
+            if v.tag == "timerC" and v.active == true then
+                v:timerUpdate()
+            end
+        end
+        if #commandButtons > 0 then
+            
         end
     end
     

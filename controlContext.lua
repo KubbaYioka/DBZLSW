@@ -28,6 +28,7 @@ function getInput()
 end
 
 function battleInputContext(dir) 
+    local cmdLastButtonPressed = nil
     if bounceProtect == false then
 
         if SubMode == SubEnum.NONE then
@@ -76,7 +77,22 @@ function battleInputContext(dir)
                 SubMode = SubEnum.MENU
             end
         elseif SubMode == SubEnum.COMM then
-
+            print("initial press "..dir)
+            for i,v in pairs(commandButtons) do
+                if cmdLastButtonPressed ~= nil then
+                    print("Button must be released:"..cmdLastButtonPressed)
+                    if playdate.buttonJustReleased(cmdLastButtonPressed) then
+                        cmdLastButtonPressed = nil
+                    end
+                elseif cmdLastButtonPressed == nil then
+                    if v.pressed == false then
+                        print("cmdPressed")
+                        print(dir)
+                        cmdLastButtonPressed = dir
+                        v:cmdInput(dir)
+                    end
+                end
+            end
         elseif SubMode == SubEnum.MOVE then
             local gt = UIIndex[#UIIndex]
             local fs = menuIndex[#menuIndex]
