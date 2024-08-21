@@ -12,6 +12,7 @@ CTrans = "transformation"
 CReady = "ready"
 CPower = "powerup"
 CGuard = "guard"
+RGuard = "regGuard"
 
 --Phase Enumeration
 
@@ -117,8 +118,7 @@ function ChrMove(side,card) -- basic movement, carries slight penalty
 end
 
 function CommandBlock(side,card)
-  side.willBlock = "com"
-  return side
+    print("define code for CommandBlock in cards.lua")
 end
 
 function NoAbility(side,card)
@@ -690,6 +690,23 @@ cards = {
   ,cNForms = None
   ,cPortrait = {4,1}
   ,mIcon = 6
+  },
+  ["Foresight"]=
+  {
+    cName = "Foresight"
+    ,cNumber = 032
+    ,cType = CGuard
+    ,cPower = .5
+    ,cAccuracy = 80 
+    ,cCost = 4
+    ,cEffect = "Forsee"
+    ,cDescription = "Block enemy's stage atk."
+    ,cPhases = PDefense
+    ,cAbility = CommandBlock()
+    ,cAllowed = AllChrs
+    ,cNForms = None
+    ,cPortrait = {4,1}
+    ,mIcon = 6
   }
 
 }
@@ -717,7 +734,7 @@ cards = {
 BasicOther = { -- for all other actions that are not cards. 
   ["Guard"] = {
     cName = "Guard"
-    ,cType = CGuard
+    ,cType = RGuard
     ,cPower = 0
     ,cAccuracy = 100
     ,cCost = 0

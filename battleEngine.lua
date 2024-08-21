@@ -432,8 +432,6 @@ function getSpeeds(attackerS)
     if attackerS == "player" then
         local sp = playerChr["chrSpd"]
         local ds = enemyChr["chrSpd"]
-        print("player Speed: "..sp)
-        print("enemy Speed: "..ds)
         return playerChr["chrSpd"], enemyChr["chrSpd"]
     elseif attackerS == "enemy" then
         return enemyChr["chrSpd"], playerChr["chrSpd"]
@@ -510,7 +508,7 @@ end
 
 function getNextBMenu(selOption,phase) --gets the selected option and creates the next menu level based on that.
     if selOption ~= nil then
-        print("selOption in getNextBMenu: "..selOption)
+        --print("selOption in getNextBMenu: "..selOption)
     end
     --Limit
     if selOption == "Limit" then
@@ -535,7 +533,7 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
         if #menuIndex < 3 and menuIndex[#menuIndex].tag ~= "tossMenu" then -- prevents the optionSelect currently in place from being overwritten
             local oS = optionSelect:new(selOption)
         elseif menuIndex[#menuIndex].tag == "tossMenu" then
-            print("options: Details, Toss.")
+
             local oS = tossSelect:new(selOption)
         end
     end
@@ -1669,8 +1667,8 @@ function battleCardConfirm(selOption,side)
             end
         end
     elseif side == "player" then
-        printTable(playerDeck)
-        print(selOption)
+        --printTable(playerDeck)
+        --print(selOption)
 
         playerTurnTable = {}
         playerTurnTable.card = cardRet(selOption)
@@ -2504,7 +2502,6 @@ function tossSelect:getOption()
     if self.menuTable[sC] == "Details" then
         bShowCard(self.parentItem)
     elseif self.menuTable[sC] == "Toss" then
-        print(self.parentItem)
         tossCard(self.parentItem)
     end
 end

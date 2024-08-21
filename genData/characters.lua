@@ -89,7 +89,7 @@ battleSprites = {
     ["EOF"] = nil
 }
 
-function unlockCheck(chrCode,level) -- checks to see what abilities the player has. 
+function unlockCheck(chrCode,level)
     local reTable = {}
     for i,v in pairs(UnlockTables) do
         if i == chrCode then

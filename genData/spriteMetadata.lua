@@ -83,7 +83,26 @@ characterAnimationTables = {
             [1] = {"armsWide",100},
             [2] = {"blurForward",50},
             [3] = {"endurance",800},
-            [4] = {"normalStance",0}
+            [4] = {"normalStance",1}
+        },
+        ["a"] = {
+            [1] = {"stageA",300,opponentHit},
+            [2] = {"normalStance",200}
+        },
+        ["b"] = {
+            [1] = {"stageB",300,opponentHit},
+            [2] = {"normalStance",200}
+        },
+        ["back"] = {
+            [1]= {"stageBack",1000,opponentHit}
+        },
+        ["up"] = {
+            [1] = {"stageUp",1000,opponentHit}
+        },
+        ["down"] = {
+            [1] = {"leap",50},
+            [2] = {"hammerUp",300},
+            [3] = {"stageDown",1000,opponentHit}
         },
         ["flyForward"] = {
             [1] = {"flyForward",0,function(self) btlSprite:moveInDirection("right", 10) end} -- placeholder
@@ -102,6 +121,24 @@ characterAnimationTables = {
         },
         ["dashRunForward"] = {
             [1] = {"flyForward",0,function(self) self:moveInDirection("right", 10) end} -- placeholder
+        },
+        ["flyForwardWithStop"] = {
+            [1] = {"flyForward",500,function(self) btlSprite:moveInDirection("right", 10, "enemy") end} -- placeholder
+        },
+        ["flyDownWithStop"] = {
+            [1] = {"flyForward",500,function(self) btlSprite:moveInDirection("right", 10, "enemy") end} -- placeholder
+        },
+        ["jumpForwardWithStop"] = {
+            [1] = {"flyForward",500,function(self) btlSprite:moveInDirection("right", 10, "enemy") end} -- placeholder
+        },
+        ["jumpUpWithStop"] = {
+            [1] = {"flyForward",500,function(self) btlSprite:moveInDirection("right", 10, "enemy") end} -- placeholder
+        },
+        ["runForwardWithStop"] = {
+            [1] = {"flyForward",500,function(self) btlSprite:moveInDirection("right", 10, "enemy") end}
+        },
+        ["dashRunForwardWithStop"] = {
+            [1] = {"flyForward",500,function(self) self:moveInDirection("right", 10, "enemy") end} -- placeholder
         },
         ["Ki Blast"] = {
             [1] = {"rightKi",4000}
@@ -141,6 +178,10 @@ characterAnimationTables = {
             [13] = {"rapidKickTwo",500},
             [14] = {"leap",300},
             [15] = {"normalStance", 2000}
+        },
+
+        ["normalStance"] = {
+            [1] = {"normalStance",0}
         }
 
 
