@@ -15,8 +15,15 @@ commandButtons = {}
 
 local animationInterrupts = {
     ["Stage Attacks"] = {"2 Stage Attack", "3 Stage Attack", "4 Stage Attack", "5 Stage Attack", "6 Stage Attack", "7 Stage Attack"},
-    ["Defense"] = {"Beam Block"}
+    ["Defense"] = {"Endurance", "Deflect","Shockwave","Foresight","Instant Transmission","Time Freeze"},
+    ["Beam"] = {},
+    ["Physical"] = {},
+    ["Support"] = {},
+    ["Other"] = {},
+    ["Transformation"] = {}
 }
+
+
 
 local genericAnimationTable = { -- shared animation definitions for attacks with many users.
     "Cont. Kick",
@@ -132,7 +139,7 @@ function clearEffectTimers()
             c:remove()
         end
     end
-    printTable(playdate.frameTimer.allTimers())
+
 end
 
 function clearStgElements()
@@ -351,6 +358,9 @@ end
 
 function animationGo(attacker, defender) -- The main animation subroutine. All animation logic and drawing steps are sequenced in this program
     clearField()
+    sideRef = {}
+    sideRef.attacker = attacker
+    sideRef.defender = defender
     
     local attackerAnimation, defenderAnimation = loadAnimationTable(attacker, defender)
     local attackerSprite = btlSprite:new("attacker",attackerAnimation)
@@ -380,6 +390,134 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
         end
     end
 
+    local function stgTableIterate(iterator)
+        local aniMStep = "string"
+        
+        if iterator == nil then
+            iterator = 1
+        elseif iterator > #commandButtonResults then
+            return
+        end
+        
+        if commandButtonResults[iterator][1] == true then
+            aniMStep = commandButtonResults[iterator][3]
+            if aniMStep == "right" then
+                aniMStep = "back"
+            end
+        elseif commandButtonResults[iterator][1] == false then
+            print("Attack misses")
+        end
+        
+        for i, v in pairs(battleSpriteIndex) do
+            if v.tag == "attacker" then
+                
+                v:playAni(aniMStep, function()
+                    stgTableIterate(iterator + 1)
+                end)
+                return
+            end
+        end
+    end
+    
+
+    local function stageAttackGo(attacker, defender)
+        local oppoX = 1
+        local oppoY = 1
+        local dir = "string"
+        local stopX = 1
+        local atkChrg = "string"
+        for i,v in pairs(battleSpriteIndex) do
+            
+            if v.tag == "defender" then
+                oppoX, oppoY = v:getPosition()
+            end
+
+            if CurrentPhase == Phase.DEFENSE then
+                stopX = oppoX + 10 -- sprite will stop +10 px to the right of defender sprite
+            elseif CurrentPhase == Phase.ATTACK then
+                stopX = oppoX - 10 -- sprite will stop 10px to the right of the defender.
+            end
+
+            if v.tag == "attacker" then
+                v:moveTo(-30,120)
+                v:trigger("on")
+                
+                if CurrentPhase == Phase.ATTACK then
+                    atkChrg = getMoveAnimationType("player","stop")
+                    dir = "right"
+                elseif CurrentPhase == Phase.DEFENSE then
+                    atkChrg = getMoveAnimationType("enemy","stop")
+                    dir = "left"
+                end
+
+                v:playAni(atkChrg,stgTableIterate)
+            end
+        end
+    end
+
+    local function cmdVSGrd(attacker, defender)
+        if defender.card["cType"] ~= RGuard then
+            if defender.card["cAbility"] == CommandBlock then
+               
+            end
+            -- iterate to see if the card applies to interfere with cmd
+        elseif defender.card["cType"] == RGuard then
+            stageAttackGo(attacker, defender)
+        end
+    end
+
+    local function cmdVSEff(cmdTable,defCard)
+
+    end
+
+    local function cmdVSCmd(cmdATable,cmdDTable)
+
+    end
+
+    local function getAttackForAni(att, def)
+        local attacker = sideRef.attacker
+        local defender = sideRef.defender
+
+        local AType = attacker.card["cType"]
+        local DType = defender.card["cType"]
+
+        --[[
+        --types--
+        CCommand = "command"
+        CPhysical = "physical"
+        CKi = "ki"
+        CEffect = "effect"
+        CTrans = "transformation"
+        CReady = "ready"
+        CPower = "powerup"
+        CGuard = "guard"
+        ]]
+
+        if AType == CCommand then
+            if DType == CEffect then
+                return cmdVSEff, attacker, defender
+            elseif DType == CGuard or DType == RGuard then
+                return cmdVSGrd, attacker, defender
+            elseif DType == CCommand then
+                return cmdVSCmd, attacker, defender
+
+            end 
+        elseif AType == CPhysical then
+
+        elseif AType == CKi then
+
+        elseif AType == CReady then
+
+        elseif AType == CTrans then
+
+        elseif AType == CEffect then
+
+        elseif AType == CPower then
+
+        end
+
+    end
+
     local function defenderTransition()
         clearExceptBattleSprites()
 
@@ -393,7 +531,8 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
 
         local defMsgTimer = playdate.timer.new(2500, function()
             local msgTime = batDialogue:new(defMsg)
-
+            local execAni, attTab, defTab = getAttackForAni(attInt, defInt) -- returns a function to be run 
+            execAni(attTab,defTab) -- refers to above functions.
         end)
 
     end
@@ -443,7 +582,7 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
 
         local stgInitTimer = playdate.timer.new(stgTime, function() --stage Input time
             compareInputToStageLength()
-            printTable(commandButtonResults)
+            --printTable(commandButtonResults)
             SubMode = SubEnum.NONE
             defenderTransition()
         end)
@@ -474,7 +613,7 @@ function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this 
                 if v.type == "msg" then
                     v:spriteKill()
                 end
-            end 
+            end
             
             local pressDialogue = batDialogue:new("Press: ")
                         
@@ -501,7 +640,8 @@ function getStageResults()
     return commandButtonResults
 end
 
-function getMoveAnimationType(side)
+function getMoveAnimationType(side,stop)
+
     local flyParam = "string"
     local chrPos = "string"
     local oppPos = "string"
@@ -523,15 +663,31 @@ function getMoveAnimationType(side)
     if flyParam == true then
         if chrPos == "airaft" or chrPos == "airfore" then
             if oppPos == "airaft" or oppPos == "airfore" then
-                return "flyForward"
+                if stop == "stop" then
+                    return "flyForwardWithStop"
+                else
+                    return "flyForward"
+                end
             elseif oppPos == "groundfore" or oppPos == "groundaft" then
-                return "flyDown"
+                if stop == "stop" then
+                    return "flyDownWithStop"
+                else
+                    return "flyDown"
+                end
             end
         elseif chrPos == "groundfore" or chrPos == "groundaft" then
             if oppPos == "airaft" or oppPos == "airfore" then
-                return "flyUp"
+                if stop == "stop" then
+                    return "flyUpWithStop"
+                else
+                    return "flyUp"
+                end
             elseif oppPos == "groundfore" or oppPos == "groundaft" then
-                return "runForward"
+                if stop == "stop" then
+                    return "runForwardWithStop"
+                else
+                    return "runForward"
+                end
             end
         end
         
@@ -540,17 +696,37 @@ function getMoveAnimationType(side)
             if oppPos == "airaft" or oppPos == "airfore" then
                 return "none"
             elseif oppPos == "groundfore" or oppPos == "groundaft" then
-                return "flyDown"
+                if stop == "stop" then
+                    return "flyDownWithStop`"
+                else
+                    return "flyDown"
+                end
             end
         elseif chrPos == "groundfore" or chrPos == "groundaft" then
             if oppPos == "airaft" then 
-                return "jumpForward"
+                if stop == "stop" then
+                    return "jumpForwardWithStop"
+                else
+                    return "jumpForward"
+                end
             elseif oppPos == "airfore" then
-                return "jumpUp"
+                if stop == "stop" then
+                    return "jumpUpWithStop"
+                else
+                    return "jumpUp"
+                end
             elseif oppPos == "groundfore" then
-                return "runForward"
+                if stop == "stop" then
+                    return "runForwardWithStop"
+                else
+                    return "runForward"
+                end
             elseif oppPos == "groundaft" then
-                return "dashRunForward"
+                if stop == "stop" then
+                    return "dashRunForwardWithStop"
+                else
+                    return "dashRunForward"
+                end
             end
         end
     else
@@ -599,7 +775,6 @@ function getDefenseMessage(defender)
     local char = getChar("defender")
     local charName = getCharName("defender",char)
     local defMsgString = charName.."'s defense: "..defender["card"].cName
-    print(defender["card"].cName)
     if defender["card"].cName == "Guard" then
         defMsgString = charName.."'s Guard: Squared Off."
     end
@@ -657,6 +832,7 @@ function btlSprite:new(side, aniTable)
     self.visible = false
 
     self.spriteTable = gfx.imagetable.new(self:getSpriteSheet()) 
+    print(self.spriteTable:getLength())
     self.frameData = self:getFrameData()
     self.currentFrame = {}
 
@@ -689,7 +865,6 @@ function btlSprite:getSide(sA)
     elseif sA == "defender" and CurrentPhase == Phase.ATTACK then
         self.identity = "enemy"
     end
-    print("getSide "..self.identity)
 end
 
 function btlSprite:trigger(onOff)
@@ -712,7 +887,7 @@ end
 
 function btlSprite:draw()
     if self.visible then
-        self:drawImage(self:getImage(), 0, 0)
+       -- self:drawImage(self:getImage(), 0, 0)
     end
 end
 
@@ -733,16 +908,19 @@ end
 
 function btlSprite:updateFrame(frameKey)
     local x, y = self:getMatrixCoords(self.frameData[frameKey])
-    local index = x + (y - 1) * self.spriteTable:getLength()
+    
+    local numColumns = 8
+    local index = (y - 1) * numColumns + x
+
     self.currentFrame = self.spriteTable:getImage(index)
-    print("updateFrame: "..self.identity)
+    
     if self.identity == "enemy" then
-        print("image flipped")
         self:setImage(self.currentFrame, gfx.kImageFlippedX)
     else
         self:setImage(self.currentFrame)
     end
 end
+
 
 function btlSprite:getMatrixCoords(tab)
     local x = tab[1]
@@ -765,17 +943,22 @@ end
 function btlSprite:playAni(ani,trigFunction)
     local aniS = characterAnimationTables[self.chrCode][ani] or characterAnimationTables["generic"][ani]
     if not aniS then
-        print("animation not found or not yet defined: "..tostring(aniS))
+        --print("animation not found or not yet defined: "..tostring(aniS).." for sprite "..self.tag)
         if type(aniS) == "table" then
             printTable(aniS)
         end
     end
+    printTable(aniS)
+    print("Running animation "..ani.." with "..#aniS.." frame(s).")
     self:runAnimationSequence(aniS,1,trigFunction)
 end
 
 function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, effectTab)
     if frameIndex > #animation then
-
+        print("Animation completed for sprite: " .. self.tag)
+        print(" ")
+        print("----------------")
+        print(" ")
         if trigFunction then
             trigFunction()
         end
@@ -784,7 +967,7 @@ function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, eff
 
     local frame = animation[frameIndex]
     self:updateFrame(frame[1])
-
+    print("Running frame " .. frameIndex .. " for animation sequence on sprite: " .. self.tag)
     if #frame > 2 then
         for i = 3, #frame do
             local effect = frame[i]
@@ -792,9 +975,10 @@ function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, eff
                 effect(self)
             end
         end
+        
     end
 
-    local frameDuration = frame[2] or 500
+    local frameDuration = frame[2]
     playdate.timer.new(frameDuration, function()
         self:runAnimationSequence(animation, frameIndex + 1, trigFunction, effectTab)
     end)
@@ -812,9 +996,29 @@ function btlSprite:stopEffect(effectName)
 end
 
 ---sprite effect functions---
-function btlSprite:moveInDirection(traj, speed)
+function btlSprite:moveInDirection(traj, speed, stopLoc)
     local function move()
         local x, y = self:getPosition()
+        if stopLoc ~= nil then
+            local stopCoord = 1
+            if stopLoc == "enemy" then
+                for i,v in pairs(battleSpriteIndex) do
+                    if v.tag == "defender" then
+                        local cX, xY = v:getPosition()
+                        if CurrentPhase == Phase.ATTACK then
+                            cX = cX - 30
+                        else
+                            cX = cX + 30
+                        end
+                        stopCoord = cX
+                    end
+                end
+            end
+            if (traj == "right" and x >= stopCoord) or (traj == "left" and x <= stopCoord) then
+                self.effectTimers["move"]:remove()
+                return
+            end
+        end
         if traj == "right" then
             self:moveTo(x + speed, y)
         elseif traj == "left" then

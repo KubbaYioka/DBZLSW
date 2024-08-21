@@ -77,17 +77,17 @@ function battleInputContext(dir)
                 SubMode = SubEnum.MENU
             end
         elseif SubMode == SubEnum.COMM then
-            print("initial press "..dir)
+            --print("initial press "..dir)
             for i,v in pairs(commandButtons) do
                 if cmdLastButtonPressed ~= nil then
-                    print("Button must be released:"..cmdLastButtonPressed)
+                    --print("Button must be released:"..cmdLastButtonPressed)
                     if playdate.buttonJustReleased(cmdLastButtonPressed) then
                         cmdLastButtonPressed = nil
                     end
                 elseif cmdLastButtonPressed == nil then
                     if v.pressed == false then
-                        print("cmdPressed")
-                        print(dir)
+                        --print("cmdPressed")
+                        --print(dir)
                         cmdLastButtonPressed = dir
                         v:cmdInput(dir)
                     end
