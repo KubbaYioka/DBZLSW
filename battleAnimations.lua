@@ -11,6 +11,16 @@ import 'CoreLibs/ui/gridview.lua'
 local gfx = playdate.graphics
 local ui = playdate.ui
 
+btlSprite = {}
+btlSprite.__index = btlSprite
+
+setmetatable(btlSprite, {
+    __index = gfx.sprite
+})
+
+BattleController = {}
+BattleController.__index = BattleController
+
 commandButtons = {}
 
 local animationInterrupts = {
@@ -22,8 +32,6 @@ local animationInterrupts = {
     ["Other"] = {},
     ["Transformation"] = {}
 }
-
-
 
 local genericAnimationTable = { -- shared animation definitions for attacks with many users.
     "Cont. Kick",
@@ -157,6 +165,8 @@ function clearBattleSprites()
     for i,v in pairs (battleSpriteIndex) do
         v:spriteKill()
     end
+    battleSpriteIndex["attacker"] = nil
+    battleSpriteIndex["defender"] = nil
 end
 
 function clearBattleMenus()
@@ -275,14 +285,12 @@ end
 
 
 function getStgSeq(stage)
-
     local seq = stageAtkCombos[stage]
     local randomIndex = math.random(#seq)
     return seq[randomIndex]
 end
 
 function setStgSeq(table, side)
-
     local chrA = getChar(side)
     local interTab = getStgPrepare() -- first three values should be the pre-cmd entry sequence. 
     local counter = #interTab + 1
@@ -352,10 +360,6 @@ function getAniSeq(move, side)
     end
 end
 
-function inputInterrupt(table) -- runs if one of the move strings for the player is in a qualifying list. Controls input logic
-
-end
-
 function animationGo(attacker, defender) -- The main animation subroutine. All animation logic and drawing steps are sequenced in this program
     clearField()
     sideRef = {}
@@ -369,272 +373,438 @@ function animationGo(attacker, defender) -- The main animation subroutine. All a
 
     local attMsg = getAttackMessage(attacker)
     local defMsg = getDefenseMessage(defender)
+    attackerSprite["card"] = attacker["card"]
+    defenderSprite["card"] = defender["card"]
 
-    local battleAniGo = battleSequence(attackerSprite, attMsg, attacker["card"].cName, defenderSprite, defMsg, defender["card"].cName)
-    --turnFunctionsDuringAnimation(attacker, defender)
+    local battleAniGo = BattleController:new(attackerSprite, attMsg, attacker["card"].cName, defenderSprite, defMsg, defender["card"].cName)
+    battleAniGo:start()
+
+    turnFunctionsDuringAnimation(attacker, defender)
 end
 
-function battleSequence(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this is a series of carefully timed, nested timers that control the animation sequences.
+function BattleController:new(attSpr, attMsg, attInt, defSpr, defMsg, defInt) -- this is a series of carefully timed, nested timers that control the animation sequences.
+    local self = setmetatable({},BattleController)
+    self.attSpr = attSpr
+    self.defSpr = defSpr
+    self.attMsg = attMsg
+    self.defMsg = defMsg
+    self.attInt = attInt
+    self.defInt = defInt
+    self.stepTable = {}
+    self.commandButtonResults = {}
+    -- ... other initializations ...
+    return self
+end
 
-    --local variables
-    local stepTable = {}
+function BattleController:atkOver()
+    applyDamage(self.attSpr, self.defSpr, endOfTurn)
+end
 
-    --local functions
-
-    local function getDefenderAniTable()
-        if #commandButtonResults > 0 then
-            return "stgReady"
-        else
-            print("Defender anitable will be normal.")
-            return
-        end
+function BattleController:stgTableIterate(iterator)
+    local aniMStep = "string"
+    if self.attSpr.iterator == nil then
+        self.attSpr.iterator = 1
+        self.attSpr.stgHold = false
     end
-
-    local function stgTableIterate(iterator)
-        local aniMStep = "string"
-        
-        if iterator == nil then
-            iterator = 1
-        elseif iterator > #commandButtonResults then
-            return
-        end
-        
-        if commandButtonResults[iterator][1] == true then
-            aniMStep = commandButtonResults[iterator][3]
+    if CurrentPhase == Phase.ATTACK then
+        if self.commandButtonResults[self.attSpr.iterator][1] == true then
+            self.attSpr.ccAdd = (self.attSpr.ccAdd or 0) + 1
+            aniMStep = self.commandButtonResults[self.attSpr.iterator][3]
             if aniMStep == "right" then
                 aniMStep = "back"
             end
-        elseif commandButtonResults[iterator][1] == false then
+            tallyDamage()
+        elseif self.commandButtonResults[self.attSpr.iterator][1] == false then
             print("Attack misses")
         end
-        
-        for i, v in pairs(battleSpriteIndex) do
-            if v.tag == "attacker" then
-                
-                v:playAni(aniMStep, function()
-                    stgTableIterate(iterator + 1)
-                end)
-                return
-            end
+    elseif CurrentPhase == Phase.DEFENSE then
+        self.attSpr.ccAdd = (self.attSpr.ccAdd or 0) + 1
+        local stgTableEne = self.attSpr.stepTable[2]
+
+        aniMStep = stgTableEne[self.attSpr.iterator]
+
+        if aniMStep == "right" then
+            aniMStep = "back"
         end
+        tallyDamage()
+    end
+    if aniMStep == "back" or aniMStep == "up" or aniMStep == "down" then
+        self.attSpr.stgHold = true
+    end
+    self.attSpr:playAni(aniMStep, function() self:nextStgAtk() end, {controller=self})
+end
+
+
+function BattleController:nextStgAtk(tik)
+    
+    if tik ~= nil and tik == false then
+        self.attSpr.stgHold = false
+    end
+    if self.attSpr.iterator >= #self.commandButtonResults then
+        self:atkOver()
+    else
+        if self.attSpr.stgHold == true then
+            self:getMoveForAtkr(self.attSpr)
+            self:getMoveForDef(self.defSpr)
+            self:getPostKnockBack()
+        elseif self.attSpr.stgHold == false then
+            self.attSpr.iterator = self.attSpr.iterator + 1
+            self:stgTableIterate(self.attSpr.iterator)
+        end
+    end
+end
+
+
+function BattleController:getMoveForDef(def)
+    --introduce attack interrupts here if necessary.
+    def.nextAnim = "bigHitBack"
+end
+
+function BattleController:getMoveForAtkr(atkr)
+    if atkr.abilities[1] == true then
+        print("Abilities[1] is true. Placeholder timer in getMoveForAtkr")
+        atkr.nextAnim = "jumpForward"
+    else
+        atkr.nextAnim = "jumpForward"
+    end
+end
+
+function BattleController:getPostKnockBack()
+    self.attSpr:playAni(self.attSpr.nextAnim, nil, {controller=self})
+end
+
+function BattleController:stageAttackGo()
+    local defender = self.defSpr
+    local attacker = self.attSpr
+    local oppoX, oppoY = defender:getPosition()
+    local dir = "string"
+    local stopX = 1
+    local atkChrg = "string"
+
+    if CurrentPhase == Phase.DEFENSE then
+        stopX = oppoX + 10 -- sprite will stop +10 px to the right of defender sprite
+    elseif CurrentPhase == Phase.ATTACK then
+        stopX = oppoX - 10 -- sprite will stop 10px to the right of the defender.
+    end
+
+    if CurrentPhase == Phase.ATTACK then
+        self.attSpr:moveTo(-30, 120)
+    else
+        self.attSpr:moveTo(430, 120)
+    end
+    self.attSpr:trigger("on")
+
+    if CurrentPhase == Phase.ATTACK then
+        atkChrg = getMoveAnimationType("player", "stop")
+        dir = "right"
+    elseif CurrentPhase == Phase.DEFENSE then
+        atkChrg = getMoveAnimationType("enemy", "stop")
+        dir = "left"
+    end
+
+    attacker:playAni(atkChrg, function() self:stgTableIterate() end)
+end
+
+function BattleController:getNextScrn()
+    local def = self.defSpr 
+    local xMov = 0
+    local yMov = 0
+    if def.lastAnim == "knockBack" then
+        if CurrentPhase == Phase.ATTACK then
+            xMov = -150
+            yMov = 120
+        else
+            xMov = 450
+            yMov = 120
+        end
+    elseif def.lastAnim == "knockBackUp" then
+        if CurrentPhase == Phase.ATTACK then
+            xMov = 250
+            yMov = 300
+        else
+            xMov = -150
+            yMov = 300
+        end
+    elseif def.lastAnim == "knockBackDown" then
+        if CurrentPhase == Phase.ATTACK then
+            xMov = -150
+            yMov = -120
+        else
+            xMov = 250
+            yMov = -120
+        end
+    end
+    def:moveTo(xMov,yMov)
+    def:playAni(def.nextAnim, nil, { controller = self })
+end
+
+function BattleController:getAtkrMoveIn()
+    local atkr = self.attSpr
+    local aFly = atkr.abilities[1]
+    if aFly then
+       if atkr.lastAnim == "back" then
+        return ""
+       else
+        print("no move found in getAtkrMoveIn() in spriteMetaData")
+       end
+    else
+        if atkr.lastAnim == "back" then
+            atkr:playAni("jumpOver",function() self:nextStgAtk(false) end, {controller=self})
+        elseif atkr.lastAnim == "up" then
+            atkr:playAni("jumpUp",function() self:nextStgAtk(false) end, {controller=self})
+        elseif atkr.lastAnim == "down" then
+            atkr:playAni("jumpDown",function() self:nextStgAtk(false) end, {controller=self})
+        end
+    end
+end
+
+function BattleController:getDefenseRecovery()
+
+    local defStat = 0
+    local attStat = 0
+    if CurrentPhase == Phase.ATTACK then
+        defStat = enemyChr.chrDef
+        attStat = playerChr.chrStr
+    -- recovery animation is affected by 
+    -- the strength of the attacker vs the defense of the defender
+    elseif CurrentPhase == Phase.DEFENSE then
+        defStat = playerChr.chrDef
+        attStat = enemyChr.chrStr
+    end
+
+    local more = math.max(attStat, defStat)
+    local least = math.min(attStat, defStat)
+    local prc = (least / more) * 100
+
+    local def = self.defSpr
+
+    --local atkrMov = getAtkrMoveIn()
+
+    if prc < 20 then
+        -- No recovery needed. Enemy is too weak
+        def:playAni("recoveryNormal", nil, { controller = self })
+    elseif prc >= 20 and prc < 50 then
+        -- slight recovery. Normal Pose
+        def:playAni("recoveryNormal", nil, { controller = self })
+    elseif prc >= 50 and prc < 120 then
+        def:playAni("recoveryNormal", nil, { controller = self })
+    elseif prc >= 120 and prc < 170 then
+        -- Move obviously hurt the opponent
+        def:playAni("recoveryNormal", nil, { controller = self })
+    elseif prc >= 170 then
+        -- Opponent is reeling from the attack
+        def:playAni("recoveryNormal", nil, { controller = self }) 
+    end
+end
+
+function BattleController:cmdVSGrd()
+    if self.defSpr["card"].cType ~= RGuard then
+        if self.defInt["cAbility"] == CommandBlock then
+            -- Handle command block ability
+        end
+        -- Iterate to see if the card applies to interfere with cmd
+    elseif self.defSpr["card"].cType == RGuard then
+        self:stageAttackGo()
+    end
+end
+
+
+function BattleController:cmdVSEff(cmdTable,defCard)
+
+end
+
+function BattleController:cmdVSCmd(cmdATable,cmdDTable)
+
+end
+
+
+
+function BattleController:getAttackForAni(att, def)
+
+    local ACard = cardRet(att)
+    local DCard = cardRet(def)
+
+    local AType = ACard["cType"]
+    local DType = DCard["cType"]
+
+        --[[
+    --types--
+    CCommand = "command"
+    CPhysical = "physical"
+    CKi = "ki"
+    CEffect = "effect"
+    CTrans = "transformation"
+    CReady = "ready"
+    CPower = "powerup"
+    CGuard = "guard"
+    ]]
+
+    if AType == CCommand then
+        if DType == CEffect then
+            return self.cmdVSEff, self.attSpr, self.defSpr
+        elseif DType == CGuard or DType == RGuard then
+            return self.cmdVSGrd, self.attSpr, self.defSpr
+        elseif DType == CCommand then
+            return self.cmdVSCmd, self.attSpr, self.defSpr
+        end
+    elseif AType == CPhysical then
+        -- Handle physical attack
+    elseif AType == CKi then
+        -- Handle ki attack
+    elseif AType == CReady then
+        -- Handle ready action
+    elseif AType == CTrans then
+        -- Handle transformation
+    elseif AType == CEffect then
+        -- Handle effect
+    elseif AType == CPower then
+        -- Handle power-up
+    end
+end
+    
+
+    function BattleController:defenderTransition()
+        clearExceptBattleSprites()
+    
+        self.attSpr:trigger("off")
+        self.defSpr:trigger("on")
+    
+        local defMsgTimer = playdate.timer.new(2500, function()
+            local msgTime = batDialogue:new(self.defMsg)
+            local execAni, attTab, defTab = self:getAttackForAni(self.attInt, self.defInt)
+            if execAni then
+                execAni(self, attTab, defTab) -- Pass self to access methods
+            end
+        end)
     end
     
 
-    local function stageAttackGo(attacker, defender)
-        local oppoX = 1
-        local oppoY = 1
-        local dir = "string"
-        local stopX = 1
-        local atkChrg = "string"
-        for i,v in pairs(battleSpriteIndex) do
-            
-            if v.tag == "defender" then
-                oppoX, oppoY = v:getPosition()
-            end
+function BattleController:continueAfterSpecialAttack()
 
-            if CurrentPhase == Phase.DEFENSE then
-                stopX = oppoX + 10 -- sprite will stop +10 px to the right of defender sprite
-            elseif CurrentPhase == Phase.ATTACK then
-                stopX = oppoX - 10 -- sprite will stop 10px to the right of the defender.
-            end
+end
 
-            if v.tag == "attacker" then
-                v:moveTo(-30,120)
-                v:trigger("on")
-                
-                if CurrentPhase == Phase.ATTACK then
-                    atkChrg = getMoveAnimationType("player","stop")
-                    dir = "right"
-                elseif CurrentPhase == Phase.DEFENSE then
-                    atkChrg = getMoveAnimationType("enemy","stop")
-                    dir = "left"
-                end
+function BattleController:continueAfterSupportMove()
 
-                v:playAni(atkChrg,stgTableIterate)
-            end
+end
+
+function BattleController:commandButtonResultsInit()
+    -- Clear self.commandButtonResults
+    if self.commandButtonResults and #self.commandButtonResults > 0 then
+        for i, v in pairs(self.commandButtonResults) do
+            table.remove(self.commandButtonResults, i)
         end
     end
+    self.commandButtonResults = {}
 
-    local function cmdVSGrd(attacker, defender)
-        if defender.card["cType"] ~= RGuard then
-            if defender.card["cAbility"] == CommandBlock then
-               
-            end
-            -- iterate to see if the card applies to interfere with cmd
-        elseif defender.card["cType"] == RGuard then
-            stageAttackGo(attacker, defender)
+    if CurrentPhase == Phase.DEFENSE then
+        local stpTab = self.attSpr.stepTable[2]
+        for i, v in pairs(stpTab) do
+            self.commandButtonResults[i] = { true, 1, v }
         end
     end
+end
 
-    local function cmdVSEff(cmdTable,defCard)
-
-    end
-
-    local function cmdVSCmd(cmdATable,cmdDTable)
-
-    end
-
-    local function getAttackForAni(att, def)
-        local attacker = sideRef.attacker
-        local defender = sideRef.defender
-
-        local AType = attacker.card["cType"]
-        local DType = defender.card["cType"]
-
-        --[[
-        --types--
-        CCommand = "command"
-        CPhysical = "physical"
-        CKi = "ki"
-        CEffect = "effect"
-        CTrans = "transformation"
-        CReady = "ready"
-        CPower = "powerup"
-        CGuard = "guard"
-        ]]
-
-        if AType == CCommand then
-            if DType == CEffect then
-                return cmdVSEff, attacker, defender
-            elseif DType == CGuard or DType == RGuard then
-                return cmdVSGrd, attacker, defender
-            elseif DType == CCommand then
-                return cmdVSCmd, attacker, defender
-
-            end 
-        elseif AType == CPhysical then
-
-        elseif AType == CKi then
-
-        elseif AType == CReady then
-
-        elseif AType == CTrans then
-
-        elseif AType == CEffect then
-
-        elseif AType == CPower then
-
+function BattleController:compareInputToStageLength()
+    if #self.commandButtonResults < #self.stepTable[2] then
+        local diff = #self.stepTable[2] - #self.commandButtonResults
+        local fin = diff + #self.commandButtonResults
+        for n = #self.commandButtonResults + 1, fin do
+            self.commandButtonResults[n] = { false, 0, self.stepTable[2][n] }
         end
-
+    elseif #self.commandButtonResults == #self.stepTable[2] then
+        return
+    else
+        print("Error in commandButtonResults length.")
+        return
     end
+end
 
-    local function defenderTransition()
-        clearExceptBattleSprites()
+function BattleController:enemyCharge()
+    local waitTime = getPositionDistance()
+    self.commandButtonResults = {}
+    self:commandButtonResultsInit()
 
-        for i,v in pairs(battleSpriteIndex) do
-            if v.tag == "attacker" then
-                v:trigger("off")
-            elseif v.tag == "defender" then
-                v:trigger("on")
-            end
+    local chargeAnimationStartTimer = playdate.timer.new((waitTime - 500), function()
+        local chargeAnimation = ""
+        if CurrentPhase == Phase.ATTACK then
+            chargeAnimation = getMoveAnimationType("player")
+        elseif CurrentPhase == Phase.DEFENSE then
+            chargeAnimation = getMoveAnimationType("enemy")
         end
+        self.attSpr:playAni(chargeAnimation, nil, {controller=self})
+    end)
 
-        local defMsgTimer = playdate.timer.new(2500, function()
-            local msgTime = batDialogue:new(defMsg)
-            local execAni, attTab, defTab = getAttackForAni(attInt, defInt) -- returns a function to be run 
-            execAni(attTab,defTab) -- refers to above functions.
-        end)
+    local defenderTransitionTimer = playdate.timer.new(waitTime, function()
+        self:defenderTransition()
+    end)
+end
 
+
+function BattleController:continueAfterStgPrep()
+    self.commandButtonResults = {}
+    self:commandButtonResultsInit()
+    for i, v in pairs(self.stepTable[2]) do
+        local btn = cmdButton:new(v, i, self)
     end
+    SubMode = SubEnum.COMM
+    local stgTime = getPositionDistance()
+    local stgTimer = stgCountdown:new(stgTime)
 
-    local function continueAfterSpecialAttack()
+    local stgInitTimer = playdate.timer.new(stgTime, function()
+        self:compareInputToStageLength()
+        SubMode = SubEnum.NONE
+        self:defenderTransition()
+    end)
 
-    end
-
-    local function continueAfterSupportMove()
-
-    end
-
-    local function commandButtonResultsInit()
-        if #commandButtonResults > 0 then
-            for i,v in pairs(commandButtonResults) do
-                table.remove(commandButtonResults, i)
-            end
+    local chargeAnimationStartTimer = playdate.timer.new((stgTime - 500), function()
+        local chargeAnimation = ""
+        if CurrentPhase == Phase.ATTACK then
+            chargeAnimation = getMoveAnimationType("player")
+        elseif CurrentPhase == Phase.DEFENSE then
+            chargeAnimation = getMoveAnimationType("enemy")
         end
-        commandButtonResults = {}
-    end
+        self.attSpr:playAni(chargeAnimation, nil, {controller=self})
+    end)
+end
 
-    local function compareInputToStageLength()
-        if #commandButtonResults < #stepTable[2] then
-            local diff = #stepTable[2] - #commandButtonResults
-            local fin = diff + #commandButtonResults
-            for n=#commandButtonResults+1,fin do
-                commandButtonResults[n] = {false,0,stepTable[2][n]}
-            end
-        elseif #commandButtonResults == #stepTable[2] then
-            return
-        else
-            print("Error in commandButtonRestults length.")
-            return
-        end
-    end
+    
 
-    local function continueAfterStgPrep()
-        commandButtonResults = {}
-        commandButtonResultsInit()
-        for i,v in pairs(stepTable[2]) do  
-           local btn = cmdButton:new(v,i)
-        end
-        SubMode = SubEnum.COMM
-        local stgTime = 2000
-        stgTime = getPositionDistance() -- gets the time the user has to input their stage attack
-        local stgTimer = stgCountdown:new(stgTime)
-
-        local stgInitTimer = playdate.timer.new(stgTime, function() --stage Input time
-            compareInputToStageLength()
-            --printTable(commandButtonResults)
-            SubMode = SubEnum.NONE
-            defenderTransition()
-        end)
-
-        local chargeAnimationStartTimer = playdate.timer.new((stgTime-500), function()
-            local chargeAnimation = "string"
-            if CurrentPhase == Phase.ATTACK then
-                chargeAnimation = getMoveAnimationType("player")
-            elseif CurrentPhase == Phase.DEFENSE then
-                chargeAnimation = getMoveAnimationType("enemy")
-            end
-            for i,v in pairs(battleSpriteIndex) do
-                if v.tag == "attacker" then
-                    v:playAni(chargeAnimation)
-                end
-            end
-        end) 
-    end
-
+function BattleController:start()
     local attMsgTimer = playdate.timer.new(2500, function()
-        local msgTime = batDialogue:new(attMsg)
+        local msgTime = batDialogue:new(self.attMsg)
 
-        stepTable = setAttStep(attInt)
+        self.stepTable = setAttStep(self.attInt)
 
-        if stepTable[1] == "stg" then
-            local delMsg = playdate.timer.new(2000, function()
-            for i, v in pairs(menuIndex) do
-                if v.type == "msg" then
-                    v:spriteKill()
-                end
-            end
-            
-            local pressDialogue = batDialogue:new("Press: ")
-                        
-                for i,v in pairs(battleSpriteIndex) do
-                    if v.tag == "attacker" then
-                        v:playAni("stgPrepare",continueAfterStgPrep)
+        if self.stepTable[1] == "stg" then
+            if CurrentPhase == Phase.ATTACK then
+                local delMsg = playdate.timer.new(2000, function()
+                    for i, v in pairs(menuIndex) do
+                        if v.type == "msg" then
+                            v:spriteKill()
+                        end
                     end
-                end
-            end)
+                    local pressDialogue = batDialogue:new("Press: ")
 
-        elseif stepTable[1] == "attack" then -- or whatever
-
-        elseif stepTable[1] == "support" then
-
-        elseif stepTable[1] == "powerUp" then
-
-        elseif stepTable[1] == "partnerSwap" then
-            
+                    self.attSpr:playAni("stgPrepare", function() self:continueAfterStgPrep() end, {controller=self})
+                end)
+            elseif CurrentPhase == Phase.DEFENSE then
+                self.attSpr.stepTable = self.stepTable
+                local waitMsg = playdate.timer.new(2000, function()
+                    self.attSpr:playAni("stgPrepare", function() self:enemyCharge() end)
+                end)
+            end
+        elseif self.stepTable[1] == "attack" then
+            -- Handle attack
+        elseif self.stepTable[1] == "support" then
+            -- Handle support
+        elseif self.stepTable[1] == "powerUp" then
+            -- Handle power-up
+        elseif self.stepTable[1] == "partnerSwap" then
+            -- Handle partner swap
         end
     end)
 end
+    
 
 function getStageResults()
     return commandButtonResults
@@ -692,6 +862,7 @@ function getMoveAnimationType(side,stop)
         end
         
     elseif flyParam == false then
+        print("flyparam = false")
         if chrPos == "airaft" or chrPos == "airfore" then -- this will never happen
             if oppPos == "airaft" or oppPos == "airfore" then
                 return "none"
@@ -739,28 +910,26 @@ function getMoveAnimationType(side,stop)
 end
 
 function setAttStep(interrupt)
-    if CurrentPhase == Phase.ATTACK then
-        for i,v in pairs(animationInterrupts["Stage Attacks"]) do
-            if interrupt == v then
-                local nk = 10
-                if v == "7 Stage Attack" then
-                    nk = 6
-                end
-                local varIO = "stg"
-                local selectedStg = {}
-                local sInt = math.random(1,nk)
-                for k,c in pairs(stageAtkCombos[interrupt]) do
-                    if sInt == k then
-                        selectedStg = c
-                    end
-                end
-                return {varIO, selectedStg}
-            else
-                print("Not a Stage Attack. Load normal animation cycle.")
+    for i,v in pairs(animationInterrupts["Stage Attacks"]) do
+        if interrupt == v then
+            local nk = 10 --where nk is the number of potential stg atk combos in the table for that stg atk
+            if v == "7 Stage Attack" then
+                nk = 6 -- only 6 for 7 stg
             end
+            local varIO = "stg"
+            local selectedStg = {}
+            local sInt = math.random(1,nk)
+            for k,c in pairs(stageAtkCombos[interrupt]) do
+                if sInt == k then
+                    selectedStg = c
+                end
+            end
+            print("Debug Message: Random attack sequence disabled. Currently hardcoded in function setAtkStep around line 810, battleAnimations")
+            selectedStg = stageAtkCombos[interrupt][2]
+            return {varIO, selectedStg}
+        else
+            print("Not a Stage Attack. Load normal animation cycle.")
         end
-    else
-        print("return animation only. Leave open for defense cmd inputs. Enemy Attacks")
     end
 end
 
@@ -807,20 +976,13 @@ function fadeBox:init()
     self:setImage(self.rectanImage)
     self.endTimer = playdate.timer.new(0)
     self.endTimer.performAfterDelay(2000,function() self:remove() otherIndex[self.index]:remove() end)
-    self.index = #otherIndex + 1
+    self.index = #otherIndex + 106
     self.tag = "fadeBox"
     otherIndex[self.index] = self
     self:add()
 end
 
 -- create player and enemy objects from a common sprite class
-
-btlSprite = {}
-btlSprite.__index = btlSprite
-
-setmetatable(btlSprite, {
-    __index = gfx.sprite
-})
 
 function btlSprite:new(side, aniTable)
 
@@ -832,7 +994,6 @@ function btlSprite:new(side, aniTable)
     self.visible = false
 
     self.spriteTable = gfx.imagetable.new(self:getSpriteSheet()) 
-    print(self.spriteTable:getLength())
     self.frameData = self:getFrameData()
     self.currentFrame = {}
 
@@ -841,30 +1002,34 @@ function btlSprite:new(side, aniTable)
     if self.tag == "attacker" then
         self.visible = true
     end
-    self.index = #battleSpriteIndex + 1
+    
     self:setZIndex(85)
-    battleSpriteIndex[self.index] = self
+    battleSpriteIndex[self.tag] = self
     self:initEffectTimers()
 
-    self:getSide(self.tag)
+    self:getSideAndAbilities(self.tag)
     self:updateFrame("normalStance")
     if self.visible == true then
         self:add()
     end
-
     return self
 end
 
-function btlSprite:getSide(sA)
+function btlSprite:getSideAndAbilities(sA)
     if sA == "attacker" and CurrentPhase == Phase.ATTACK then
         self.identity = "player"
+        self.abilities = playerChr["ability"]
     elseif sA == "attacker" and CurrentPhase == Phase.DEFENSE then
         self.identity = "enemy"
+        self.abilities = enemyChr["ability"]
     elseif sA == "defender" and CurrentPhase == Phase.DEFENSE then
         self.identity = "player"
+        self.abilities = playerChr["ability"]
     elseif sA == "defender" and CurrentPhase == Phase.ATTACK then
         self.identity = "enemy"
+        self.abilities = enemyChr["ability"]
     end
+
 end
 
 function btlSprite:trigger(onOff)
@@ -886,8 +1051,12 @@ function btlSprite:trigger(onOff)
 end
 
 function btlSprite:draw()
-    if self.visible then
-       -- self:drawImage(self:getImage(), 0, 0)
+    local offsetX = self.shakeOffsetX or 0
+    local offsetY = self.shakeOffsetY or 0
+
+    local img = self:getImage()
+    if img then
+        img:draw(self.x + offsetX, self.y + offsetY)
     end
 end
 
@@ -921,7 +1090,6 @@ function btlSprite:updateFrame(frameKey)
     end
 end
 
-
 function btlSprite:getMatrixCoords(tab)
     local x = tab[1]
     local y = tab[2]
@@ -940,25 +1108,21 @@ function btlSprite:getFrameData() -- returns matrix values on the sprite sheet
     return spriteMetadata[self.chrCode]
 end
 
-function btlSprite:playAni(ani,trigFunction)
+function btlSprite:playAni(ani, trigFunction, effectTab)
     local aniS = characterAnimationTables[self.chrCode][ani] or characterAnimationTables["generic"][ani]
     if not aniS then
-        --print("animation not found or not yet defined: "..tostring(aniS).." for sprite "..self.tag)
-        if type(aniS) == "table" then
-            printTable(aniS)
+        print("Animation not found: " .. tostring(ani) .. " for sprite " .. self.tag)
+        if trigFunction then
+            trigFunction()
         end
+        return
     end
-    printTable(aniS)
-    print("Running animation "..ani.." with "..#aniS.." frame(s).")
-    self:runAnimationSequence(aniS,1,trigFunction)
+    self:runAnimationSequence(aniS, 1, trigFunction, effectTab)
 end
 
 function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, effectTab)
+    
     if frameIndex > #animation then
-        print("Animation completed for sprite: " .. self.tag)
-        print(" ")
-        print("----------------")
-        print(" ")
         if trigFunction then
             trigFunction()
         end
@@ -966,22 +1130,37 @@ function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, eff
     end
 
     local frame = animation[frameIndex]
+
+    if type(frame[2]) == "function" then
+        frame[2] = frame[2](self)
+    end
+
+    if type(frame[1]) == "function" then
+        frame[1] = frame[1]()
+    end
+
     self:updateFrame(frame[1])
-    print("Running frame " .. frameIndex .. " for animation sequence on sprite: " .. self.tag)
     if #frame > 2 then
         for i = 3, #frame do
             local effect = frame[i]
             if effect then
-                effect(self)
+                effect(self, animation, frameIndex, trigFunction, effectTab)
             end
         end
-        
     end
 
     local frameDuration = frame[2]
-    playdate.timer.new(frameDuration, function()
-        self:runAnimationSequence(animation, frameIndex + 1, trigFunction, effectTab)
-    end)
+    if type(frameDuration) == "number" then
+        -- Handle standard time-based frame progression
+        playdate.timer.performAfterDelay(frameDuration, function()
+            self:runAnimationSequence(animation, frameIndex + 1, trigFunction, effectTab)
+        end)
+    end
+end
+
+function btlSprite:getEndOfAttackSprite()
+    --check to see previous HP vs HP lost. Return sprite based on that. Heavy HP loss = more dire sprite
+    --self:playAni("recoveryLight")
 end
 
 function btlSprite:initEffectTimers()
@@ -990,8 +1169,15 @@ end
 
 function btlSprite:stopEffect(effectName)
     if self.effectTimers and self.effectTimers[effectName] then
-        self.effectTimers[effectName]:remove()
-        self.effectTimers[effectName] = nil
+        if effectName == "all" then
+            for k,c in pairs(self.effectTimers) do
+                k:remove()
+                k = nil
+            end
+        else
+            self.effectTimers[effectName]:remove()
+            self.effectTimers[effectName] = nil
+        end
     end
 end
 
@@ -1001,24 +1187,46 @@ function btlSprite:moveInDirection(traj, speed, stopLoc)
         local x, y = self:getPosition()
         if stopLoc ~= nil then
             local stopCoord = 1
-            if stopLoc == "enemy" then
+            if stopLoc == "opponent" then
                 for i,v in pairs(battleSpriteIndex) do
                     if v.tag == "defender" then
                         local cX, xY = v:getPosition()
                         if CurrentPhase == Phase.ATTACK then
                             cX = cX - 30
-                        else
+                        elseif CurrentPhase == Phase.DEFENSE then
                             cX = cX + 30
                         end
                         stopCoord = cX
                     end
                 end
+            elseif stopLoc == "center" then
+                if traj == "right" then
+                    stopCoord = 200
+                elseif traj == "upRight" then
+                    stopCoord = 120
+                elseif traj == "down" then
+                    stopCoord = 120
+                end
             end
-            if (traj == "right" and x >= stopCoord) or (traj == "left" and x <= stopCoord) then
+            if (traj == "right" and stopLoc == "opponent" and x >= stopCoord) or (traj == "left" and stopLoc == "opponent" and x <= stopCoord) then
                 self.effectTimers["move"]:remove()
+
+                return
+            elseif traj == "down" and stopLoc == "center" and y >= stopCoord then
+                self.effectTimers["move"]:remove()
+
+                return
+            elseif traj == "upRight" and stopLoc == "center" and y <= stopCoord then
+                self.effectTimers["move"]:remove()
+
+                return
+            elseif traj == "right" and stopLoc == "center" and x >= stopCoord then
+                self.effectTimers["move"]:remove()
+
                 return
             end
         end
+
         if traj == "right" then
             self:moveTo(x + speed, y)
         elseif traj == "left" then
@@ -1027,6 +1235,8 @@ function btlSprite:moveInDirection(traj, speed, stopLoc)
             self:moveTo(x, y - speed)
         elseif traj == "down" then
             self:moveTo(x, y + speed)
+        elseif traj == "upRight" then
+            self:moveTo(x+2,y+speed)
         end
     end
 
@@ -1034,11 +1244,286 @@ function btlSprite:moveInDirection(traj, speed, stopLoc)
     self.effectTimers["move"].repeats = true
 end
 
+function btlSprite:moveInArc(destX, destY, arcHeight, speed, arcDirection, onComplete)
+    if self.isMovingInArc then
+
+        return
+    end
+    self.isMovingInArc = true
+
+    local startX, startY = self:getPosition()
+    local distance = math.sqrt((destX - startX)^2 + (destY - startY)^2)
+    local steps = distance / speed
+    local currentStep = 0
+
+    local function move()
+        currentStep = currentStep + 1
+        local progress = currentStep / steps
+
+        if progress >= 1 then
+            progress = 1
+        end
+
+        local newX = startX + (destX - startX) * progress
+        local arc = arcHeight * math.sin(progress * math.pi) * arcDirection
+        local newY = startY + (destY - startY) * progress - arc
+
+        self:moveTo(newX, newY)
+
+        if progress >= 1 then
+            self.isMovingInArc = false
+            if self.effectTimers["moveInArc"] then
+                self.effectTimers["moveInArc"]:remove()
+                self.effectTimers["moveInArc"] = nil
+            end
+
+            if onComplete then
+                onComplete()
+            end
+        end
+    end
+
+    self.effectTimers["moveInArc"] = playdate.timer.new(40, move)
+    self.effectTimers["moveInArc"].repeats = true
+end
+
+function btlSprite:knockedBack(destTab,speed,spec,onComplete)
+
+    if self.isKnockedBack then
+        return
+    end
+    self.isKnockedBack = true
+    local initialX, initialY = self:getPosition()
+
+    local destX = destTab[1]
+    local destY = destTab[2]
+
+    local deltaX = destX - initialX
+    local deltaY = destY - initialY
+    local distance = math.sqrt(deltaX^2 + deltaY^2)
+    
+    local xDir = deltaX / distance
+    local yDir = deltaY / distance
+    local xSpeed = xDir * speed
+    local ySpeed = yDir * speed
+
+    local function move()
+        local currentX, currentY = self:getPosition()
+
+        -- Move the sprite towards the destination
+        local newX = currentX + xSpeed
+        local newY = currentY + ySpeed
+
+        -- Check if the sprite has reached or passed the destination
+        if (xSpeed > 0 and newX >= destX) or (xSpeed < 0 and newX <= destX) then
+            newX = destX
+        end
+        if (ySpeed > 0 and newY >= destY) or (ySpeed < 0 and newY <= destY) then
+            newY = destY
+        end
+
+        self:moveTo(newX, newY)
+
+        -- Stop the movement when the sprite reaches the destination
+        if newX == destX and newY == destY then
+            self.isKnockedBack = false
+            if self.effectTimers["knockBack"] then
+                self.effectTimers["knockBack"]:remove()
+                self.effectTimers["knockBack"] = nil
+            end
+            -- Call the completion callback if provided
+            if onComplete then
+                onComplete()
+            end
+        end
+    end
+
+    self.effectTimers["knockBack"] = playdate.timer.new(40, move)
+    self.effectTimers["knockBack"].repeats = true
+end
+
+
+function btlSprite:comeToStop(destX, destY, speed, onComplete)
+    if self.isMovingToStop then
+        print("Sprite is already moving to stop. Movement not initiated.")
+        return
+    end
+    self.isMovingToStop = true
+
+    local initialX, initialY = self:getPosition()
+
+    -- Calculate the distance and direction to the destination
+    local deltaX = destX - initialX
+    local deltaY = destY - initialY
+    local distance = math.sqrt(deltaX^2 + deltaY^2)
+
+    -- Normalize the direction vector and scale it by speed
+    local xDir = deltaX / distance
+    local yDir = deltaY / distance
+    local xSpeed = xDir * speed
+    local ySpeed = yDir * speed
+
+    local function move()
+        local currentX, currentY = self:getPosition()
+
+        -- Move the sprite towards the destination
+        local newX = currentX + xSpeed
+        local newY = currentY + ySpeed
+
+        -- Check if the sprite has reached or passed the destination
+        if (xSpeed > 0 and newX >= destX) or (xSpeed < 0 and newX <= destX) then
+            newX = destX
+        end
+        if (ySpeed > 0 and newY >= destY) or (ySpeed < 0 and newY <= destY) then
+            newY = destY
+        end
+
+        self:moveTo(newX, newY)
+
+        -- Stop the movement when the sprite reaches the destination
+        if newX == destX and newY == destY then
+            self.isMovingToStop = false
+            if self.effectTimers["comeToStop"] then
+                self.effectTimers["comeToStop"]:remove()
+                self.effectTimers["comeToStop"] = nil
+            end
+            -- Call the completion callback if provided
+            if onComplete then
+                onComplete()
+            end
+        end
+    end
+
+    self.effectTimers["comeToStop"] = playdate.timer.new(40, move)
+    self.effectTimers["comeToStop"].repeats = true
+end
+
+function btlSprite:opponentHit(btn,btlCont)
+    local function startShake(btn, btnTbl)
+        for i,v in pairs(battleSpriteIndex) do
+            if v.tag == "defender" then
+                local duration = 200
+                local shake = btnTbl[btn][2] 
+                if CurrentPhase == Phase.DEFENSE then
+                    shake = shake 
+                end
+                local originalX, originalY = v:getPosition()
+                local offsetX = math.random(0, shake)
+                v:playAni(btnTbl[btn][1])
+                local shakeTimer = playdate.timer.new(100, function()
+                    v:moveTo(originalX + offsetX, originalY)
+                end)
+                
+                shakeTimer.repeats = true
+                    
+                playdate.timer.new(duration, function()
+                    shakeTimer:remove()
+                    
+                    -- Reset to original position
+                    local originalX, originalY = v:getPosition()
+                    v:moveTo(originalX - offsetX, originalY)
+                end)
+            end
+        end
+    end
+
+    local function stagger()
+        local def = battleSpriteIndex["defender"]
+        local duration = 800
+        local shake = 5
+        local slide = 90
+        local sInc = 1
+        local originalX, originalY = def:getPosition()
+        local destX = 1
+        if CurrentPhase == Phase.ATTACK then
+            destX = originalX + slide
+        else
+            destX = originalX - slide
+        end
+
+        def:playAni("normalHit")
+
+        local function slide()
+            local cX, cY = def:getPosition()
+            if CurrentPhase == Phase.DEFENSE then
+               if  cX >= destX then
+                    if cX > destX+50 then
+                        def.shakeOffsetX = math.random(-shake, shake)
+                        local sBInc = sInc - 5
+                        def:moveTo(cX+(sBInc+def.shakeOffsetX),cY)
+                    elseif cX <= (destX+50) then
+                        def:moveTo(cX-sInc,cY)
+                    end
+               end
+            elseif CurrentPhase == Phase.ATTACK then
+                if  cX <= destX then
+                    if cX < destX-50 then
+                        def.shakeOffsetX = math.random(-shake, shake)
+                        def:moveTo(cX+(sInc+5+def.shakeOffsetX),cY)
+                    elseif cX >= destX-50 then
+                        def:moveTo(cX+sInc, cY)                   
+                    end                
+                end
+            end
+        end
+        local moveTimer = playdate.timer.new(50, function ()
+            slide()
+        end)
+        moveTimer.repeats = true
+        
+        playdate.timer.new(duration, function()
+            moveTimer:remove()
+            playdate.timer.new(850,def:playAni("normalStance"))
+        end)
+    end
+
+    local function knockOffScreen(btn, btnTbl)
+        local def = battleSpriteIndex["defender"]
+        local atkr = battleSpriteIndex["attacker"]
+        atkr.lastAnim = btn
+
+        if btn == "back" then
+            def.lastAnim = "knockBack"
+            def:playAni("knockBack")
+        elseif btn == "up" then
+            def.lastAnim = "knockBackUp"
+            def:playAni("knockBackUp")
+        elseif btn == "down" then
+            def.lastAnim = "knockBackDown"
+            def:playAni("knockBackDown")
+        end
+    end
+
+    atk, def = getHitTables()
+    local btn = btn
+    local knockBk, btnTable= getPercentageAndFunc(atk["str"],def["def"])
+    local controller = btlCont and btlCont.controller
+
+    local atkSpr = controller.attSpr
+    local commandButtonResults = controller.commandButtonResults
+    if knockBk == "normal" then
+        if btn == "a" or btn == "b" then
+            if atkSpr.iterator == #commandButtonResults then
+                stagger()
+            else
+                startShake(btn, btnTable)
+            end
+        elseif btn == "up" or btn == "back" or btn == "down" then
+
+            knockOffScreen(btn,btnTable)
+        end
+    elseif knockBk ~= "normal" then
+        print("Logic for other knockback levels needed here at the end of btlSprite:opponentHit.")
+    end
+end
+
+
 cmdButton = gfx.sprite:new()
 
-function cmdButton:new(button, number)
+function cmdButton:new(button, number, btlCont)
     local self = gfx.sprite.new()
     setmetatable(self, { __index = cmdButton })
+    self.contRef = btlCont
 
     self.button = button
     self.physicalButton = getPhysicalButton(button)
@@ -1079,13 +1564,14 @@ function getPhysicalButton(button)
 end
 
 function cmdButton:cmdInput(dir)
+    local cont = self.contRef
     if dir == self.physicalButton then
         self.pressed = true
-        commandButtonResults[self.number] = {true,1,self.physicalButton}
+        cont.commandButtonResults[self.number] = {true,1,self.physicalButton}
     elseif dir ~= self.physicalButton then
         self.pressed = true
         self.wrong = true
-        commandButtonResults[self.number] = {false,0,self.physicalButton}
+        cont.commandButtonResults[self.number] = {false,0,self.physicalButton}
     end
     return
 end
@@ -1117,7 +1603,7 @@ function cmdButton:assignIcon(button)
     elseif button == "back" then
         return 6,1
     else
-        print("Invalid Button")
+        print("Invalid Button in cmdButton:assignIcon")
         return nil
     end
 end
@@ -1186,8 +1672,6 @@ function stgCountdown:timerUpdate()
             self:drawInRect(0,0,self.sizeX,self.sizeY)
         gfx.popContext()
         self.countSprite:setImage(stgImage)
-        --print("Timer Update - initialTime (ms):", self.initialTime, "displayTime (ms):", self.displayTime)
-
         if self.initialTime >= self.displayTime then
             self.active = false
         end

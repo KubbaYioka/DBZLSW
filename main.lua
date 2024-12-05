@@ -22,7 +22,7 @@ import 'gameModeEnum'
 --Battle Enginel9l
 import 'battleEngine'
 
---Story Engine
+--Story Enginews
 import 'storyEngine'
 
 --Map Engine 
@@ -69,6 +69,7 @@ otherIndex = {} -- for misc objects that will not be used at the same time as an
 mapObjIndex = {} -- for map objects
 rectBoxIndex = {} -- table for the UI elements in the menu
 battleSpriteIndex = {} -- table for battle sprites.
+lifeBarIndex = {}
 
 --Background Image
 
@@ -76,6 +77,8 @@ function bgChange(bgImage)
     local backgroundImage = gfx.image.new('assets/images/background/'..bgImage..'.png')
     gfx.sprite.setBackgroundDrawingCallback(function( x, y, width, height)backgroundImage:draw( 0, 0 )end)
 end
+
+print("")
 
 bgChange("dragonBallTitle")
 
