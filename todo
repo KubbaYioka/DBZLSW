@@ -12,13 +12,15 @@ Create more cards
 Insert graphics\animation display between turns. Should design animation engine - in progress
 Create in-battle sprites for players
 Provide move logic for changing places on the battlefield
-Create logic for limit deck
+Create logic for limit deck - Almost done
 Create logic for power-up, fighting stance.
 Command Input
-   - input logic for missed command input
-   - attacker movement logic - in progress
+   - input logic for missed command input - mostly done
+   - attacker movement logic - Basics nearly done
    - slight knockback logic - in progress
-   - change background if knocked in air 
+   - change background if knocked in air  
+
+Introduce different knockback levels for parries because of failed stg attacks. So a strong enemy will deliver a more devastating counter
 
 ---- Story ----
 Create more dialogue

@@ -416,6 +416,8 @@ function BattleController:stgTableIterate(iterator)
             tallyDamage()
         elseif self.commandButtonResults[self.attSpr.iterator][1] == false then
             print("Attack misses")
+            self:missedStg(self.commandButtonResults[self.attSpr.iterator])
+            return
         end
     elseif CurrentPhase == Phase.DEFENSE then
         self.attSpr.ccAdd = (self.attSpr.ccAdd or 0) + 1
@@ -434,6 +436,70 @@ function BattleController:stgTableIterate(iterator)
     self.attSpr:playAni(aniMStep, function() self:nextStgAtk() end, {controller=self})
 end
 
+function BattleController:missedStg(missedStg) -- prepare for cmd input save. 
+    self.attSpr:playAni("normalStance")
+    self.defSpr:playAni("normalStance")
+    local savBtn = saveButton:new(missedStg)
+    SubMode = SubEnum.BTNS
+    local saveTime = math.random(150,350) -- savetime is the time in ms before b can be pressed to continue
+    local pressTime = getPositionDistance("btn") -- presstime is the number of frames available to press a button
+    local readyTimer = playdate.timer.new(saveTime, function() 
+        self:missedPress(pressTime)
+    end)
+end
+
+function BattleController:missedPress(pTime) -- process button press during alotted time
+    local savButton = commandButtons["savBtn"]
+    savButton.hitButton = true
+    savButton:setImage(savButton.downImage)
+    local frameWindow = playdate.frameTimer.new(pTime, function ()
+        savButton.hitButton = false
+        savButton.blockButton = false
+        self:processMissedPress()
+    end)
+end
+
+function BattleController:processMissedPress() -- calculate outcome
+    SubMode = SubEnum.NONE
+    local result = commandButtons["savBtn"]:getResults()
+    commandButtons["savBtn"]:spriteKill()
+    local briefPause = playdate.timer.new(200, function ()
+         self:executeMissedPress(result)
+    end)
+end
+
+function BattleController:executeMissedPress(btnResult) -- execute outcome
+    if btnResult == "guard" then
+        self:cmdBlock()
+    elseif btnResult == "continue" then
+        self:continueAttack()
+    elseif btnResult == "wrong" then
+        self:knockAway()
+    end
+end
+
+function BattleController:cmdBlock()
+    self.attSpr:playAni("block", nil, {controller=self})
+    self.defSpr:playAni("stgCounter", nil, {controller=self})
+    local endTimer = playdate.timer.new(1000, function ()
+        self:atkOver()
+    end)
+end
+
+function BattleController:continueAttack() -- make the first index of the iterator's cmd table true so the attack executes.
+    self.commandButtonResults[self.attSpr.iterator][1] = true
+    self:stgTableIterate(self.attSpr.iterator)
+end
+
+function BattleController:knockAway()
+    self.attSpr.ccAdd = 0
+    battleSpriteIndex["attacker"].damageApplied = 0
+    self.defSpr:playAni("stgParry")
+    self.attSpr:playAni("knockAway")
+    local endTimer = playdate.timer.new(1000, function ()
+        self:atkOver()
+    end)
+end
 
 function BattleController:nextStgAtk(tik)
     
@@ -455,9 +521,16 @@ function BattleController:nextStgAtk(tik)
 end
 
 
-function BattleController:getMoveForDef(def)
+function BattleController:getMoveForDef(def) -- determines what animation comes next after a knockback
     --introduce attack interrupts here if necessary.
-    def.nextAnim = "bigHitBack"
+    if def.lastAnim == "knockBack" then
+        def.nextAnim = "bigHitBack"
+    elseif def.lastAnim == "knockBackDown" then
+        def.nextAnim = "bigHitDown" 
+    elseif def.lastAnim == "knockBackUp" then
+        def.nextAnim = "bigHitUp"
+    end
+
 end
 
 function BattleController:getMoveForAtkr(atkr)
@@ -501,12 +574,24 @@ function BattleController:stageAttackGo()
         atkChrg = getMoveAnimationType("enemy", "stop")
         dir = "left"
     end
-
     attacker:playAni(atkChrg, function() self:stgTableIterate() end)
 end
 
-function BattleController:getNextScrn()
+function BattleController:movementGo(onComplete,moveType)
+    if moveType == "forwardMove" then
+        self.defSpr:playAni("forwardMove", nil, { controller = self })
+    elseif moveType == "backMove" then
+        self.defSpr:playAni("backMove", nil, { controller = self })
+    else
+        print("Error. Movement Type Not Found in movementGo - battleAnimations.lua")
+        print("moveType variable is: ",moveType)
+    end
+end
+
+function BattleController:getNextScrn() -- runs immediately after the attacker leaps\flies\teleports offscreen following a knockback. Triggered by the animation itself as a callback
+
     local def = self.defSpr 
+
     local xMov = 0
     local yMov = 0
     if def.lastAnim == "knockBack" then
@@ -519,10 +604,10 @@ function BattleController:getNextScrn()
         end
     elseif def.lastAnim == "knockBackUp" then
         if CurrentPhase == Phase.ATTACK then
-            xMov = 250
+            xMov = -150
             yMov = 300
         else
-            xMov = -150
+            xMov = 250
             yMov = 300
         end
     elseif def.lastAnim == "knockBackDown" then
@@ -535,6 +620,7 @@ function BattleController:getNextScrn()
         end
     end
     def:moveTo(xMov,yMov)
+
     def:playAni(def.nextAnim, nil, { controller = self })
 end
 
@@ -551,14 +637,14 @@ function BattleController:getAtkrMoveIn()
         if atkr.lastAnim == "back" then
             atkr:playAni("jumpOver",function() self:nextStgAtk(false) end, {controller=self})
         elseif atkr.lastAnim == "up" then
-            atkr:playAni("jumpUp",function() self:nextStgAtk(false) end, {controller=self})
+            atkr:playAni("jumpOver",function() self:nextStgAtk(false) end, {controller=self})
         elseif atkr.lastAnim == "down" then
-            atkr:playAni("jumpDown",function() self:nextStgAtk(false) end, {controller=self})
+            atkr:playAni("jumpOver",function() self:nextStgAtk(false) end, {controller=self})
         end
     end
 end
 
-function BattleController:getDefenseRecovery()
+function BattleController:getDefenseRecovery() -- decides what pose the defender will be in after halting from a knockback
 
     local defStat = 0
     local attStat = 0
@@ -609,12 +695,19 @@ function BattleController:cmdVSGrd()
 end
 
 
-function BattleController:cmdVSEff(cmdTable,defCard)
+function BattleController:cmdVSEff()
 
 end
 
-function BattleController:cmdVSCmd(cmdATable,cmdDTable)
+function BattleController:cmdVSCmd()
 
+end
+
+function BattleController:cmdVSMov()
+    --printTable(self.defSpr)
+    local moveType = self.defSpr["card"]["cName"]
+
+    self:movementGo(function()self.stageAttackGo()end,moveType)
 end
 
 
@@ -646,6 +739,8 @@ function BattleController:getAttackForAni(att, def)
             return self.cmdVSGrd, self.attSpr, self.defSpr
         elseif DType == CCommand then
             return self.cmdVSCmd, self.attSpr, self.defSpr
+        elseif DType == DMove then
+            return self.cmdVSMov, self.attSpr, self.defSpr
         end
     elseif AType == CPhysical then
         -- Handle physical attack
@@ -767,9 +862,8 @@ function BattleController:continueAfterStgPrep()
     end)
 end
 
-    
-
 function BattleController:start()
+
     local attMsgTimer = playdate.timer.new(2500, function()
         local msgTime = batDialogue:new(self.attMsg)
 
@@ -790,7 +884,7 @@ function BattleController:start()
             elseif CurrentPhase == Phase.DEFENSE then
                 self.attSpr.stepTable = self.stepTable
                 local waitMsg = playdate.timer.new(2000, function()
-                    self.attSpr:playAni("stgPrepare", function() self:enemyCharge() end)
+                    self.attSpr:playAni("stgPrepare", function() self:enemyCharge() end, {controller=self})
                 end)
             end
         elseif self.stepTable[1] == "attack" then
@@ -804,7 +898,6 @@ function BattleController:start()
         end
     end)
 end
-    
 
 function getStageResults()
     return commandButtonResults
@@ -862,7 +955,7 @@ function getMoveAnimationType(side,stop)
         end
         
     elseif flyParam == false then
-        print("flyparam = false")
+
         if chrPos == "airaft" or chrPos == "airfore" then -- this will never happen
             if oppPos == "airaft" or oppPos == "airfore" then
                 return "none"
@@ -924,8 +1017,9 @@ function setAttStep(interrupt)
                     selectedStg = c
                 end
             end
-            print("Debug Message: Random attack sequence disabled. Currently hardcoded in function setAtkStep around line 810, battleAnimations")
-            selectedStg = stageAtkCombos[interrupt][2]
+            --uncomment to use hardcoded combo
+            --selectedStg = stageAtkCombos[interrupt][8]
+            --print("stage combo hard-coded in setAttStep line ~924")
             return {varIO, selectedStg}
         else
             print("Not a Stage Attack. Load normal animation cycle.")
@@ -1287,6 +1381,109 @@ function btlSprite:moveInArc(destX, destY, arcHeight, speed, arcDirection, onCom
     self.effectTimers["moveInArc"].repeats = true
 end
 
+function btlSprite:movementExec(dir, onComplete)
+    if self.isMoving then return end
+    self.isMoving = true
+
+    local startX, startY = self:getPosition()
+    local dashOffset = 20
+    local destX = (self.tag == "enemy") and (startX - dashOffset) or (startX + dashOffset)
+
+    local moveOutDuration = 200  -- Dash time
+    local haltDuration    = 100  -- Pause
+    local returnDuration  = 300  -- Return time
+
+    -- 1) Dash forward
+    local dashTimer = playdate.timer.new(moveOutDuration, 0, 1)
+    dashTimer.updateCallback = function(timer)
+        local progress = timer.value
+        -- Easing
+        local easedProgress = 1 - (1 - progress)*(1 - progress)
+
+        -- ** Example: change sprite image ~70% into dash **
+        if progress >= 0.7 and not self.hasShiftedImage then
+            self.hasShiftedImage = true
+            self:updateFrame("flyBack")  -- or any custom frame
+        end
+
+        local newX = startX + (destX - startX) * easedProgress
+        self:moveTo(newX, startY)
+    end
+    dashTimer.timerEndedCallback = function()
+        -- Once dash is complete, we pause
+        playdate.timer.performAfterDelay(haltDuration, function()
+            -- 2) Return trip
+            local returnTimer = playdate.timer.new(returnDuration, 0, 1)
+            returnTimer.updateCallback = function(t)
+                local progress = t.value
+                local easedProgress = progress * progress  -- Ease in
+                -- If you want another image change near the end:
+                if progress >= 0.8 and not self.returnShifted then
+                    self.returnShifted = true
+                    self:updateFrame("normalStance")
+                end
+                local newX = destX + (startX - destX) * easedProgress
+                self:moveTo(newX, startY)
+            end
+
+            returnTimer.timerEndedCallback = function()
+                -- Reset flags so next dash can reuse them
+                self.hasShiftedImage = false
+                self.returnShifted   = false
+                self.isMoving        = false
+
+                if onComplete then
+                    onComplete()
+                end
+            end
+        end)
+    end
+end
+
+function btlSprite:hitBounce(destX, destY, speed, onComplete)
+    if self.isHitBounce then
+        return
+    end
+    self.isHitBounce = true
+
+    local startX, startY = self:getPosition()
+    local dx = destX - startX
+    local dy = destY - startY
+
+    local distance = math.sqrt(dx*dx + dy*dy)
+    local steps = math.floor(distance / speed)
+    if steps < 1 then steps = 1 end
+
+    local currentStep = 0
+
+    local function move()
+        currentStep = currentStep + 1
+        local progress = currentStep / steps
+        if progress > 1 then progress = 1 end
+
+        local easedProgress = 1 - (1 - progress)*(1 - progress)
+
+        local newX = startX + dx * easedProgress
+        local newY = startY + dy * easedProgress
+
+        self:moveTo(newX, newY)
+
+        if progress >= 1 then
+            self.isHitBounce = false
+            if self.effectTimers["hitBounce"] then
+                self.effectTimers["hitBounce"]:remove()
+                self.effectTimers["hitBounce"] = nil
+            end
+            if onComplete then
+                onComplete()
+            end
+        end
+    end
+    self.effectTimers = self.effectTimers or {}
+    self.effectTimers["hitBounce"] = playdate.timer.new(40, move)
+    self.effectTimers["hitBounce"].repeats = true
+end
+
 function btlSprite:knockedBack(destTab,speed,spec,onComplete)
 
     if self.isKnockedBack then
@@ -1538,9 +1735,9 @@ function cmdButton:new(button, number, btlCont)
     self.xPos = 50 + ((self.number * 32)+20)
     self.yPos = 205
 
-    local col,row = self:assignIcon(self.button)
+    local col,row, col2, row2, col3, row3 = self:assignIcon(self.button)
+    self:assignCoords(col,row,col2,row2,col3,row3)
 
-    self.icon = self.spriteTable:getImage(col,row)
     self:moveTo(self.xPos, self.yPos)
     self:setImage(self.icon)
     self:updateButton()
@@ -1555,6 +1752,12 @@ function cmdButton:new(button, number, btlCont)
     return self
 end
 
+function cmdButton:assignCoords(c1,r1,c2,r2,c3,r3)
+    self.icon = self.spriteTable:getImage(c1,r1)
+    self.iconCorrect = self.spriteTable:getImage(c2,r2)
+    self.iconWrong = self.spriteTable:getImage(c3,r3)
+end
+
 function getPhysicalButton(button)
     if button == "back" then
         return "right"
@@ -1567,10 +1770,12 @@ function cmdButton:cmdInput(dir)
     local cont = self.contRef
     if dir == self.physicalButton then
         self.pressed = true
+        self:setImage(self.iconCorrect)
         cont.commandButtonResults[self.number] = {true,1,self.physicalButton}
     elseif dir ~= self.physicalButton then
         self.pressed = true
         self.wrong = true
+        self:setImage(self.iconWrong)
         cont.commandButtonResults[self.number] = {false,0,self.physicalButton}
     end
     return
@@ -1591,23 +1796,71 @@ end
 
 function cmdButton:assignIcon(button)
     if button == "a" then
-        return 1,1
+        return 1,1,1,2,1,3
     elseif button == "b" then
-        return 2,1
+        return 2,1,2,2,2,3
     elseif button == "down" then
-        return 3,1
+        return 3,1,3,2,3,3
     elseif button == "left" then
-        return 4,1
+        return 4,1,4,2,4,3
     elseif button == "up" then
-        return 5,1
+        return 5,1,5,2,5,3
     elseif button == "back" then
-        return 6,1
+        return 6,1,6,2,6,3
     else
         print("Invalid Button in cmdButton:assignIcon")
         return nil
     end
 end
 
+saveButton = gfx.sprite:new()
+
+function saveButton:new(buttonTab)
+    local self = gfx.sprite.new()
+    setmetatable(self, { __index = saveButton })
+
+    self.buttonTab = buttonTab
+    self.blockButton = true
+    
+    self.pressed = false
+    self.selected = "str"
+    self.wrong = false
+    self.spriteTable = gfx.imagetable.new("assets/images/cmdIcons")
+
+    self:setCenter(0,0)
+
+    self.upImage = self.spriteTable:getImage(7,1)
+    self.downImage = self.spriteTable:getImage(8,1)
+    self:moveTo(184, 50)
+    self:setImage(self.upImage)
+    
+    self.tag = "savePrompt"
+    self:setZIndex(510)
+    commandButtons["savBtn"] = self
+    self:add()
+    return self
+end
+
+function saveButton:getResults()
+    if self.pressed == true then
+        if self.wrong == false then
+            if self.selected == "a" then
+                return "guard"
+            elseif self.selected == "b" then
+                return "continue"
+            end
+        elseif self.wrong == true then
+            return "wrong"
+        end
+    elseif self.pressed == false then
+        return "wrong"
+    end
+end
+
+function saveButton:spriteKill()
+    self:remove()
+    commandButtons["savBtn"] = nil
+end
 
 stgCountdown = ui.gridview:new(20, 20)
 stgCountdown.__index = stgCountdown

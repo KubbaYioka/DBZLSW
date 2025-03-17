@@ -78,12 +78,12 @@ function bgChange(bgImage)
     gfx.sprite.setBackgroundDrawingCallback(function( x, y, width, height)backgroundImage:draw( 0, 0 )end)
 end
 
-print("")
+print("Debug Statement: Next, make the selection cursor a proper triangle. Make it start in the position the player is in. Lastly, enable the 'extra' forward positions")
 
 bgChange("dragonBallTitle")
 
 gameBoot = 0
-gameMode = GameMode.MENU 
+gameMode = GameMode.MENU
 controlContext = GameMode.MENU
 
 function playdate.update()
