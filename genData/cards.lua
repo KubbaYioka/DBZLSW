@@ -13,6 +13,7 @@ CReady = "ready"
 CPower = "powerup"
 CGuard = "guard"
 RGuard = "regGuard"
+DMove = "Movement"
 
 --Phase Enumeration
 
@@ -740,6 +741,32 @@ BasicOther = { -- for all other actions that are not cards.
     ,cCost = 0
     ,cEffect = "Square Off"
     ,cDescription = "A simple defensive stance."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cNForms = None
+  },
+  ["forwardMove"] = {
+    cName = "forwardMove"
+    ,cType = DMove
+    ,cPower = 0
+    ,cAccuracy = 100
+    ,cCost = 0
+    ,cEffect = "Movement"
+    ,cDescription = "Move from one place to another."
+    ,cPhases = PDefense
+    ,cAbility = None
+    ,cAllowed = AllChrs
+    ,cNForms = None
+  },
+  ["backMove"] = {
+    cName = "backMove"
+    ,cType = DMove
+    ,cPower = 0
+    ,cAccuracy = 100
+    ,cCost = 0
+    ,cEffect = "Movement"
+    ,cDescription = "Move from one place to another."
     ,cPhases = PDefense
     ,cAbility = None
     ,cAllowed = AllChrs

@@ -27,7 +27,7 @@ function bTabInit()
     playerSprTab = {
         sprRange = {}
         ,current = 0
-        ,position = PositionEnum.GroundAft
+        ,position = PositionEnum.GroundFore--PositionEnum.GroundAft -- override for debugging
     }
 
     bFaster = {} -- will compare speeds of combatants to see who will go first. Evaluated every turn change.
@@ -176,6 +176,8 @@ function initTurn(playerChr,enemyChr)
             chrGo = "enemy"
         end
     end
+    print("Player Speed = "..playerChr.chrSpd)
+    print("Enemy Speed = "..enemyChr.chrSpd)
     if chrGo == "player" then
         turnInc()
         return Phase.ATTACK
@@ -228,6 +230,10 @@ end
 
 function nextPhase()
     turnTableClear()
+    clearField()
+    local enSprite = BattleMiniSpr("enemy")
+    local plrSprite = BattleMiniSpr("player")
+    bgChange(BattleRef["arenaParam"].bField)
     phaseCheck() -- check to see if a new turn begins and draw one card if available
     CurrentPhase = phaseChange()
 
@@ -256,6 +262,7 @@ function cardShuffle(deck,initial)
     local cSelect = nil
     local cCount = 1
     local cOne, cTwo, cThree
+
     local tempTab = {cOne, cTwo, cThree}
     local emptyTest = 0 -- if this number reaches 20, then the deck is empty and no card is drawn.
     if initial == true then
@@ -308,7 +315,7 @@ function battleSpriteSet(bTable)
     bgChange(bTable["arenaParam"].bField)
     enemySprTab.sprRange = arenaSpriteSelect(enemyChr)
     playerSprTab.sprRange = arenaSpriteSelect(playerChr)
-    arenaSpriteMode("player","normal")
+    arenaSpriteMode("player","normal") -- "normal" is a stand-in and may change to a playerChr element that can change based on certain battle or player conditions.
     arenaSpriteMode("enemy","normal")
 end
 
@@ -356,9 +363,9 @@ function areaPosition(tag)
         end
     end
 
-end
+end 
 
-function getPositionDistance()
+function getPositionDistance(savBtn)
     local playerDist = playerSprTab.position
     local enemyDist = enemySprTab.position
     local attackerTime = 2000
@@ -421,11 +428,40 @@ function getPositionDistance()
         end
     end
 
-    local spdFactor = getSpdFactor(res)
-    attackerTime = attackerTime + spdFactor
+    if savBtn == nil then
+        local spdFactor = getSpdFactor(res)
+        attackerTime = attackerTime + spdFactor
+    elseif savBtn == "btn" then
+        attackerTime = getSpdFactorForSavBtn(res)
+        
+    end
     return attackerTime
-    
+end
 
+function getSpdFactorForSavBtn(num) -- this returns the number of frames a player has to enter a command to continue an attack
+    if num < 50 then
+        return 5
+    elseif num >= 51 and num <= 60 then
+        return 6
+    elseif num >= 61 and num <= 75 then
+        return 7
+    elseif num >= 76 and num <= 90 then
+        return 8
+    elseif num >= 91 and num <= 110 then
+        return 15
+    elseif num >= 111 and num <= 120 then
+        return 17
+    elseif num >= 121 and num <= 130 then
+        return 20
+    elseif num >= 131 and num <= 145 then
+        return 30
+    elseif num >= 146 and num <= 160 then
+        return 40
+    elseif num > 161 then
+        return 50
+    else
+        return 0
+    end
 end
 
 function getSpeeds(attackerS)
@@ -464,12 +500,6 @@ function getSpdFactor(num)
     end
 end
 
-function drawChr(chr)
-    if chr == "player" then
-    elseif chr == "enemy" then
-    end
-end
-
 function drawUI(phase)
     local pName, eName = playerChr.chrName, enemyChr.chrName
     local pUI = topUI:new("left",pName)
@@ -491,7 +521,6 @@ function fillGauge()
     local enLife = LifeBar("enemy",enemyChr.chrHp)
     local plLife = LifeBar("player",playerChr.chrHp)
     --do animation to fill life gauges, possibly by incrementing the width of a rectangle until a max width is reached
-    
 end
 
 -------------------
@@ -531,16 +560,16 @@ function getNextBMenu(selOption,phase) --gets the selected option and creates th
     elseif selOption == "Power Up" then
     elseif selOption and selOption ~= nil and selOption ~= "notAvailable" then
         if #menuIndex < 3 and menuIndex[#menuIndex].tag ~= "tossMenu" then -- prevents the optionSelect currently in place from being overwritten
+            local lp = 0
             local oS = optionSelect:new(selOption)
         elseif menuIndex[#menuIndex].tag == "tossMenu" then
-
             local oS = tossSelect:new(selOption)
         end
     end
 end
 
 -- Functions
-local function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
+function calculateDerivedStats(character, phaseType) --pass character name and the phase they are in for appropriate stats
     if phaseType == attack then
         local calcOFF = character.STR + character.KI
         local calcEVA = character.SPD + character.DEF
@@ -554,58 +583,72 @@ local function calculateDerivedStats(character, phaseType) --pass character name
     end
 end
 
+function getHitTables()
+    local plr = {}
+    local ene = {}
+    plr["def"] = playerChr["chrDef"]
+    plr["str"] = playerChr["chrStr"]
+    ene["def"] = enemyChr["chrDef"]
+    ene["str"] = enemyChr["chrStr"]
+
+    plr["off"] = playerChr["chrStr"] + playerChr["chrKi"]
+    plr["eva"] = playerChr["chrSpd"] + playerChr["chrDef"]
+    plr["mas"] = playerChr["chrStr"] + playerChr["chrDef"]
+    plr["acc"] = playerChr["chrSpd"] + playerChr["chrKi"]
+
+    ene["off"] = enemyChr["chrStr"] + enemyChr["chrKi"]
+    ene["eva"] = enemyChr["chrSpd"] + enemyChr["chrDef"]
+    ene["mas"] = enemyChr["chrStr"] + enemyChr["chrDef"]
+    ene["acc"] = enemyChr["chrSpd"] + enemyChr["chrKi"]
+    if CurrentPhase == Phase.ATTACK then
+        return plr, ene        
+    elseif CurrentPhase == Phase.DEFENSE then
+        return ene, plr
+    end
+end
+
+function getPercentageAndFunc(atk, def)
+    local more = math.max(atk, def)
+    local least = math.min(atk, def)
+    local prc = (least / more) * 100
+
+    if prc < 20 then
+        -- No visible effect from strikes
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+        --placeholder
+    elseif prc >= 20 and prc < 40 then
+        -- only a slight nudge from strikes
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+        --placeholder
+    elseif prc >= 40 and prc < 50 then
+        -- sprite reaction and slight nudge
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+        --placeholder
+    elseif prc >= 50 and prc < 80 then
+        -- sprite reaction and small shake
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+        --placeholder
+    elseif prc >= 80 and prc < 120 then
+        -- sprite reaction and normal shake
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+    elseif prc >= 120 and prc < 150 then
+        -- sprite reaction and big shake
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+        --placeholder
+    elseif prc >= 150 and prc < 170 then
+        -- sprite slight knockback, shake, and reaction
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+        --placeholder
+    elseif prc >= 170 then
+        -- each hit knocks the sprite back
+        return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
+        --placeholder
+    end
+end
+
 local function calculateEvasion(spd,def)
     return math.sqrt(spd + def)
 end
-
-local function determineAttackOutcome(attacker, defender, card) --only if an attacker uses an attack card and the defender uses Guard
-    local hitChance = attacker.ACCURACY - calculateEvasion(defender)
-    local isCritical = false
-
-    if hitChance > 100 then
-        local critChance = math.min(hitChance - 100, 50)
-        isCritical = math.random(100) <= critChance
-        hitChance = 100
-    end
-
-    local doesHit = math.random(100) <= hitChance
-
-    return doesHit, isCritical
-end
-
-
-local function calculateDamage(attacker, defender, isCritical)
-    local damage = defender.DEF - (attacker.STR or attacker.KI) -- Depending on the type of attack
-    if isCritical then
-        damage = damage * 1.5 -- Assuming critical hits do 1.5x damage, adjust as needed
-    end
-    return damage
-end
-
-local function calculateKnockback(attacker, defender)
-    local knockbackChance = (attacker.OFFENSE / defender.MASS) * 100
-    -- Use the table you provided to determine the final knockback percentage
-    -- Example: if knockbackChance is between 200% and 190%, set it to 100%
-    return knockbackChance
-end
-
-local function applyDamage(defender, damage)
-    defender.HP = defender.HP - damage
-end
-
-local function postAttackChecks(player, opponent)
-    if player.HP < 1 then
-        -- Check for more characters in the player's team
-        -- If none, opponent wins
-    end
-    if opponent.HP < 1 then
-        -- Check for more characters in the opponent's team
-        -- If none, player wins
-    end
-    -- Swap roles for next phase
-    player, opponent = opponent, player
-end
-
 ---------------------------
 --Battle Gridview Objects--
 ---------------------------
@@ -636,7 +679,7 @@ function topUI:new(side, cName) -- sprite text for character names.
 
     o.sprite = gfx.sprite.new()
     o.sprite:setCenter(0, 0)
-    o.sprite:setZIndex(#UIIndex + 50)
+    o.sprite:setZIndex(#UIIndex + 250)
     o.sprite:add()
 
     o.needsDisplay = true
@@ -690,7 +733,7 @@ function BattleMiniSpr:init(tag)
     self.x, self.y = areaPosition(tag)
     self:moveTo(self.x, self.y)
 
-    self:setZIndex(#sprBIndex + 105)
+    self:setZIndex(#sprBIndex + 90)
     self.tag = tag
 
     self:selectImage(tag)
@@ -733,7 +776,7 @@ function VsEmblem:init()
     vsSprite:setCenter(0,0)
     vsSprite:moveTo(155,0)
 
-    local zInd = #otherIndex + 105
+    local zInd = #otherIndex + 260
     vsSprite:setZIndex(zInd)
     vsSprite:setImage(vsImage)
     function self:spriteKill()
@@ -758,52 +801,79 @@ end
 
 class('LifeBar').extends(gfx.sprite)
 
-function LifeBar:init(position,HP)
+function LifeBar:init(position, HP)
     LifeBar.super.init(self)
     self.max = HP
     self.currentHP = HP
+    self.position = position  -- Store the position for reuse
 
     if position == "enemy" then
-        self:moveTo(320,20)
-        local bg = RectangleBox(319,19,102,22) -- supposed to be white
+        self:moveTo(320, 20)
+        local bg = RectangleBox(319, 19, 102, 22) -- supposed to be white
         self.tag = "enemyHP"
     elseif position == "player" then
-        self:moveTo(80,20)
-        local bg = RectangleBox(79,19,102,22)
+        self:moveTo(80, 20)
+        local bg = RectangleBox(79, 19, 102, 22)
         self.tag = "playerHP"
     end
 
     self.initL = false
     self.intHP = 0
 
-    self:updateHP(position,HP)
+    self:updateHP(self.currentHP)
 
     local numberO = #otherIndex
     self.index = numberO + 1
-    otherIndex[self.index] = self
+    lifeBarIndex[self.tag] = self
 
     self:add()
 end
 
-function LifeBar:updateHP(position,nHP)
+function LifeBar:updateHP(newHP)
     local maxWidth = 100
     local height = 10
-    local lifeBarWidth = (nHP / self.max) * maxWidth -- ensure maxWidth is not the same as self.max (max HP from chr table)
-    local lifeBarImage = gfx.image.new(maxWidth,height)
+    local lifeBarWidth = (newHP / self.max) * maxWidth  -- Scale HP to bar width
+    local lifeBarImage = gfx.image.new(maxWidth, height)
     gfx.pushContext(lifeBarImage)
     gfx.setColor(gfx.kColorWhite)
-        gfx.fillRect(0,0,lifeBarWidth,height)
+    gfx.fillRect(0, 0, lifeBarWidth, height)
     gfx.popContext()
-    self:setZIndex(#otherIndex + 107)
+    self:setZIndex(251)
     self:setImage(lifeBarImage)
 end
 
-function LifeBar:damage(position,damage)
-    self.currentHP -= damage
-    if self.currentHP <= 0 then
-        self.currentHP = 0
+function LifeBar:damage(damageAmount, completionFunc)
+    local startHP = self.currentHP
+    local targetHP = self.currentHP - damageAmount
+    if targetHP < 0 then
+        targetHP = 0
     end
-    self:updateHP(position,self.HP)
+    if damageAmount == 0 then
+        completionFunc()
+    end
+
+    local step = (startHP - targetHP) / 20 
+    local duration = 100 
+    local interval = duration / 20  
+
+    local function animateStep()
+        if math.abs(self.currentHP - targetHP) < step then
+            self.currentHP = targetHP
+            self:updateHP(self.currentHP)
+            if completionFunc then
+                completionFunc()
+            end
+            return
+        end
+        self.currentHP = self.currentHP - step
+        if self.currentHP < targetHP then
+            self.currentHP = targetHP
+        end
+        self:updateHP(self.currentHP)
+        playdate.timer.performAfterDelay(interval, animateStep)
+    end
+    
+    animateStep()
 end
 
 battleUIMenu = playdate.ui.gridview.new(0, 25)
@@ -1356,7 +1426,6 @@ function optionSelect:getOption()
         bShowCard(self.parentItem)
     elseif self.menuTable[sC] == "Use" then
         PlayerSelection = self.selectionType
-        print(PlayerSelection)
         if not deckCheck() or PlayerSelection == "jointDeck" or PlayerSelection == "limit" then
             goOption(self.parentItem, "player")
         else
@@ -1418,15 +1487,37 @@ function moveField:new(flyParam)
     o.cX,o.cY = movTabConfig(o.currentPosition)
 
     o.extraSpace = enTest()
+    print("extraSpace is "..tostring(o.extraSpace))
 
     o.drawX,o.drawY,o.dRow,o.dCol = compMove(o.cX,o.cY,o.extraSpace,o.currentPosition,o.canFly)    
+    if not o.dRow or o.dRow < 1 then
+        print("Warning: dRow is nil or invalid. Setting to 1.")
+        o.dRow = 1
+    end
+
+    if not o.dCol or o.dCol < 1 then
+        print("Warning: dCol is nil or invalid. Setting to 1.")
+        o.dCol = 1
+    end
 
     o:setNumberOfRows(o.dRow)
     o:setNumberOfColumns(o.dCol)
+
+    print(o.drawX,o.drawY,o.dRow,o.dCol)
+
+        -- Now that grid is properly set, lock scrolling
+    if o.dRow > 0 and o.dCol > 0 then
+        print("row and col > 0")
+        --o:scrollToCell(1, 1)  -- Only if rows exist
+    end
     o.scrollCellsToCenter = false
     o:setScrollDuration(0)
     o:setCellPadding(0,90,0,90)
     o:setContentInset(0,0,0,0)
+
+
+    --o:setScrollPosition(0, 0) -- no unintended moving
+    o.scrollCellsToCenter = false -- no centering of field positions.
 
     local movementSpr = gfx.sprite.new()
     movementSpr:setCenter(0,0)
@@ -1451,19 +1542,24 @@ function moveField:new(flyParam)
 
     function o:menuUpdate()
         if o.needsDisplay then
-            local mGrid = gfx.image.new(90*o.dCol,90*o.dRow,gfx.kColorClear)
+
+            local mGridCursor = gfx.image.new(90*o.dCol,90*o.dRow,gfx.kColorClear)
             movementSpr:moveTo(o.drawX,o.drawY)
 
-            gfx.pushContext(mGrid)
+            gfx.pushContext(mGridCursor)
+                print(o.dCol, o.dRow)
                 o:drawInRect(0,0,90*o.dCol,90*o.dRow) 
             gfx.popContext()
-            movementSpr:setImage(mGrid)
+            movementSpr:setImage(mGridCursor)
         end
     end
 
     function o:drawCell(section,row,column,selected,x,y,width,height)
+            -- Debug Rectangle
+            gfx.setColor(gfx.kColorBlack)
+            gfx.drawRect(x, y, width, height)
         if selected then
-            gfx.fillTriangle(x+35,y+13,x+35,y+28,x+45,y+20)
+            gfx.fillTriangle(x,y,x+32,y,x+16,y+16)
         end
     end
 
@@ -1492,11 +1588,13 @@ function movTabConfig(cPos)
 end
 
 function enTest()
-    if enemySprTab.Position == PositionEnum.AirAft or enemySprTab.Position == PositionEnum.GroundAft then
-        if playerSprTab.Position == PositionEnum.AirFore or playerSprTab.Position == PositionEnum.GroundFore then
+    print("Enemy Position Reported as: "..enemySprTab.position)
+    print("Player Position Reported as: "..playerSprTab.position)
+    if enemySprTab.position == PositionEnum.AirAft or enemySprTab.position == PositionEnum.GroundAft then
+        if playerSprTab.position == PositionEnum.AirFore or playerSprTab.position == PositionEnum.GroundFore then
             return true
         end
-    else 
+    else
         return false
     end
 end
@@ -1536,6 +1634,8 @@ function compMove(oX,oY,xtra,cPos,cFly)
             return 50,50,2,2
         end
     end
+    print("Warning: compMove() did not find a matching condition. Returning defaults.")
+    return 50, 50, 1, 1  -- Ensures it always returns valid numbers
 end
 
 moveUIInfo = playdate.ui.gridview.new(0,0)
@@ -1544,6 +1644,11 @@ function moveUIInfo:new(selTable1,selTable2)
     local o = playdate.ui.gridview.new(0,40)
     setmetatable(o,self)
     self.__index=self
+
+    print("selTable1 has "..tostring(#selTable1).."elements of:")
+    for i,v in pairs(selTable1) do
+        print(tostring(i)..") "..selTable1[i])
+    end
 
     o.gTable = movDesc(selTable1)
     if selTable2 ~= nil then
@@ -1566,6 +1671,7 @@ function moveUIInfo:new(selTable1,selTable2)
     bBottomM:setCenter(0,0)
     local zInd = 120
     bBottomM:setZIndex(zInd)
+    
     function o:spriteKill()
         bBottomM:remove()
         UIIndex[o.index] = nil
@@ -1577,9 +1683,6 @@ function moveUIInfo:new(selTable1,selTable2)
         if o.needsDisplay then
             local bottUIImg = gfx.image.new(304,40,gfx.kColorWhite)
             bBottomM:moveTo(96,215)
-
-
-
             gfx.pushContext(bottUIImg)
                 o:drawInRect(0,0,304,40)
             gfx.popContext()
@@ -1587,21 +1690,15 @@ function moveUIInfo:new(selTable1,selTable2)
         end
     end
 
-    function o:drawCell(section,row,column,selected,x,y,width,height)
-        local fontHeight = gfx.getFont():getHeight()
-        for i,v in pairs(o.gTable) do
-            if i == row and column == 1 then
-                gfx.drawTextInRect(v, x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
-                o.current = v
-            end
-        end
-        if o.rowTrig == true then
-            for i,v in pairs(o.aTable) do
-                if i == row and column == 2 then
-                    gfx.drawTextInRect(v, x+5, y+5, width, height, nil, truncationString, kTextAlignment.left)
-                    o.current = v
-                end
-            end
+    function o:drawCell(section, row, column, selected, x, y, width, height)
+        if column == 1 then
+            local text = o.gTable[row] or ""
+            gfx.drawTextInRect(text, x + 5, y + 5, width - 10, height - 10, nil, truncationString, kTextAlignment.left)
+            o.current = text
+        elseif o.rowTrig and column == 2 then
+            local text = o.aTable[row] or ""
+            gfx.drawTextInRect(text, x + 5, y + 5, width - 10, height - 10, nil, truncationString, kTextAlignment.left)
+            o.current = text
         end
     end
 
@@ -1634,7 +1731,34 @@ end
 ------------------
 
 function movementConfirm(newPos,side)
-    print(newPos)
+    print("side: "..side)
+    local sidePos = "string"
+    print("playerSprTab.position or enemySprTab.position should be changed at this time.")
+    --[[    PositionEnum = {
+        GroundFore = "groundfore"
+        ,GroundAft = "groundaft"
+        ,AirFore = "airfore"
+        ,AirAft = "airaft"]]
+    local selectedMovement = "nil" -- Note that there should be multiple options here that take into account whether the chr can fly and where they are in the arena so that there are more animations contingent on movement abilities
+    if newPos == "Defense Up. Phys Defense." then
+        selectedMovement = "backMove"
+        sidePos = PositionEnum.AirAft
+    elseif newPos == "Attack Up. Phys Defense." then
+        selectedMovement = "forwardMove"
+        sidePos = PositionEnum.AirFore
+    elseif newPos == "Defense Up. Ki Defense." then
+        selectedMovement = "backMove"
+        sidePos = PositionEnum.GroundAft
+    elseif newPos == "Attack Up. Ki Defense." then
+        selectedMovement = "forwardMove"
+        sidePos = PositionEnum.GroundFore
+    end
+    if side == "enemy" then
+        enemySprTab.position = sidePos
+    elseif side == "player" then
+        playerSprTab.position = sidePos
+    end
+    goOption(selectedMovement, side)
 end
 
 function goOption(selOption,side) -- execute selected battle menu command
@@ -1650,7 +1774,7 @@ function goOption(selOption,side) -- execute selected battle menu command
 end
 
 function battleCardConfirm(selOption,side)
-    print("selOption for "..side.." is "..selOption)
+    --print("selOption for "..side.." is "..selOption)
     --print("Here is where selOption (a card name string) is compared with a table containing card names that can trigger the command input screen and can be expanded with other tables for other actions")
     if side == "enemy" then
         if #enemyDeck >= 6 then
@@ -1659,7 +1783,7 @@ function battleCardConfirm(selOption,side)
         -- Do enemy calcs for move
         enemyTurnTable = {}
         enemyTurnTable.card = cardRet(selOption)
-        enemyTurnTable.mStats = turnStat(enemyChr,cardRet(selOption),"enemy")
+        enemyTurnTable.mStats = turnStat(enemyChr,enemyTurnTable.card,"enemy")
         local cardRemove = enemyTurnTable.card
         for i,v in pairs(enemyDeck) do
             if cardRemove.cNumber == v then
@@ -1672,7 +1796,7 @@ function battleCardConfirm(selOption,side)
 
         playerTurnTable = {}
         playerTurnTable.card = cardRet(selOption)
-        playerTurnTable.mStats = turnStat(playerChr,cardRet(selOption),"player")
+        playerTurnTable.mStats = turnStat(playerChr,playerTurnTable.card,"player")
         local cardRemove = playerTurnTable.card
         if PlayerSelection == "jointDeck" then
             for i,v in pairs(playerDeck) do
@@ -1791,20 +1915,8 @@ function execTurn(attacker,defender)
     local defType = defender.card
     local attType = attacker.card
     local knockbackDamage = nil
-
-    --attacker.attAnimation = loadMoveAnimation(attType.cName)
-    --defender.defAnimation = loadMoveAnimation(defType.cName)
     animationGo(attacker,defender)
 
-    
-    --ccChange(attacker,defender)
-
-    -- conduct animation
-    --update lifebars
-    -- go to post turn
-    
-    
-    --postTurn(attacker, defender)
 end
 
 function turnFunctionsDuringAnimation(attacker, defender)
@@ -1828,22 +1940,33 @@ function turnFunctionsDuringAnimation(attacker, defender)
     --attHit (statHitMiss[2]) is a boolean signaling if the attack lands at all
     --and isKnockback (statHitMiss[3]) is a boolean for whether or not this is critical
     --finally, knockbackMulti (statHitMiss[4]) is the amount of damage to add for a crit
-
     attacker, defender = moveProcessing(attacker, defender)
 
     -- do any partner switches
 end
 
+function endOfTurn()
+    local attacker = battleSpriteIndex["attacker"]
+    local defender = battleSpriteIndex["defender"]
+    ccChange(attacker,defender)
+    postTurn(attacker, defender)
+end
+
 function ccChange(attacker, defender)
-    local attackerCard = attacker.card
-    local defenderCard = defender.card
-    playerCC = playerCC - attackerCard.cCost
-    enemyCC = enemyCC - defenderCard.cCost
-    if attackerCard.cCostGain then
-        playerCC = playerCC + attackerCard.cCostGain
-    end
-    if defenderCard.cCostGain then
-        enemyCC = enemyCC + defenderCard.cCostGain
+    if CurrentPhase == Phase.ATTACK then
+        if attacker.ccAdd ~= nil then
+            playerCC = playerCC + attacker.ccAdd
+        end
+        if defender.ccAdd ~= nil then
+            enemyCC = enemyCC + defender.ccAdd
+        end
+    elseif CurrentPhase == Phase.DEFENSE then
+        if attacker.ccAdd ~= nil then
+            enemyCC = enemyCC + attacker.ccAdd
+        end
+        if defender.ccAdd ~= nil then
+            playerCC = playerCC + defender.ccAdd
+        end
     end
 end
 
@@ -2077,6 +2200,8 @@ function effectHit(attacker, defender)
     return attacker, defender
 end
 
+
+
 function calculateHitChance(accuracy, evasion)
     local minimumHitChance = 1
     local maximumHitChance = 100
@@ -2134,6 +2259,26 @@ function calculateKnockDamage(atType, stats, scale) -- criticals scale with diff
 end
 
 function moveProcessing(atta, defe)
+    --[[
+    print("Move Processing")
+    print("atta table: ")
+    printTable(atta)
+    print("------------")
+    print(" ")
+    print("defe table: ")
+    printTable(defe)
+    print("------------")
+    print(" ")
+    --]]
+    local attackerMovement = false
+    local defenderMovement = false
+    if atta.card[cType] == DMove then
+        attackerMovement = true
+    end
+    if defe.card[cType] == DMove then
+        defenderMovement = true
+    end
+
     local cardHitTable = atta.cardHitMiss
     local statHitTable = atta.statHitMiss
     local attackerEffect = atta.EffOffense
@@ -2209,34 +2354,10 @@ function newHPStats(original,turnStats)
     return original
 end
 
-function postTurn(attacker,defender)
-    local atStat = attacker.mStats
-    local deStat = defender.mStats
-    local aHP = atStat.hp
-    local dHP = deStat.hp
-
-    if CurrentPhase == Phase.ATTACK then
-        playerChr = newHPStats(playerChr, atStat)
-        enemyChr = newHPStats(enemyChr,deStat)
-        
-    elseif CurrentPhase == Phase.DEFENSE then
-        playerChr = newHPStats(playerChr, deStat)
-        enemyChr = newHPStats(enemyChr,atStat)
-    end
-
-    print("Player's HP is: "..playerChr.chrHp)
-    print(" Enemy's HP is: "..enemyChr.chrHp)
-
-    for i,v in pairs(otherIndex) do -- apply damage to HP, if any
-        if v.tag == "playerHP" then
-            v:updateHP("player",playerChr.chrHp)
-        end
-        if v.tag == "enemyHP" then
-            v:updateHP("enemy",enemyChr.chrHp)
-        end
-    end
-    
-    nextPhase()
+function postTurn(attacker,defender)    
+    local timerPT = playdate.timer.new(1000, function() 
+        nextPhase()
+    end)
     -- if it is a new turn, set any temporary changes in stats back to normal using the table in side.prevStats
     -- apply any transformation changes
     -- apply powerup changes
@@ -2254,6 +2375,46 @@ function fullHand(execItem) --where execItem is the o.parentItem to be used afte
 
     playerTemp = execItem
 
+end
+
+function tallyDamage()
+    local crd = {}
+    local attacker = {}
+    local defender = {}
+    if CurrentPhase == Phase.ATTACK then
+        crd = playerTurnTable.card
+        attacker = playerTurnTable
+        defender = enemyTurnTable
+    elseif CurrentPhase == Phase.DEFENSE then
+        crd = enemyTurnTable.card
+        attacker = enemyTurnTable 
+        defender = playerTurnTable
+    end
+
+    local damage = crd.cPower * attacker["mStats"]["str"]
+    if battleSpriteIndex["attacker"].damageApplied == nil then
+        battleSpriteIndex["attacker"].damageApplied = 0
+    end
+    battleSpriteIndex["attacker"].damageApplied = battleSpriteIndex["attacker"].damageApplied + damage
+end
+
+
+function applyDamage(attackerTable, defenderTable, nFunc)
+    if attackerTable.damageApplied == nil then
+        attackerTable.damageApplied = 0 -- this occurs when the attacker fails to execute any stg attacks. Due to foresight or error on their part.
+    end
+    --print("atkrDamage: "..attackerTable.damageApplied)
+    local defLife = {}
+    if CurrentPhase == Phase.ATTACK then
+        defLife = lifeBarIndex["enemyHP"]
+    else 
+        defLife = lifeBarIndex["playerHP"]
+    end
+    if attackerTable.damageApplied ~= 0 then
+        defLife:damage(attackerTable.damageApplied,nFunc)
+    else
+        defLife:damage(0,nFunc)
+    end
 end
 
 --Generic battle dialogue box
@@ -2339,19 +2500,19 @@ function batDialogue:drawCell(section, row, column, selected, x, y, width, heigh
         end
     end
 end
-
 function batDialogue:menuControl(direction)
     if direction == "a" and self.type == "diTable" then
         self:spriteKill()
-        for i, v in pairs(menuIndex) do
-            if v.tag == "batDialogue" then
+        for i, v in ipairs(menuIndex) do
+            if v == self then
                 table.remove(menuIndex, i)
-                tossMenuInit()
                 break
             end
         end
+        tossMenuInit()
     end
 end
+
 
 function batDialogue:killTimer(duration)
     local kTimer = playdate.timer.new(duration, function() self:spriteKill() end)
@@ -2364,11 +2525,19 @@ dialogueTable = {
 
 function tossMenuInit()
     for i,v in pairs(menuIndex) do
-        v:spriteKill()
+        if v.tag == "batDialogue" then
+            v:spriteKill()
+            menuIndex[i] = nil
+        end
+        if v.tag == "optionSelect" then
+            v:spriteKill()
+            menuIndex[i] = nil
+        end
     end
     tossMenu:new()
     SubMode = SubEnum.MENU
 end
+
 
 
 tossMenu = playdate.ui.gridview.new(20, 20)
@@ -2532,6 +2701,12 @@ function tossCard(item)
     for i,v in pairs(playerDeck) do
         if remCard.cNumber == v then -- will remove the first card with the same cNumber in playerDeck. This means that if there are two identical cards, the first one found will be removed.
             table.remove(playerDeck,i)
+        end
+    end
+    for i,v in pairs(menuIndex) do
+        if v.tag == "tossSelect" then
+            v:spriteKill()
+            menuIndex[i] = nil
         end
     end
     goOption(playerTemp, "player")

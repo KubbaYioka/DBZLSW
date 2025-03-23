@@ -283,7 +283,6 @@ function playdate.timer.updateTimers()
 			else
 
 				timer._currentTime = timer._currentTime + dt
-
 				if timer._currentTime > timer.duration then
 					
 					local function callEndedCallback()

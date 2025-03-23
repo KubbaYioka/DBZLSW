@@ -22,11 +22,11 @@ local turnBGList = {
 battles = {
 
     ["battleTest"] = {
-        ["name"] = "Test Battle"
+        ["name"] = "Test Battle",
 
-        ,["oppoParam"] = {
+        ["oppoParam"] = {
             oppoTeam = {"dbKrillin"}
-            ,opponentLvl = {10}
+            ,opponentLvl = {1}
             ,opponentDeck = {1,2,1,2,1,2,1,2,1,3,4,5,6,7,1,2,3,4,5,6}
             ,opponentLimit = {
                 [1] = {"Energy Blast","Cont. Kick"}
@@ -38,12 +38,12 @@ battles = {
                 [1] = "normal"
             }
 
-            }
-        ,["arenaParam"] = {
+            },
+        ["arenaParam"] = {
             bField = arenaList.tenkaichi,
             turnField = turnBGList.tenkaichi
-        }
-        ,["eventParam"] = {
+        },
+        ["eventParam"] = {
             winCondition = healthZero
             ,secretWin = nil -- conditions in which a secret is unlocked. Could be the use of a chr or attack or winning with a certain amount of health
             ,winCards = {4,5,6} -- cards that can be collected upon win

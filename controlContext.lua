@@ -9,6 +9,7 @@ SubEnum = {
     ,STAT = "status" --specifically for status screen of cards and characters
     ,COMM = "command" -- for action commands
     ,MOVE = "move" -- for selecting a position on the movement grid
+    ,BTNS = "buttonSave" -- allows the player to enter a missed cmd input
 }
 
 function getInput()
@@ -27,18 +28,18 @@ function getInput()
     end
 end
 
-function battleInputContext(dir) 
+function battleInputContext(dir)
     local cmdLastButtonPressed = nil
     if bounceProtect == false then
 
         if SubMode == SubEnum.NONE then
-
+            --do nothing
         elseif SubMode == SubEnum.MENU then
             if dir == "left" then
                 local fs = menuIndex[#menuIndex]
                 fs:selectPreviousColumn(true,true,false)
                 for i,v in pairs(UIIndex) do
-                    if v.tag == "UIInfo" and fs.tag ~= "optionSelect" then
+                    if v.tag == "UIInfo" and fs.tag ~= "optionSelect" and fs.tag ~= "tossSelect" then
                         v:selectPreviousRow(true,true,false)
                     end
                 end
@@ -46,7 +47,7 @@ function battleInputContext(dir)
                 local fs = menuIndex[#menuIndex]
                 fs:selectNextColumn(true,true,false)
                 for i,v in pairs(UIIndex) do
-                    if v.tag == "UIInfo" and fs.tag ~= "optionSelect" then
+                    if v.tag == "UIInfo" and fs.tag ~= "optionSelect" and fs.tag ~= "tossSelect" then
                         v:selectNextRow(true,true,false)
                     end
                 end
@@ -110,6 +111,11 @@ function battleInputContext(dir)
                 gt:selectPreviousColumn(false,true,false)
             elseif dir == "a" then
                 movementConfirm(fs:getOption(),"player")
+                for j,k in pairs(UIIndex) do
+                    if k.index == #UIIndex and k.tag == "movementUIInfo" then
+                        k:spriteKill()
+                    end
+                end
             elseif dir == "b" then
                 for j,k in pairs(UIIndex) do
                     if k.index == #UIIndex and k.tag == "movementUIInfo" then
@@ -126,12 +132,50 @@ function battleInputContext(dir)
         elseif SubMode == SubEnum.DIAG then
             for i,v in pairs(menuIndex) do
                 if v.tag == "batDialogue" then
-                    local fs = menuIndex[#menuIndex]
+                    local fs = v
                     if dir == "a" then
+                        print("a")
                         fs:menuControl("a")
                     end
                 end
-            end            
+            end
+        elseif SubMode == SubEnum.BTNS then
+            local sBtn = commandButtons["savBtn"]
+            if sBtn.pressed == false then
+                if sBtn.blockButton == true and sBtn.hitButton == false then
+                    if dir == "a" then
+                        sBtn.pressed = true
+                        sBtn.wrong = false
+                        sBtn.selected = "a"
+                    elseif dir ~= nil and dir ~= "a" then
+                        sBtn.pressed = true
+                        sBtn.wrong = true
+                        sBtn.selected = "wrong"
+                    elseif dir == nil then
+                    end
+
+                elseif sBtn.blockButton == true and sBtn.hitButton == true then
+
+                    if dir == "a" then
+                        sBtn.pressed = true
+                        sBtn.wrong = false
+                        sBtn.selected = "a"
+
+                    elseif dir == "b" then
+                        sBtn.pressed = true
+                        sBtn.wrong = false
+                        sBtn.selected = "b"
+
+                    elseif dir ~= nil and dir ~= "a" and dir ~= "b" then
+                        sBtn.pressed = true
+                        sBtn.wrong = true
+                        sBtn.selected = "wrong"
+
+                    elseif dir == nil then
+
+                    end
+                end
+            end
         end
     elseif bounceProtect == true then
         bounceProtectSwi("off")

@@ -129,7 +129,7 @@ end
 --NORMAL AI functions--
 
 function AINormalAttack() 
-    print("AINormalAttack Used")
+    --print("AINormalAttack Used")
     local enStats, refStats, limitCards, playerInfo = gatherAllStats()
     local priorities = {saveCC(8,enStats)
                         ,useLimit(enStats)
