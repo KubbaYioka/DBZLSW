@@ -20,16 +20,24 @@ import 'menuEngine'
 import 'gameModeEnum'
 
 --Battle Enginel9l
-import 'battleEngine'
+import 'battle/battleEngine'
+import 'battle/battleDecks'
+import 'battle/battleGlobalInit'
+import 'battle/battleIntro'
+import 'battle/battleSetup'
+import 'battle/battleTurns'
+import 'battle/battleUI'
+import 'battle/battleSprites'
+import 'battle/battleMath'
+
+--Battle Animations
+import 'battle/animation/battleAnimations'
 
 --Story Enginews
 import 'storyEngine'
 
 --Map Engine 
 import 'mapEngine'
-
---Battle Animations
-import 'battleAnimations'
 
 --General Data
 import '/genData/characters'
