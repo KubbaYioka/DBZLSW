@@ -98,16 +98,16 @@ function battleInputContext(dir)
             local gt = UIIndex[#UIIndex]
             local fs = menuIndex[#menuIndex]
             if dir == "left" then
-                fs:selectPreviousColumn(true,true,false)
+                fs:selectPreviousColumn(false,false,false)
                 gt:selectPreviousRow(false,true,false)
             elseif dir == "right" then
-                fs:selectNextColumn(true,true,false)
+                fs:selectNextColumn(false,false,false)
                 gt:selectNextRow(false,true,false)
             elseif dir == "up" then
-                fs:selectPreviousRow(true,true,false)
+                fs:selectPreviousRow(false,false,false)
                 gt:selectNextColumn(false,true,false)
             elseif dir == "down" then
-                fs:selectNextRow(true,true,false)
+                fs:selectNextRow(false,false,false)
                 gt:selectPreviousColumn(false,true,false)
             elseif dir == "a" then
                 movementConfirm(fs:getOption(),"player")

@@ -354,6 +354,7 @@ function movDesc(newPos) --return descriptions for the selected slot in moveFiel
             retTable[3] = "Attack Up. Ki Defense"
         end
     end
+    printTable(retTable)
     return retTable
 end
 

@@ -1,3 +1,6 @@
+-----GFX-----
+dbkrillin's cmd down hit is identified as an incorrect frame (fly forward instead of 'hammer down')
+
 ---- Map ----
 Create graphics for more locations and characters.
 
@@ -8,10 +11,10 @@ Create graphics for cards.
 Create more cards
 
 ---- Battle ----
-
+ In MoveField, make the selection cursor start in the position the player is in.
 Insert graphics\animation display between turns. Should design animation engine - in progress
 Create in-battle sprites for players
-Provide move logic for changing places on the battlefield
+Provide move logic for changing places on the battlefield - Mostly complete
 Create logic for limit deck - Almost done
 Create logic for power-up, fighting stance.
 Command Input
@@ -90,13 +93,6 @@ Tenkū Pekeji Ken - Nam's strongest attack
 ------------------How does a character who cannot fly attack someone who can? If they have a high enough speed, they can land 3 stage attacks before falling back down to the ground. The disadvantage is a good challenge
 
 Finger Beam
-
-
-
-
-
-
-
 
 Hyakushu-ken 100 arms technique used by Tambourine
 Cho Marengeki

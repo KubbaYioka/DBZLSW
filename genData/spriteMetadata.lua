@@ -355,7 +355,8 @@ characterAnimationTables = {
                 "normalStance",
                 0,
                 function(self, animation, frameIndex, trigFunction, effectTab)
-                    if effectTab and effectTab.controller then
+                    if effectTab and effectTab.controller and (not effectTab.controller.attackOver) then
+
                         effectTab.controller:getAtkrMoveIn()
                     else
                         print("No controller in effectTab")
@@ -394,15 +395,8 @@ characterAnimationTables = {
                 "flyForward",                  -- image/frame to display
                 0,                             -- time in ms to wait before next frame
                 function(self, animation, frameIndex, trigFunction, effectTab)
-                    -- 1) Retrieve your BattleController
                     local controller = effectTab and effectTab.controller
-        
-                    -- 2) Call movementExec on THIS sprite (the btlSprite)
                     self:movementExec("forward", function()
-                        -- 3) Once movement is done, resume the flow:
-                        --    typically stgTableIterate or whatever your next step is
-                        --    via the controller
-        
                         if controller then
                             -- e.g. if your attacker is the one moving:
                             controller:stageAttackGo()

@@ -17,9 +17,7 @@ local gfx = playdate.graphics
 ------------------
 
 function movementConfirm(newPos,side)
-    print("side: "..side)
     local sidePos = "string"
-    print("playerSprTab.position or enemySprTab.position should be changed at this time.")
     --[[    PositionEnum = {
         GroundFore = "groundfore"
         ,GroundAft = "groundaft"
@@ -48,6 +46,7 @@ function movementConfirm(newPos,side)
 end
 
 function goOption(selOption,side) -- execute selected battle menu command
+    print("Selected Option is: "..selOption)
     battleCardConfirm(selOption,side)
     aiGo() -- perform AI's turn. returns battleCardConfirm
     if CurrentPhase == Phase.ATTACK then
@@ -240,7 +239,6 @@ function effectCompare(attacker,defender) -- compare cards to determine hit or m
     defender.EffOffense = defenderEffOffense
 
     return attacker, defender
-
 end
 
 function statCompare(attacker,defender)

@@ -999,7 +999,6 @@ function tossMenu:drawCell(section, row, column, selected, x, y, width, height)
     end
 end
 
-
 tossSelect = playdate.ui.gridview.new(0, 0)
 tossSelect.__index = tossSelect
 

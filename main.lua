@@ -31,7 +31,8 @@ import 'battle/battleSprites'
 import 'battle/battleMath'
 
 --Battle Animations
-import 'battle/animation/battleAnimations'
+import 'battleAnimation/battleAnimations'
+import 'battleAnimation/init'
 
 --Story Enginews
 import 'storyEngine'
@@ -86,7 +87,7 @@ function bgChange(bgImage)
     gfx.sprite.setBackgroundDrawingCallback(function( x, y, width, height)backgroundImage:draw( 0, 0 )end)
 end
 
-print("Debug Statement: Next, make the selection cursor a proper triangle. Make it start in the position the player is in. Lastly, enable the 'extra' forward positions")
+print("Debug Statement: Start rudimentary cards like ki wave and cont kick.")
 
 bgChange("dragonBallTitle")
 

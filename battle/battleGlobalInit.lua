@@ -4,7 +4,8 @@
 local gfx = playdate.graphics
 
 function bTabInit()
-
+    print("Message from battleGlobalInit.lua: ")
+    print("Player's CC hardcoded to 15. Line ~25.")
     PositionEnum = {
         GroundFore = "groundfore"
         ,GroundAft = "groundaft"
@@ -21,7 +22,7 @@ function bTabInit()
     playerTeam={}
     pDeckCopy={} -- copy of RAMSAVE[4]
     playerDeck={}
-    playerCC = 3
+    playerCC = 15
     playerTemp = nil -- to hold card data temporarily.
     playerPoweredUp = false
     playerStandReady = false
@@ -29,7 +30,7 @@ function bTabInit()
     playerSprTab = {
         sprRange = {}
         ,current = 0
-        ,position = PositionEnum.GroundFore--PositionEnum.GroundAft -- override for debugging
+        ,position = PositionEnum.GroundAft
     }
 
     bFaster = {} -- will compare speeds of combatants to see who will go first. Evaluated every turn change.

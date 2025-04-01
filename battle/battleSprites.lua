@@ -55,8 +55,7 @@ function areaPosition(tag)
         end
     end
 
-end 
-
+end
 
 class('BattleMiniSpr').extends(gfx.sprite) -- the little sprite representing a character on the arena
 
@@ -138,16 +137,15 @@ function moveField:new(flyParam)
 
     print(o.drawX,o.drawY,o.dRow,o.dCol)
 
-        -- Now that grid is properly set, lock scrolling
     if o.dRow > 0 and o.dCol > 0 then
         print("row and col > 0")
         --o:scrollToCell(1, 1)  -- Only if rows exist
     end
+    
     o.scrollCellsToCenter = false
     o:setScrollDuration(0)
     o:setCellPadding(0,90,0,90)
     o:setContentInset(0,0,0,0)
-
 
     --o:setScrollPosition(0, 0) -- no unintended moving
     o.scrollCellsToCenter = false -- no centering of field positions.

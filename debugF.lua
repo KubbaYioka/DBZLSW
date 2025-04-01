@@ -3,8 +3,6 @@
 local gfx = playdate.graphics
 local ui = playdate.ui
 
-print("Message from debugF.lua:")
-
 --view loaded file
 function callRam()
     printTable(RAMSAVE)
