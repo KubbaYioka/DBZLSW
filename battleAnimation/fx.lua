@@ -1,8 +1,36 @@
 --fx
 --for all fx related to the sprites and transitions.
 
+import 'battleAnimation/kiObject'
+
 local gfx = playdate.graphics
 local ui = playdate.ui
+
+FXController = {}
+FXController.__index = FXController
+
+function FXController:new()
+    local self = setmetatable({}, FXController)
+    self.projectiles = {}
+    self.activeEffects = {}
+    return self
+end
+
+function FXController:newKi(attacker, effectTab)
+    local x, y = attacker:getPosition()
+    local ki = KiProjectile:new(x, y, attacker, effectTab)
+    table.insert(self.projectiles, ki)
+end
+
+function FXController:update()
+    for i, fx in ipairs(self.projectiles) do
+        fx:update()
+        if fx:isFinished() then
+            fx:remove()
+            table.remove(self.projectiles, i)
+        end
+    end
+end
 
 function fadeInWhite(duration) -- causes a fade out to white, a pause, and then a fade back in.
     if duration == "normal" then
@@ -23,9 +51,6 @@ function drawAura(side,type) -- draws an aura around a character
 
 end
 
-function getResultSequence(table) -- returns a table with animation steps based on the results of command input
-
-end
 
 class('fadeBox').extends(gfx.sprite) --in progress for fading in and out.
 

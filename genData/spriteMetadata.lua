@@ -1,6 +1,14 @@
 --declarations
 local leapCoords
 
+-- enum
+
+KiThrowType = {
+    KIFORE = "fore",
+    KIOVER = "overhand",
+    KIUNDER = "underhand"
+
+}
 
 spriteMetadata = {
 
@@ -40,6 +48,8 @@ spriteMetadata = {
         ["RunTwo"] = {3,1},
         ["RunThree"] = {3,1},
         ["RunFour"] = {3,1},
+        ["verticalLines"] = {3,5},
+        ["horizontalLines"] = {4,5},
         ["placeholder"] = nil
     },
     ["dbKrillin"] = {
@@ -75,6 +85,8 @@ spriteMetadata = {
         ["taioken"] = {8,3},
         ["chargeKiThree"] = {3,4},
         ["blastKiThree"] = {},
+        ["verticalLines"] = {1,5},
+        ["horizontalLines"] = {2,5},
         ["placeholder"] = nil
     },
 
@@ -283,7 +295,7 @@ characterAnimationTables = {
             [1] = {"flyForward",500,function(self) self:moveInDirection(getTrajectory(), 10, "opponent") end} -- placeholder
         },
         ["jumpUpWithStop"] = {
-            [1] = {"flyForward",500,function(self) self:moveInDirection(getTrajectory(), 10, "opponent") end} -- placeholder
+            [1] = {"leap",1500,function(self) self:moveInDirection(getTrajectory(), 10, "opponent") end} -- placeholder
         },
         ["runForwardWithStop"] = {
             [1] = {"flyForward",500,function(self) self:moveInDirection(getTrajectory(), 10, "opponent") end}
@@ -306,12 +318,44 @@ characterAnimationTables = {
             end
             }
         },
+        ["lowGraze"] = {
+            [1] = {"leap", 
+                   300, -- or function that does "waitForCollision" which would trigger a teleport/shockwave before the attack reaches or blocking animation before or right as the knockback/stun hit of the attack strikes.
+                   function(self,animation,frameIndex,trigFunction,effectTab)
+                        effectTab:getStunOrKnockBackForAtk(self, function()
+                            self:runAnimationSequence(animation, frameIndex, trigFunction, effectTab)                            
+                        end)
+                   end
+                }
+        },
+        ["medGraze"] = {
+            [1] = {"leap", 500}
+        },
+        ["badGraze"] = {
+            [1] = {"leap", 500}
+        },
+        ["genericAvoiding"] = {
+            [1] = {"verticalLines",150}
+        },
         ["Ki Blast"] = {
-            [1] = {"rightKi",4000}
+            [1] = {
+                "rightKi",
+                4000,
+                function(self, animation, frameIndex, trigFunction, effectTab)
+                    KiProjectile:new(self, KiThrowType.KIFORE, "Ki Blast", 16, 12, effectTab)
+                end
+            }
         },
         ["Ki Wave"] = {
-            [1] = {"rightKi",4000}
+            [1] = {
+                "rightKi",
+                4000,
+                function(self, animation, frameIndex, trigFunction, effectTab)
+                    KiWave:new(self, KiThrowType.KIFORE, "Ki Wave", 16, 14, effectTab)
+                end
+            }
         },
+        
         ["Cont. Punch"] = {
             [1] = {"stageA",500},
             [2] = {"stageB",500},
@@ -427,6 +471,47 @@ characterAnimationTables = {
     ["dbKrillin"] = {
 
     }
+}
+
+kiSprite16Table = {
+    ["Ki Blast"] = 1,
+    ["Ki Wave Base"] = 2,
+    ["Ki Wave Edge"] = 3,
+    ["Ki Wave Tail"] = 4,
+    ["Finger Beam Base"] = 5,
+    ["Finger Beam Edge"] = 6,
+    ["One Arm Charge 1"] = 7,
+    ["One Arm Charge 2"] = 8,
+    ["One Arm Charge 3"] = 9
+}
+
+kiSpriteSegmentSmallTable = { -- width includes borders. There are no beams with width below 3.
+    [3] = 1, -- so a segment with a visible width of 3 will be at location 1 in the spritesheet
+    [4] = 2,
+    [5] = 3,
+    [6] = 4,
+    [7] = 5,
+    [8] = 6,
+    [9] = 7,
+    [10] = 8,
+    [11] = 9,
+    [12] = 10,
+    [13] = 11,
+    [14] = 12,
+    [15] = 13,
+    [16] = 14
+
+}
+
+kiSpriteSegmentLargeTable = {
+    [18] = 0,
+    [20] = 1,
+    [22] = 2,
+    [24] = 3,
+    [26] = 4,
+    [28] = 5,
+    [30] = 6,
+    [32] = 7
 }
 
 stageAttackAni = {

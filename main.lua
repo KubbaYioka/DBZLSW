@@ -87,7 +87,7 @@ function bgChange(bgImage)
     gfx.sprite.setBackgroundDrawingCallback(function( x, y, width, height)backgroundImage:draw( 0, 0 )end)
 end
 
-print("Debug Statement: Start rudimentary cards like ki wave and cont kick.")
+print("Debug Statement: Left off on making sure the damage calculated for card attacks actually get passed to some kind of 'damageapply' and that blocked damage is read correctly. Also making sure the correct animation loads and stuff for blocks/dodges and stun effects load from BattleController:getStunOrKnockBackForAtk.")
 
 bgChange("dragonBallTitle")
 

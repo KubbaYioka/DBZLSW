@@ -9,6 +9,7 @@ create monospaced font for numbers
 ---- Cards ----
 Create graphics for cards. 
 Create more cards
+Currently, BattleController:start and setAttStep in comm.lua are checking the action against the list of potential stage attacks twice. This is redundant and possibly not needed.
 
 ---- Battle ----
  In MoveField, make the selection cursor start in the position the player is in.
@@ -22,6 +23,8 @@ Command Input
    - attacker movement logic - Basics nearly done
    - slight knockback logic - in progress
    - change background if knocked in air  
+
+Maybe add a CC cap that gets raised with level ups.
 
 Introduce different knockback levels for parries because of failed stg attacks. So a strong enemy will deliver a more devastating counter
 

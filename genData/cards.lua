@@ -159,6 +159,127 @@ OffensiveAbilities = {
 --Other Enumeration
 AllChrs = "all" -- all characters allowed to use card.
 
+--functions
+
+function cardRet(cardName) -- gets the card data from tthe above master table. Not for Save access.
+  for i,v in pairs(BasicOther) do
+    if v.cName == cardName then
+      return v
+    end
+  end
+  for i,v in pairs (cards) do
+      if v.cName == cardName then
+        return v
+      end
+  end
+
+end
+
+function cardPort(cardName)
+  for i,v in pairs (otherIndex) do
+    if type(v) =="table" and v.cardIcon then
+      v:spriteKill{}
+    end
+  end
+  if cardName ~= "  " then
+    local cardPort = CardIcon(cardName)
+  end
+end
+
+function cardInsert(location,mode,selected,selIndex,chrIndex,chrN) --selected is a string and selIndex is a number. lmtIndex is used to populate the limit slot
+  if location == "deck" then -- for inserting\removing from joint deck
+    if mode == "insert" then -- insertion uses reference to selected name string
+      local cList = RAMSAVE[2]
+      local dList = RAMSAVE[4]
+      local cardDetail = nil
+      for i,v in pairs(cList) do
+        if type(v) == "table" then
+          if selected == v.cName then
+            v.cAvailable = v.cAvailable - 1
+            cardDetail = v.cName
+          end
+        end
+      end
+      dList[selIndex] = cardDetail
+      RAMSAVE[2] = cList
+      RAMSAVE[4] = dList
+    elseif mode == "remove" then -- removal uses reference to selected name string "cName"
+      local cList = RAMSAVE[2]
+      local dList = RAMSAVE[4]
+      local cCount = false
+      for i,v in pairs(dList) do
+        if v == selected and i == selIndex then
+          dList[i] = 0
+        end
+      end
+      for j,k in pairs(cList) do
+        if type(k) == "table" then
+          if selected == k.cName then
+            k.cAvailable = k.cAvailable + 1
+            cCount = true
+          end
+        end
+      end
+      RAMSAVE[2] = cList
+      RAMSAVE[4] = dList
+    end
+  elseif location == "limit" then -- for inserting\removing from limit
+    local cList = RAMSAVE[2]
+    local tempList = RAMSAVE[1]
+    local limList = nil
+    local cardDetail = nil
+    if mode == "insert" then
+      for i,v in pairs(tempList) do
+        if type(v) == "table" then
+          if v.chrNum == chrIndex and v.chrName == chrN then 
+            limList = v.limit
+            limList[selIndex] = selected
+            v.limit = limList
+          end
+        end
+      end
+      
+      for i,v in pairs(cList) do
+        if type(v) == "table" then
+          if selected == v.cName then
+            v.cAvailable = v.cAvailable - 1
+            cardDetail = v.cName
+          end
+        end
+      end
+
+    elseif mode == "remove" then
+      for i,v in pairs(tempList) do
+        if type(v) == "table" then
+          if v.chrNum == chrIndex and v.chrName == chrN then
+            limList = v.limit
+            limList[selIndex] = nil
+            v.limit = limList
+          end
+        end
+      end
+      
+      for i,v in pairs(cList) do
+        if type(v) == "table" then
+          if selected == v.cName then
+            v.cAvailable = v.cAvailable + 1
+          end
+        end
+      end
+    end
+
+    RAMSAVE[1] = tempList
+    RAMSAVE[2] = cList
+  end
+end
+
+--Card Calculations
+function enduranceCalc(def)
+  --takes the user's current defense and increases it by half
+end
+
+--lists
+
 cards = {
 ["3 Stage Attack"] =
   {
@@ -582,7 +703,7 @@ cards = {
     ,cAccuracy = 100
     ,cCost = 10
     ,cEffect = "Solar Flare."
-    ,cDescription = "Use to blind enemies."
+    ,cDescription = "Crane Tech. Use to blind enemies."
     ,cPhases = PDefense
     ,cAbility = OAccDn()
     ,cAllowed = {"dbTeenTien","dbTien","dbKrillin","dbzGoku","dbzCell","dbzBuu"}
@@ -616,7 +737,7 @@ cards = {
     ,cAccuracy = 90
     ,cCost = 28
     ,cEffect = "Cyborg Tao's attack."
-    ,cDescription = "Special attack against Mr. Lao."
+    ,cDescription = "Special attack in the 23rd Tourn."
     ,cPhases = PAttack
     ,cAbility = None
     ,cAllowed = {"dbCyborgTao"}
@@ -773,120 +894,3 @@ BasicOther = { -- for all other actions that are not cards.
     ,cNForms = None
   }
 }
-
-function cardRet(cardName) -- gets the card data from tthe above master table. Not for Save access.
-  for i,v in pairs(BasicOther) do
-    if v.cName == cardName then
-      return v
-    end
-  end
-  for i,v in pairs (cards) do
-      if v.cName == cardName then
-        return v
-      end
-  end
-
-end
-
-function cardPort(cardName)
-  for i,v in pairs (otherIndex) do
-    if type(v) =="table" and v.cardIcon then
-      v:spriteKill{}
-    end
-  end
-  if cardName ~= "  " then
-    local cardPort = CardIcon(cardName)
-  end
-end
-
-function cardInsert(location,mode,selected,selIndex,chrIndex,chrN) --selected is a string and selIndex is a number. lmtIndex is used to populate the limit slot
-  if location == "deck" then -- for inserting\removing from joint deck
-    if mode == "insert" then -- insertion uses reference to selected name string
-      local cList = RAMSAVE[2]
-      local dList = RAMSAVE[4]
-      local cardDetail = nil
-      for i,v in pairs(cList) do
-        if type(v) == "table" then
-          if selected == v.cName then
-            v.cAvailable = v.cAvailable - 1
-            cardDetail = v.cName
-          end
-        end
-      end
-      dList[selIndex] = cardDetail
-      RAMSAVE[2] = cList
-      RAMSAVE[4] = dList
-    elseif mode == "remove" then -- removal uses reference to selected name string "cName"
-      local cList = RAMSAVE[2]
-      local dList = RAMSAVE[4]
-      local cCount = false
-      for i,v in pairs(dList) do
-        if v == selected and i == selIndex then
-          dList[i] = 0
-        end
-      end
-      for j,k in pairs(cList) do
-        if type(k) == "table" then
-          if selected == k.cName then
-            k.cAvailable = k.cAvailable + 1
-            cCount = true
-          end
-        end
-      end
-      RAMSAVE[2] = cList
-      RAMSAVE[4] = dList
-    end
-  elseif location == "limit" then -- for inserting\removing from limit
-    local cList = RAMSAVE[2]
-    local tempList = RAMSAVE[1]
-    local limList = nil
-    local cardDetail = nil
-    if mode == "insert" then
-      for i,v in pairs(tempList) do
-        if type(v) == "table" then
-          if v.chrNum == chrIndex and v.chrName == chrN then 
-            limList = v.limit
-            limList[selIndex] = selected
-            v.limit = limList
-          end
-        end
-      end
-      
-      for i,v in pairs(cList) do
-        if type(v) == "table" then
-          if selected == v.cName then
-            v.cAvailable = v.cAvailable - 1
-            cardDetail = v.cName
-          end
-        end
-      end
-
-    elseif mode == "remove" then
-      for i,v in pairs(tempList) do
-        if type(v) == "table" then
-          if v.chrNum == chrIndex and v.chrName == chrN then
-            limList = v.limit
-            limList[selIndex] = nil
-            v.limit = limList
-          end
-        end
-      end
-      
-      for i,v in pairs(cList) do
-        if type(v) == "table" then
-          if selected == v.cName then
-            v.cAvailable = v.cAvailable + 1
-          end
-        end
-      end
-    end
-
-    RAMSAVE[1] = tempList
-    RAMSAVE[2] = cList
-  end
-end
-
---Card Calculations
-function enduranceCalc(def)
-  --takes the user's current defense and increases it by half
-end

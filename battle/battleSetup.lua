@@ -9,7 +9,6 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     if type(battleTable) ~= "table" then
         print("battle table is not in correct format")
     end
-    BattleRef = battleTable
     local initPTeam = {"dbGoku"} -- will eventually pull from table RAMSAVE[5]
     local initChr = initPTeam[1] -- simply uses the first player in the team
     local oppTab = battleTable["oppoParam"]
@@ -23,6 +22,8 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     playerDeck[1],playerDeck[2],playerDeck[3],pDeckCopy = cardShuffle(pDeckCopy,true)
     eDeckCopy = oppTab.opponentDeck -- pulls from where the enemy deck info is for this battle
     enemyDeck[1],enemyDeck[2],enemyDeck[3],eDeckCopy = cardShuffle(eDeckCopy,true)
+
+    BattleRef = battleTable
 
     for i,v in pairs(initPTeam) do -- copy current players in team to battle ram
         local mTab = RAMSAVE[1]

@@ -60,7 +60,7 @@ function getStageResults()
     return commandButtonResults
 end
 
-function setAttStep(interrupt) --checks to see if the interrupt is a stage attack.
+function setAttStep(interrupt) --assigns stage sequence from several options.
     for i,v in pairs(animationInterrupts["Stage Attacks"]) do
         if interrupt == v then
             local nk = 10 --where nk is the number of potential stg atk combos in the table for that stg atk
@@ -91,7 +91,7 @@ function setAttStep(interrupt) --checks to see if the interrupt is a stage attac
             --print("stage combo hard-coded in comm.lua for function setAttStep - line ~80")
             return {varIO, selectedStg}
         else
-            print("Not a Stage Attack. Load normal animation cycle.")
+            print("Not a Stage Attack. Check function flow.")
         end
     end
 end

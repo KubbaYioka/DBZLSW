@@ -184,3 +184,64 @@ Of course, this presents an issue of how this game will handle transformations v
 Feature unlockable
 
 Battles start by letting you use 3-stg attack but at first, the player cannot fly, power up, or even use limit deck. These are unlocked as the dragon ball story progresses.
+
+
+
+Design of attack math stuff
+
+When one fighter attacks another with a card that is not a CC generating one, several things happen. This system is a fusion between the way LSW and Super Saiya Densetsu work.
+
+In LSW, when an attacker uses a ki or physical attack, there is a chance that the defender may dodge or block it randomly. Although this is quite rare in the game, its chances can be increased by using Afterimage and stuff. Without using a block or dodge card, chances are high of a hit.
+
+In Super Saiya Densetsu, the system is more complicated. While I can't tie down any real details of how it works, there is a system of hits, dodges, grazing blows, and critical hits. If an enemy is strong enough, they can't be harmed at all by attacks. If they are fast enough, they can dodge finishing blows or beams entirely. If opponents are evenly matched, there is a chance of a near-dodge with ki attacks. Even weaker enemies have a change of evading with only a grazing blow. And of course, stronger opponents will smack their targets around a lot, landing criticals and knocking them back for even more damage. Of course, there is always a chance of a critical or knockback, but this dwindles in the opponents favor the stronger they are relative to the attacker.
+
+My system should be similar to this to allow for a greater array of animations and outcomes than in the original LSW. Since fights may take much longer the stronger the player becomes, this will be necessary to help prevent a dry gaming experience. 
+
+So currently, we have a system that does this:
+
+1) hits and misses are determined in battleMath.lua. Specifically in a series of calculations organized in turnFunctionsDuringAnimation
+
+2) If the attacker is using a card that will cause damage or effects, the that is determined by attWillDamage.
+3) If the defender has used a card that will defend in some way, that will be determined by defKind
+
+4) Next, the system compares moves in moveCompare
+	a) this works by getting the type of the attacker and defender's cards
+	b) then, the system gets the type of hit (ki, phys, com) that the attacker is trying to land.
+	c) the defender's card is examined for whether or not it will block something. If defender.willBlock is the same value as the attacker's card type, then a boolean for blocking will be set to true. This can be undone if the attacker is using a special attack that cannot be blocked.
+	d) The function returns a table with two values:
+		wOutCome - A Boolean for if the attack is blocked via card. True means the attack is blocked by the defender
+		kindOfHit - a string corresponding to the card type
+
+5) Next, the program gets whether or not the attack will hit or miss based on stats. This is conducted in statCompare
+	a) The program gets the appropriate stat for the attacker and adds it to the "power" of the card. 
+	b) The defender's defense stat is then subtracted from the total attack power calculated in a.
+	c) calculateHitChance runs using the accuracy of the attacker and the evasion of the defender to get the hit to evasion chance. This does not discriminate between types of evasion (near dodge, block, avoid)
+	d) That value is then run through attackHits. This returns true or false based on if the attack hits or not.
+	e) this then sets whether or not attacker.effectHits is true or false. Possibly redundant.
+	if the defender is using a card that will damage a stat of the attacker (if EffOffense is not nil), then the same thing happens to see if the effect hits.
+	f) the variables above are directly assigned to the attacker and defender tables, which are then passed back to turnFunctionDuringAnimation
+
+6) After that, we then look to see if the attacker or defender have effects that will damage the opponent. If so, both attacker and defender tables are run through effectCompare. 
+>> We will skip details on this for now.
+
+7) the last step is moveProcessing before returning the attacker and defender tables.
+
+What we still need is to determine not only if the defender will dodge, but if they will be able to perform any other evasive moves. So we need some function that does the following:
+
+A) Does the defender use a card that blocks the attacker's card and the attacker is not using a special that ignores such cards?
+
+If no:
+
+B) Does the defender dodge the attack altogether through their stat chances? (based on evasion)
+
+If no:
+
+C) Does the defender partially dodge the attack based on stat chances? (based on speed)
+
+If no:
+
+D) Does the defender block the attack based on stat chances? (based on something?)
+
+If no:
+
+E) At this point, the attack will do full damage minus any positional bonuses.

@@ -144,7 +144,6 @@ function btlSprite:playAni(ani, trigFunction, effectTab)
 end
 
 function btlSprite:runAnimationSequence(animation, frameIndex, trigFunction, effectTab)
-    printTable(animation[frameIndex]) 
     if frameIndex > #animation then
         if trigFunction then
             trigFunction()

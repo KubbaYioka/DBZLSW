@@ -36,7 +36,7 @@ function BattleController:stgTableIterate(iterator)
             if aniMStep == "right" then
                 aniMStep = "back"
             end
-            tallyDamage()
+            tallyDamageForStg()
         elseif self.commandButtonResults[self.attSpr.iterator][1] == false then
             print("Attack misses")
             self:missedStg(self.commandButtonResults[self.attSpr.iterator])
@@ -51,7 +51,7 @@ function BattleController:stgTableIterate(iterator)
         if aniMStep == "right" then
             aniMStep = "back"
         end
-        tallyDamage()
+        tallyDamageForStg()
     end
     if aniMStep == "back" or aniMStep == "up" or aniMStep == "down" then
         self.attSpr.stgHold = true
@@ -219,7 +219,6 @@ function BattleController:movementGo(onComplete,moveType)
 end
 
 function BattleController:getNextScrn() -- runs immediately after the attacker leaps\flies\teleports offscreen following a knockback. Triggered by the animation itself as a callback
-
     local def = self.defSpr
     local xMov = 0
     local yMov = 0
@@ -288,6 +287,32 @@ function BattleController:getLastScrn() -- Get final transition if defender is k
     def:moveTo(xMov,yMov)
 
     def:playAni(def.nextAnim, nil, { controller = self })
+end
+
+function BattleController:kiTransition(kiObj)
+    self:defenderTransition()
+    local movTimer = playdate.timer.new(3000,function() --timer is a stand-in solution until a better triggering mechanism can be made.
+        if kiObj.dir == "left" then                     --without the timer, the kiobject transits while the fadeout is solid.
+            kiObj:moveTo(450,kiObj.y)
+        elseif kiObj.dir == "right" then
+            kiObj:moveTo(-50,kiObj.y)
+        end
+        self:kiStrike()
+    end)
+end
+
+function BattleController:kiStrike()
+    local attOutcome = self.attSpr.turnOutcome
+    --printTable(attOutcome)
+    --still needed is a computation for whether or not the defender is able to dodge, suffer only a grazing hit, or endure the attack. 
+    --cardHitMiss[1] is a boolean for whether or not the card landed a hit or if the opponent's card blocked it
+    --cardHitMiss[2] is the stat that is affected by the hit.
+    --where atDamage (statHitMiss[1]) is the numeric value for hp the defender loses
+    --attHit (statHitMiss[2]) is a boolean signaling if the attack lands at all
+    --and isKnockback (statHitMiss[3]) is a boolean for whether or not this is critical
+    --finally, knockbackMulti (statHitMiss[4]) is the amount of damage to add for a crit
+    --All of these parameters will determine the animation to play.
+
 end
 
 function BattleController:getAtkrMoveIn()
@@ -527,12 +552,61 @@ function BattleController:continueAfterStgPrep()
     end)
 end
 
+function BattleController:continueAfterKi()
+
+end
+
+function BattleController:cardGo()
+        --[[--card types from cards.lua
+        CCommand = "command" 
+        CPhysical = "physical"
+        CKi = "ki"
+        CEffect = "effect"
+        CTrans = "transformation"
+        CReady = "ready"
+        CPower = "powerup"
+        CGuard = "guard"
+        RGuard = "regGuard"
+        DMove = "Movement"
+        ]]
+    local card = self.stepTable
+    if card.cType == CKi then
+        self.attSpr:playAni(card.cName,function() self:continueAfterKi() end,{controller=self})
+    elseif card.cType == CPhysical then
+        self.attSpr:playAni(card.cName,function() self:continueAfterPhysical() end,{controller=self})
+    elseif card.cType == CEffect then
+        --This may need to be altered based on the current Phase, kinda like how they work in DBZLSW
+        self.attSpr:playAni(card.cName,function() self:continueAfterEffect() end,{controller=self})
+    elseif card.cType == CTrans then
+        self.attSpr:playAni(card.cName,function() self:continueAfterTrans() end,{controller=self})
+    elseif card.cType == CReady then
+        self.attSpr:playAni(card.cName,function() self:continueAfterReady() end,{controller=self})
+    elseif card.cType == CPower then
+        self.attSpr:playAni(card.cName,function() self:continueAfterPowerUp() end,{controller=self})
+    elseif card.cType == CGuard then
+        self.attSpr:playAni(card.cName,function() self:continueAfterGuard() end,{controller=self})
+    else
+
+    end
+end
+
 function BattleController:start()
 
     local attMsgTimer = playdate.timer.new(2500, function()
         local msgTime = batDialogue:new(self.attMsg)
 
-        self.stepTable = setAttStep(self.attInt)
+        --check the type of card we have. 
+        self.stepTable = {}
+        for i,v in pairs(animationInterrupts["Stage Attacks"]) do
+            if self.attInt == v then
+                self.stepTable = setAttStep(self.attInt)
+                self.isCMD = true                
+            end
+        end
+        if self.isCMD == false or self.isCMD == nil then
+            --self.stepTable = self:cardIdent(self.attInt)
+            self.stepTable = cardRet(self.attInt)
+        end
 
         if self.stepTable[1] == "stg" then
             if CurrentPhase == Phase.ATTACK then
@@ -552,14 +626,33 @@ function BattleController:start()
                     self.attSpr:playAni("stgPrepare", function() self:enemyCharge() end, {controller=self})
                 end)
             end
-        elseif self.stepTable[1] == "attack" then
-            -- Handle attack
-        elseif self.stepTable[1] == "support" then
-            -- Handle support
-        elseif self.stepTable[1] == "powerUp" then
-            -- Handle power-up
-        elseif self.stepTable[1] == "partnerSwap" then
-            -- Handle partner swap
+        else
+        local compTables = {
+            ["attackTypes"] = {"physical","ki"},--these match the string enumerators for card types in cards.lua
+            ["defenseTypes"] = {"guard"},
+            ["powerTypes"] = {"ready","powerup","transformation"},
+            ["effectTypes"] = {"effect"}
+            }
+            local waitMsg = playdate.timer.new(2000,
+            function()
+                for i,v in pairs(compTables) do
+                    for k,c in pairs(v) do
+                        if self.stepTable.cType == c then
+                            self:cardGo()
+                        end
+                    end
+                end
+            end)
         end
     end)
 end
+
+function BattleController:getStunOrKnockBackForAtk(onComplete)
+        local defOutcome = self.defSpr["turnOutcome"]
+        local defStats = defOutcome["mStats"]
+        local attOutcome = self.attSpr["turnOutcome"]
+        local attPower = attOutcome["statHitMiss"][1]
+
+
+    
+    end

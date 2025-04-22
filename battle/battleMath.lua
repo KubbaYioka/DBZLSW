@@ -202,7 +202,6 @@ function getPercentageAndFunc(atk, def)
     local more = math.max(atk, def)
     local least = math.min(atk, def)
     local prc = (least / more) * 100
-
     if prc < 20 then
         -- No visible effect from strikes
         return "normal", {["a"]={"normalHit",20},["b"]={"bigHit",35},["back"]={"bigHit"},["up"]={"upHit"},["down"]={"bigHit"}}
@@ -354,7 +353,6 @@ function movDesc(newPos) --return descriptions for the selected slot in moveFiel
             retTable[3] = "Attack Up. Ki Defense"
         end
     end
-    printTable(retTable)
     return retTable
 end
 
@@ -436,7 +434,7 @@ function calculateHitChance(accuracy, evasion)
 
     hitChance = math.max(minimumHitChance, hitChance)
     hitChance = math.min(maximumHitChance, hitChance)
-
+    print("hitChance: "..hitChance)
     return hitChance
 end
 
@@ -482,3 +480,181 @@ function calculateKnockDamage(atType, stats, scale) -- criticals scale with diff
     local critDamage = stt * per
     return critDamage
 end
+
+function getStunFactor(att,def,modifiers) -- gets the visible stun or other effects based on attack power
+    local attStat = att.mStats
+    local defStat = def.mStats
+    local mods = {}
+    if modifiers then
+        mods = modifiers
+    end
+
+
+
+end
+
+function getMissGroup(def, att)
+    local defender = def.mStats
+    local attacker = att.mStats
+
+    local spdDelta = defender.spd - attacker.spd
+    local evaDelta = defender.eva - attacker.acc
+    local reactionScore = spdDelta + evaDelta
+
+    local defDelta = defender.def - attacker.off
+    local counterDelta = (defender.str - attacker.str)
+                       + (defender.off - attacker.off)
+                       + (defender.mas - attacker.mas)
+
+    -- stand-in weighted system
+    local blockWeight = 30 + math.max(-20, -reactionScore * 2) + math.max(0, defDelta * 2)
+    local dodgeWeight = 30 + math.max(-20, reactionScore * 4)
+    local counterWeight = 10 + math.max(-10, counterDelta * 2)
+
+    -- normalize
+    local total = blockWeight + dodgeWeight + counterWeight
+    local blockChance = blockWeight / total
+    local dodgeChance = dodgeWeight / total
+    local counterChance = counterWeight / total
+
+    --[[ Debug print
+    print(string.format("Block: %.1f%%, Dodge: %.1f%%, Counter: %.1f%%",
+        blockChance * 100, dodgeChance * 100, counterChance * 100))
+    ]]
+    -- Roll for chance
+    local roll = math.random()
+    if roll < blockChance then
+        return "block"
+    elseif roll < blockChance + dodgeChance then
+        return "dodge"
+    else
+        return "counter"
+    end
+end
+
+function getMissSubtype(def, att, missType)
+    local def = def.mStats
+    local att = att.mStats
+
+    if missType == "block" then
+        return "enduranceBlock"
+    elseif missType == "dodge" then
+        local reactionScore = (def.spd - att.spd) + (def.eva - att.acc)
+        local nearWeight = 30 - reactionScore * 3
+        local fullWeight = 30 + reactionScore * 3
+        nearWeight = math.max(5, math.min(55, nearWeight))
+        fullWeight = math.max(5, math.min(55, fullWeight))
+
+        local total = nearWeight + fullWeight
+        local roll = math.random() * total
+        return (roll < nearWeight) and "nearDodge" or "fullDodge"
+
+    elseif missType == "counter" then
+        local powerDelta = (def.str - att.str) + (def.off - att.off) + (def.mas - att.mas)
+        local lightWeight = 35 - powerDelta * 2
+        local heavyWeight = 25 + powerDelta * 2
+        lightWeight = math.max(5, math.min(60, lightWeight))
+        heavyWeight = math.max(5, math.min(60, heavyWeight))
+
+        local total = lightWeight + heavyWeight
+        local roll = math.random() * total
+        return (roll < lightWeight) and "lightCounter" or "heavyCounter"
+    end
+end
+
+function calcBlockDamage(def,att,type,crit)
+    if crit then
+        print("crit not yet implemented")
+    end
+    local defStats = def.mStats
+    local attStats = att.mStats
+    local regDamage = att.statHitMiss[1]
+    local typeStat = 0
+    if type == CKi then
+        typeStat = defStats.ki
+    elseif type == CPhysical then
+        typeStat = defStats.str
+    end
+    local baseBlock = typeStat + defStats.def
+    local massBonus = math.sqrt(defStats.mas or 1) * 0.5
+    local offBonus = math.sqrt(defStats.off or 1) * 0.8
+
+    local damageFac = baseBlock + massBonus + offBonus
+
+    local reductionRatio = math.min(1, damageFac / regDamage)
+    local finalDamage = regDamage * (1 - reductionRatio)
+
+    print(string.format("Reduced damage: %.2f (%.1f%% blocked)", finalDamage, reductionRatio * 100))
+
+    return finalDamage
+
+end
+
+function calcDodgeType(def,att,type,crit)
+    if crit then
+        print("crit not yet implemented")
+    end
+    local defStats = def.mStats
+    local attStats = att.mStats
+    local defEva = defStats.eva
+    local attAcc = attStats.acc
+
+    local dodgeDamage = 0
+
+    local percentNegation = 0
+
+    local dodgeTypeRatio = defEva / attAcc
+
+    local function dodgeWeight(dq)
+        local fullW = 50 + (dq - 1) * 80 --weights start at 50/50 split. the ratio(dq) changes the likelihood of one type of dodge or another. .08 added for each .01 in the defender's favor and the inverse for each -.01
+        local nearW = 100 - fullW
+
+        --keep both chances at or over 5 percent and never over 95
+        fullW = math.max(5, math.min(95,fullW)) 
+        nearW = 100 - fullW -- redo after the above clamp
+        return nearW,fullW
+    end
+
+    local nearDodgeW, fullDodgeW = dodgeWeight(dodgeTypeRatio)
+
+    local rollChance = math.random(100) 
+
+    local dodgeType = (rollChance <= nearDodgeW) and "nearDodge" or "fullDodge"
+
+    local function calcNearDodgeDamage(def,att,type)
+        local dmg = att.card.statHitMiss[1] --damage to be caused normally
+        local defStats = def.mStats
+        local attStats = att.mStats
+
+        local defsEva = defStats.eva
+        local defsSpd = defStats.spd
+        local attAcc   = attStats.acc
+        local attSpd   = attStats.spd
+
+        local dodgeQuality = defsEva / attAcc
+        local speedDiffRatio = defsSpd / attSpd
+
+        local agilityBlock = ((dodgeQuality - 1) + (speedDiffRatio - 1) * 0.4) --each .10 advantage above stat parity adds ~4 percent mitigation of damage
+
+        local maximumDamage = 0.70
+        local minimumDamage = 0.10 -- when near dodge, damage never goes over 70% of attack total and never less than 10%
+
+        --the clamp
+        agilityBlock = math.max(0, math.min(0.60, agilityBlock))
+
+        local percentDamageDodged = math.min(maximumDamage, math.max(minimumDamage, agilityBlock))
+
+        local damageCaused = dmg * (1 - percentDamageDodged)
+
+        return damageCaused, percentDamageDodged -- where damageCaused is the amount the defender takes, and the percentDamageDodged is for any other logic that may want to know the percentage negated.
+
+    end
+
+    if dodgeType == "nearDodge" then
+        dodgeDamage, percentNegation  = calcNearDodgeDamage(def,att,type)
+    end
+    print("dodgeType in calcDodgeType= "..dodgeType)
+    return dodgeType, dodgeDamage, percentNegation
+
+end
+

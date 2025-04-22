@@ -129,10 +129,10 @@ function animationGo(attacker, defender) -- The main animation subroutine. All a
     attackerSprite["card"] = attacker["card"]
     defenderSprite["card"] = defender["card"]
 
-    local battleAniGo = BattleController:new(attackerSprite, attMsg, attacker["card"].cName, defenderSprite, defMsg, defender["card"].cName)
-    battleAniGo:start()
+    attackerSprite.turnOutcome, defenderSprite.turnOutcome = turnFunctionsDuringAnimation(attacker, defender)
 
-    turnFunctionsDuringAnimation(attacker, defender)
+    local battleAniGo = BattleController:new(attackerSprite, attMsg, attacker["card"].cName, defenderSprite, defMsg, defender["card"].cName)
+    battleAniGo:start()    
 end
 
 function getMoveAnimationType(side,stop)
@@ -249,4 +249,82 @@ function getDefenseMessage(defender)
         defMsgString = charName.."'s Guard: Squared Off."
     end
     return defMsgString
+end
+
+function getDefenseAnimation(def,att,hitType,statTable)
+    local didCardHit = statTable[1] -- did the card the attacker used allow a hit?
+    local didStatHit = statTable[2] -- did the attacker get past the stats of the defense?
+    local hitDamage = statTable[3] -- amount of damage the attack causes. Could be used for "stun" levels for animations if the damage is a certain percentage of total hp
+    local isKnockback = statTable[4] -- will there be a knockback animation?
+    local knockbackAmount = statTable[5] -- multiplier for knockback. Will effect animation.
+    local dodgeTable = {}
+    if statTable[6] then
+        dodgeTable = statTable[6] -- table consists of : dodgeType,damageC,dodgePct
+    end
+
+    local defenderMove = 0 -- could be card cName or assigned by a function
+    if didCardHit and didStatHit then
+        --will hit
+        --hit/stun effects are contingent on the percentage of total health subtracted by the damage.
+        --next look to see if there will be a crit
+        --then look to see the level of crit, load animation of crit
+    elseif didCardHit and didStatHit == false then
+        defenderMove = getDodgeAnimation(dodgeTable)
+    elseif didCardHit == false and didStatHit then
+        -- card-based block\dodge animation
+    elseif didCardHit == false and didStatHit == false then
+        -- critical miss. Default to card's animation. Endurance and blocking has a chance to deflect\counter
+    end
+    --next, use the above factors to get the animation sequence required
+    --defenderMove will run at that point.
+end
+
+function getDodgeAnimation(dodgeTable, defStats, attStats)
+    local dodgeType = dodgeTable[1]
+    local blockPct  = dodgeTable[3]
+
+    local function animFromPct(pct, tiers)
+        for _,v in ipairs(tiers) do
+            if pct <= v.th then return v.id end -- get new tiers by comparing with percentage
+        end
+        return tiers[#tiers].id
+    end
+
+    local function fullDodgeAnim(att, def)
+        local speedRatio  = def.spd / att.spd       
+        local skillRatio  = def.eva / att.acc  
+        local ri = (speedRatio + skillRatio) * 0.5  
+
+        if ri >= 1.15 then   -- avoiding blur lines. Add another check for character specific teleports
+            local animCheck = chrSpecificAnimCheck(def)
+            if animCheck ~= nil then
+                return "whateverAnimation"
+            else
+                return "genericAvoiding" 
+            end
+        else
+            return "jumpUpWithStop"
+        end
+    end
+
+    if dodgeType == "nearDodge" then
+        local nearTiers = { -- for how "clean" the near dodge is
+            { th = 20,  id = "badGraze" },   -- low mitigation
+            { th = 40,  id = "medGraze"  },   -- medium mitigation
+            { th = 100, id = "lowGraze"  }     -- high mitigation
+        }
+        return animFromPct(blockPct or 0, nearTiers)
+
+    elseif dodgeType == "fullDodge" then
+        return fullDodgeAnim(attStats, defStats)
+
+    elseif dodgeType == "block" then
+        return "block"
+    else
+        return "idle"
+    end
+end
+
+function chrSpecificAnimCheck(chr)
+    print("cheSpecificAnimCheck looks to see if the character has any specific dodge animations to play instead of the generic one. Not yet implemented.")
 end

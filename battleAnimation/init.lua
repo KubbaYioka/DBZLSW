@@ -11,6 +11,18 @@ setmetatable(btlSprite, {
     __index = gfx.sprite
 })
 
+KiProjectile = {}
+KiProjectile.__index = KiProjectile
+setmetatable(KiProjectile, {
+    __index = gfx.sprite
+})
+
+KiWave = {}
+KiWave.__index = KiWave
+setmetatable(KiWave, {
+    __index = gfx.sprite
+})
+
 BattleController = {}
 BattleController.__index = BattleController
 
