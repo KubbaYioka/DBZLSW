@@ -12,6 +12,7 @@ function bTabInit()
         ,AirFore = "airfore"
         ,AirAft = "airaft"
     }
+
     sprBIndex = {}
 
     ---------------
@@ -20,6 +21,7 @@ function bTabInit()
 
     playerChr={}
     playerTeam={}
+    playerTeamRO = {}
     pDeckCopy={} -- copy of RAMSAVE[4]
     playerDeck={}
     playerCC = 15

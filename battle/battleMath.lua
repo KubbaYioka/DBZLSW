@@ -434,7 +434,7 @@ function calculateHitChance(accuracy, evasion)
 
     hitChance = math.max(minimumHitChance, hitChance)
     hitChance = math.min(maximumHitChance, hitChance)
-    print("hitChance: "..hitChance)
+    --print("hitChance: "..hitChance)
     return hitChance
 end
 
@@ -584,7 +584,7 @@ function calcBlockDamage(def,att,type,crit)
     local reductionRatio = math.min(1, damageFac / regDamage)
     local finalDamage = regDamage * (1 - reductionRatio)
 
-    print(string.format("Reduced damage: %.2f (%.1f%% blocked)", finalDamage, reductionRatio * 100))
+    --print(string.format("Reduced damage: %.2f (%.1f%% blocked)", finalDamage, reductionRatio * 100))
 
     return finalDamage
 
@@ -622,7 +622,7 @@ function calcDodgeType(def,att,type,crit)
     local dodgeType = (rollChance <= nearDodgeW) and "nearDodge" or "fullDodge"
 
     local function calcNearDodgeDamage(def,att,type)
-        local dmg = att.card.statHitMiss[1] --damage to be caused normally
+        local dmg = att.statHitMiss[1] --damage to be caused normally
         local defStats = def.mStats
         local attStats = att.mStats
 
@@ -653,7 +653,6 @@ function calcDodgeType(def,att,type,crit)
     if dodgeType == "nearDodge" then
         dodgeDamage, percentNegation  = calcNearDodgeDamage(def,att,type)
     end
-    print("dodgeType in calcDodgeType= "..dodgeType)
     return dodgeType, dodgeDamage, percentNegation
 
 end

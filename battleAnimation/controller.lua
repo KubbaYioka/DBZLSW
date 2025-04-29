@@ -15,7 +15,6 @@ function BattleController:new(attSpr, attMsg, attInt, defSpr, defMsg, defInt) --
     self.defInt = defInt
     self.stepTable = {}
     self.commandButtonResults = {}
-    -- ... other initializations ...
     return self
 end
 
@@ -290,29 +289,94 @@ function BattleController:getLastScrn() -- Get final transition if defender is k
 end
 
 function BattleController:kiTransition(kiObj)
-    self:defenderTransition()
-    local movTimer = playdate.timer.new(3000,function() --timer is a stand-in solution until a better triggering mechanism can be made.
-        if kiObj.dir == "left" then                     --without the timer, the kiobject transits while the fadeout is solid.
-            kiObj:moveTo(450,kiObj.y)
-        elseif kiObj.dir == "right" then
-            kiObj:moveTo(-50,kiObj.y)
+    self:defenderTransition(kiObj)
+    self.stunAppliedThisFrame = false -- set anytime there is a ki attack
+    local function computeXTrig(defSpr, kiDir, fraction)
+        local defX, defW = defSpr:getPosition(), defSpr:getSize()
+        local scrW = 400
+        if fraction then
+            if kiDir == "left" then
+                local dist = scrW - defX
+                return defX + dist * (1 - fraction)
+            else
+                local dist = defX
+                return defX - dist * (1 - fraction)
+            end
+        else
+            return (kiDir == "left") and (defX + defW / 2) or  (defX - defW / 2)
         end
-        self:kiStrike()
+    end
+    
+    playdate.timer.new(3000, function()
+        if kiObj.dir == "left" then
+            kiObj:moveTo(450, kiObj.y)
+        else
+            kiObj:moveTo(-50, kiObj.y)
+        end
+
+        local animName = self.defSpr.turnOutcome.loadedAnimation
+        local fraction = KiObjectRangeTables[animName]
+
+        kiObj.xTrig = computeXTrig(self.defSpr, kiObj.dir, fraction)
+
+        kiObj.status = "inbound"
     end)
 end
 
-function BattleController:kiStrike()
-    local attOutcome = self.attSpr.turnOutcome
-    --printTable(attOutcome)
-    --still needed is a computation for whether or not the defender is able to dodge, suffer only a grazing hit, or endure the attack. 
-    --cardHitMiss[1] is a boolean for whether or not the card landed a hit or if the opponent's card blocked it
-    --cardHitMiss[2] is the stat that is affected by the hit.
-    --where atDamage (statHitMiss[1]) is the numeric value for hp the defender loses
-    --attHit (statHitMiss[2]) is a boolean signaling if the attack lands at all
-    --and isKnockback (statHitMiss[3]) is a boolean for whether or not this is critical
-    --finally, knockbackMulti (statHitMiss[4]) is the amount of damage to add for a crit
-    --All of these parameters will determine the animation to play.
+function BattleController:getAnimationForUnguardedDamage(prct)
+    local def = self.defSpr
+    print("animations must be defined in getAnimationForUnguardedDamage")
+    if prct <= 0.02 then
+        return def.currentFrame
+    elseif prct > 0.02 and prct <= 0.05 then
+        return "flinch"
+    elseif prct > 0.05 and prct <= 0.10 then
+        return "fivePercentDamage"
+    elseif prct > 0.10 and prct <= 0.15 then
+        return "tenPercentDamage"
+        --bit hit from lsw with onscreen recovery
+    elseif prct > 0.15 and prct <= 0.20 then
+        return "fifteenPercentDamage"
+        --big hit but but recovery happens after knockback
+    elseif prct > 0.20 and prct <=0.29 then
+        return "twentyPercentDamage"
+        --big hit, knockback, visibly injured
+    elseif prct > 0.30 then
+        return "thirtyPercentDamage"
+        --big hit, knockback, smash and tumble into ground
+    end
+end
 
+function BattleController:getKiStrikeAnimation(kiObj)
+    local crntPhase = getPhase()
+    local referenceTable = {}
+    if crntPhase == "attack" then
+        referenceTable = BattleRef.enemyTeamRO
+    elseif crntPhase == "defense" then
+        referenceTable = BattleRef.playerTeamRO
+    end
+    local selChr = self.defSpr["chrCode"]
+    
+    local damage = self.attSpr.turnOutcome.statHitMiss[1]
+    local defenderBaseHP = 0
+
+    for i,v in pairs(referenceTable) do
+        if referenceTable[i]["chrCode"] == selChr then
+            defenderBaseHP = referenceTable[i]["chrHp"]
+        end
+    end
+    return self:getAnimationForUnguardedDamage(damage/defenderBaseHP)
+end
+
+function BattleController:kiStrike(kiObj)
+    local typeKi = kiObj.type
+    if self.defSpr.turnOutcome.loadedAnimation then
+        self.defSpr:playAni(self.defSpr.turnOutcome.loadedAnimation,nil,self)
+        kiObj.status = "miss"
+    else
+        local animPass = self:getKiStrikeAnimation(kiObj)
+        self.defSpr:playAni(animPass,nil,self)
+    end
 end
 
 function BattleController:getAtkrMoveIn()
@@ -336,6 +400,7 @@ function BattleController:getAtkrMoveIn()
 end
 
 function BattleController:getDefenseRecovery() -- decides what pose the defender will be in after halting from a knockback
+print("getDefenseRecovery")
     local defStat = 0
     local attStat = 0
     if CurrentPhase == Phase.ATTACK then
@@ -400,9 +465,50 @@ function BattleController:cmdVSMov()
     self:movementGo(function()self.stageAttackGo()end,moveType)
 end
 
+function BattleController:kiVSGrd(kiObj)
+    local xTrig = 0 -- distance from the kiObject the defender will animate.
 
+    if self.defSpr.turnOutcome.loadedAnimation then
+        local guardAni = self.defSpr.turnOutcome.loadedAnimation
+        for i,v in pairs(KiObjectRangeTables) do
+           -- print(i,v,guardAni)
+            if v == guardAni then
+                if i == "halfDistance" then --animation begins at half the distance from the edge of the screen to sprite
+                    if CurrentPhase == Phase.DEFENSE then
+                        local sampX = self.defSpr:getPosition()
+                        local scrnWidth = 400
+                        local midXSamp = scrnWidth - sampX
+                        xTrig = sampX - (midXSamp/2)
+                    elseif CurrentPhase == Phase.ATTACK then
+                        local sampX = self.defSpr:getPosition()
+                        local sprXOffset = self.defSpr:getSize()
+                        sampX = sampX + sprXOffset
+                        local scrnWidth = 400
+                        local midXSamp = scrnWidth - sampX
+                        xTrig = sampX + (midXSamp/2)
+                    end
+                elseif i == "quarterDistance" then
+                    if CurrentPhase == Phase.DEFENSE then
+                        local sampX = self.defSpr:getPosition()
+                        local scrnWidth = 400
+                        local midXSamp = scrnWidth - sampX
+                        xTrig = sampX - (midXSamp/4)
+                    elseif CurrentPhase == Phase.ATTACK then
+                        local sampX = self.defSpr:getPosition()
+                        local sprXOffset = self.defSpr:getSize()
+                        sampX = sampX + sprXOffset
+                        local scrnWidth = 400
+                        local midXSamp = scrnWidth - sampX
+                        xTrig = sampX + (midXSamp/4)
+                    end
+                end
+            end   
+        end
+    end
+    kiObj.xTrig = xTrig 
+end
 
-function BattleController:getAttackForAni(att, def)
+function BattleController:getAttackForAni(att, def, obj)
 
     local ACard = cardRet(att)
     local DCard = cardRet(def)
@@ -410,32 +516,20 @@ function BattleController:getAttackForAni(att, def)
     local AType = ACard["cType"]
     local DType = DCard["cType"]
 
-        --[[
-    --types--
-    CCommand = "command"
-    CPhysical = "physical"
-    CKi = "ki"
-    CEffect = "effect"
-    CTrans = "transformation"
-    CReady = "ready"
-    CPower = "powerup"
-    CGuard = "guard"
-    ]]
-
     if AType == CCommand then
         if DType == CEffect then
-            return self.cmdVSEff, self.attSpr, self.defSpr
+            self:cmdVSEff()
         elseif DType == CGuard or DType == RGuard then
-            return self.cmdVSGrd, self.attSpr, self.defSpr
+            self:cmdVSGrd()
         elseif DType == CCommand then
-            return self.cmdVSCmd, self.attSpr, self.defSpr
+            self:cmdVSCmd()
         elseif DType == DMove then
-            return self.cmdVSMov, self.attSpr, self.defSpr
+            self:cmdVSMov()
         end
     elseif AType == CPhysical then
         -- Handle physical attack
     elseif AType == CKi then
-        -- Handle ki attack
+        self:kiVSGrd(obj)
     elseif AType == CReady then
         -- Handle ready action
     elseif AType == CTrans then
@@ -448,20 +542,22 @@ function BattleController:getAttackForAni(att, def)
 end
     
 
-    function BattleController:defenderTransition()
-        clearExceptBattleSprites()
-    
-        self.attSpr:trigger("off")
-        self.defSpr:trigger("on")
-    
-        local defMsgTimer = playdate.timer.new(2500, function()
-            local msgTime = batDialogue:new(self.defMsg)
-            local execAni, attTab, defTab = self:getAttackForAni(self.attInt, self.defInt)
-            if execAni then
-                execAni(self, attTab, defTab) -- Pass self to access methods
-            end
-        end)
-    end
+function BattleController:defenderTransition(obj)
+    --print("DefenderTransition")
+    clearExceptBattleSprites()
+
+    self.attSpr:trigger("off")
+    self.defSpr:trigger("on")
+
+    playdate.timer.new(2500, function()
+        batDialogue:new(self.defMsg)
+        if obj then
+            self:getAttackForAni(self.attInt, self.defInt, obj)
+        else
+            self:getAttackForAni(self.attInt, self.defInt)
+        end
+    end)
+end
     
 
 function BattleController:continueAfterSpecialAttack()
@@ -556,6 +652,21 @@ function BattleController:continueAfterKi()
 
 end
 
+function BattleController:getHitOrMissForKi(move)
+    local dodgeMoves = {
+        "genericAvoiding",
+        "jumpUpWithStop",
+        "nearDodge"
+    }
+    for i,v in pairs(dodgeMoves) do
+        if move == v then
+            return true
+        end
+    end
+    --if no match found
+    return false
+end
+
 function BattleController:cardGo()
         --[[--card types from cards.lua
         CCommand = "command" 
@@ -647,12 +758,78 @@ function BattleController:start()
     end)
 end
 
-function BattleController:getStunOrKnockBackForAtk(onComplete)
-        local defOutcome = self.defSpr["turnOutcome"]
-        local defStats = defOutcome["mStats"]
-        local attOutcome = self.attSpr["turnOutcome"]
-        local attPower = attOutcome["statHitMiss"][1]
+function BattleController:onHitConfirmed(attPower)
+    if self.stunAppliedThisFrame then 
+        return 
 
-
-    
     end
+    self.stunAppliedThisFrame = true
+    self:applyStunOrKnockBack(attPower)
+end
+
+function BattleController:getStunOrKnockBackForAtk(onReady)
+
+    if self.stunAppliedThisFrame then
+        if onReady then 
+            onReady() 
+        end
+        return
+    end
+
+    local attPower = self.attSpr.turnOutcome.statHitMiss[1] or 0
+    self:applyStunOrKnockBack(attPower)
+    self.stunAppliedThisFrame = true
+
+    if onReady then 
+        onReady() 
+
+    end
+end
+
+function BattleController:applyStunOrKnockBack(attPower)
+    local attPower = attPower
+    local crntPhase = getPhase()
+    local refHP = 0 -- the reference HP for the defender. Amount at 100%
+    local referenceTable = {}
+    local selChr = self.defSpr["chrCode"]
+
+    if crntPhase == "attack" then
+        referenceTable = BattleRef.enemyTeamRO
+    elseif crntPhase == "defense" then
+        referenceTable = BattleRef.playerTeamRO
+    end
+
+    for i,v in pairs(referenceTable) do
+        if referenceTable[i]["chrCode"] == selChr then
+            refHP = referenceTable[i]["chrHp"]
+        end
+    end
+    local prct = attPower/refHP
+
+    --print("prct override in applyStunOrKnockBack")
+    --prct = 0.02
+    if prct <= 0.01 then
+        --print("You managed to singe some of my leg hair.")
+    elseif prct > 0.01 and prct <= 0.03 then
+        --print("Nice one. That made my arm tingle.")
+        self.defSpr:startSprShake(1, 300)
+    elseif prct > 0.03 and prct <= 0.08 then
+        --print("Looks like you've got some fight in you.")
+        self.defSpr:slideBack(2, 5)
+    elseif prct > 0.08 and prct <= 0.12 then
+        --print("I underestimated you.")
+        self.defSpr:slideBack(5, 15, 1)
+    elseif prct > 0.12 and prct <= 0.20 then
+        --print("Where did you get this power?!")
+        self.defSpr:slideBack(2, 25)
+    elseif prct > 0.20 and prct <=0.29 then
+        --print("Only one hit has made contact...why am I so damaged?!")
+        --print("Apply a knockback at this point")
+        self.defSpr:slideBack(2, 35)
+    elseif prct > 0.30 then
+
+        --print("Boy did anyone get the number on that bus...d-don't worry about me! Heh heh...ugh...")
+        self.defSpr:slideBack(3,40)
+        --print("get knockback at this point")
+    end
+end

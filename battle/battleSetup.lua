@@ -18,7 +18,7 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     --CARD SETUP--
 
     --pDeckCopy = RAMSAVE[4]
-    pDeckCopy = {1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
+    pDeckCopy = {8,8,8,8,8,8,8,8,8,8,1,2,3,4,5,6,7,8,9,10} -- will eventually pull from table RAMSAVE[4]
     playerDeck[1],playerDeck[2],playerDeck[3],pDeckCopy = cardShuffle(pDeckCopy,true)
     eDeckCopy = oppTab.opponentDeck -- pulls from where the enemy deck info is for this battle
     enemyDeck[1],enemyDeck[2],enemyDeck[3],eDeckCopy = cardShuffle(eDeckCopy,true)
@@ -60,6 +60,8 @@ function battleInit(battleTable) -- copy values from tables and player save to c
             end
         end
     end
+    BattleRef.enemyTeamRO = enemyTeamRO
+    BattleRef.playerTeamRO = playerTeamRO
     playerChr = playerTeam[1]
     enemyChr = enemyTeam[1]
     currentAI = oppTab.opponentAIType[1]
@@ -71,6 +73,10 @@ function battleInit(battleTable) -- copy values from tables and player save to c
     battleIntro(playerChr.chrCode,#playerTeam,enemyChr.chrCode,#enemyTeam)
     battleSpriteSet(BattleRef)
     drawUI(CurrentPhase)
+end
+
+function battleReference(refVar)
+    return BattleRef[refVar]
 end
 
 function cardShuffle(deck,initial)

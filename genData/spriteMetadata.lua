@@ -322,20 +322,56 @@ characterAnimationTables = {
             [1] = {"leap", 
                    300, -- or function that does "waitForCollision" which would trigger a teleport/shockwave before the attack reaches or blocking animation before or right as the knockback/stun hit of the attack strikes.
                    function(self,animation,frameIndex,trigFunction,effectTab)
-                        effectTab:getStunOrKnockBackForAtk(self, function()
-                            self:runAnimationSequence(animation, frameIndex, trigFunction, effectTab)                            
+                        effectTab:getStunOrKnockBackForAtk(function()                        
                         end)
                    end
                 }
         },
         ["medGraze"] = {
-            [1] = {"leap", 500}
+            [1] = {"leap", 
+                    0,
+                    function(self,animation,frameIndex,trigFunction,effectTab)
+                        effectTab:getStunOrKnockBackForAtk(function()
+                         
+                        end)
+                    end
+                }
         },
         ["badGraze"] = {
-            [1] = {"leap", 500}
+            [1] = {"leap",            
+                    0,
+                    function(self,animation,frameIndex,trigFunction,effectTab)
+                        effectTab:getStunOrKnockBackForAtk(function()
+                       
+                        end)
+                    end
+                }
         },
         ["genericAvoiding"] = {
-            [1] = {"verticalLines",150}
+            [1] = {"verticalLines",
+                    150
+                }
+        },
+        ["endurance"] = {
+            [1] = {"endurance",
+                    0,
+                    function(self,animation,frameIndex,trigFunction,effectTab)
+                        effectTab:getStunOrKnockBackForAtk(function ()
+                    
+                        end)
+                    end
+                }
+        },
+        ["fivePercentDamage"]={
+            [1] = {"damage",
+                0,
+                function(self,animation,frameIndex,trigFunction,effectTab)
+                    effectTab:getStunOrKnockBackForAtk(function ()
+
+                    end)
+                end
+
+            }
         },
         ["Ki Blast"] = {
             [1] = {

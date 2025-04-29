@@ -12,6 +12,10 @@ import 'battle/battleMath'
 
 local gfx = playdate.graphics
 
+function getPhase()
+    return CurrentPhase
+end
+
 ------------------
 --Action Confirm--
 ------------------
@@ -78,10 +82,10 @@ function turnFunctionsDuringAnimation(attacker, defender)
     --finally, knockbackMulti (statHitMiss[4]) is the amount of damage to add for a crit
 
     attacker, defender = moveProcessing(attacker, defender)
-    print("attack outcome")
+    --[[print("attack outcome")
     printTable(attacker)
     print("defense outcome")
-    printTable(defender)
+    printTable(defender)]]
     return attacker, defender
     -- do any partner switches
 end
@@ -364,9 +368,6 @@ function moveProcessing(atta, defe)
     local knockbackHit = statHitTable[3] --boolean
     local knockbackDamage = statHitTable[4] -- amount
 
-    cardHit = true
-    statHit = false
-
     if cardHit == true and statHit == true then -- conditionals for getting the dodge type if any
         --print("attack hit in eval")
         if knockbackHit == true then
@@ -512,7 +513,8 @@ end
 function calculateDodgeType(def, att, attType,crit)
 
     local selectedGroup = getMissGroup(def,att)
-    local dodgeType = getMissSubtype(def,att,selectedGroup)
+    --local dodgeType = getMissSubtype(def,att,selectedGroup)
+    print(selectedGroup)
     -- at this point, we have the type of dodge. Next we need to determine the
     -- amount of damage, and CC gain for hit if any. Other factors such as power differences, speeds, etc
     -- may be used for calculating other things such as visual effects like 
@@ -523,7 +525,7 @@ function calculateDodgeType(def, att, attType,crit)
     local dodgePct = 0 -- may ultimately not need this.
     if selectedGroup == "block" then
         damageC = calcBlockDamage(def,att,attType,crit)
-        dodgeType = "block"
+        dodgeType = "endurance" --maybe change this up according to something since there are multiple block sprites.
     elseif selectedGroup == "counter" then
         print("Counter not yet implemented")
         --local counterType = calcCounterType(def,att,crit)
@@ -531,6 +533,6 @@ function calculateDodgeType(def, att, attType,crit)
     elseif selectedGroup == "dodge" then
         dodgeType, damageC, dodgePct = calcDodgeType(def,att,attType,crit)
     end
-
+    print(dodgeType)
     return {dodgeType,damageC,dodgePct}    
 end

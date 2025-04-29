@@ -32,9 +32,23 @@ function btlSprite:new(side, aniTable)
 
     self:getSideAndAbilities(self.tag)
     self:updateFrame("normalStance")
+    
     if self.visible == true then
         self:add()
     end
+
+    local w,h = self:getSize()
+    local groupC = 0
+    self:setCollideRect(0,0,w,h)
+    if self.tag == "attacker" then
+        groupC = COLLISION_GROUP.Attacker
+    else
+        groupC = COLLISION_GROUP.Defender
+    end
+    self:setGroups{GroupC}
+    self:setCollidesWithGroups{COLLISION_GROUP.Ki} -- and possibly the opposite fighter?
+    self.collisionResponseType = gfx.sprite.kCollisionTypeOverlap
+
     return self
 end
 
@@ -132,6 +146,7 @@ function btlSprite:getFrameData() -- returns matrix values on the sprite sheet
 end
 
 function btlSprite:playAni(ani, trigFunction, effectTab)
+    print(ani)
     local aniS = characterAnimationTables[self.chrCode][ani] or characterAnimationTables["generic"][ani]
     if not aniS then
         print("Animation not found: " .. tostring(ani) .. " for sprite " .. self.tag)
@@ -140,6 +155,7 @@ function btlSprite:playAni(ani, trigFunction, effectTab)
         end
         return
     end
+    
     self:runAnimationSequence(aniS, 1, trigFunction, effectTab)
 end
 
@@ -639,4 +655,83 @@ function btlSprite:opponentHit(btn,btlCont)
     elseif knockBk ~= "normal" then
         print("Logic for other knockback levels needed here at the end of btlSprite:opponentHit.")
     end
+end
+
+function btlSprite:startSprShake(intensity,duration)
+    local originalX, originalY = self:getPosition()
+    local offsetX = math.random(0, intensity)
+    local shakeTimer = playdate.timer.new(100, function()
+        self:moveTo(originalX + offsetX, originalY)
+    end)
+    
+    shakeTimer.repeats = true
+        
+    playdate.timer.new(duration, function()
+        shakeTimer:remove()
+        -- Reset to original position
+        local originalX, originalY = v:getPosition()
+        self:moveTo(originalX - offsetX, originalY)
+    end)
+end
+
+function btlSprite:sprStagger(intensity, distance)
+    local originalX, originalY = self:getPosition()
+    local destX = 1
+    if CurrentPhase == Phase.ATTACK then
+        destX = originalX + slide
+    else
+        destX = originalX - slide
+    end
+end
+
+function btlSprite:slideBack(intensity, distance, speed)
+    print(intensity,distance,speed)
+    local shake      = intensity
+    local duration   = 800
+    local startX, y  = self:getPosition()
+    local startY = y
+    local destX = distance + startX
+    local speed = speed
+    local moveTimer
+
+    moveTimer = playdate.timer.new(50, function()
+        local x = select(1, self:getPosition())
+
+        if CurrentPhase == Phase.DEFENSE then
+            if x > destX then
+                x = x - speed
+                y = y + shake
+                shake = shake * -1
+                self:moveTo(x, y)
+            else
+                moveTimer:remove()
+                self:moveTo(x,startY)
+                --self:playAni("normalStance")
+            end
+        else
+            if x < destX then
+                x = x + speed
+                y = y + shake
+                shake = shake * -1
+                self:moveTo(x, y)
+            else
+                moveTimer:remove()
+                self:moveTo(x,startY)
+                --self:playAni("normalStance")
+            end
+        end
+    end)
+    moveTimer.repeats = true
+end
+
+function btlSprite:punchContact() --may not actually use in the end.
+    local controller = self.controller
+    local dmg = self.turnOutcome.statHitMiss[1]
+    controller:onHitConfirmed(dmg)
+end
+
+
+function btlSprite:knockAwayOff(direction, severity)
+
+    self:playAni("knockBack")
 end

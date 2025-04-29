@@ -17,6 +17,12 @@ import 'battleAnimation/controller'
 local gfx = playdate.graphics
 local ui = playdate.ui
 
+COLLISION_GROUP = {
+    Ki = 1,
+    Defender = 2,
+    Attacker = 3
+}
+
 function loadAnimationTable(attacker, defender) -- runs after clearField. Loads animations to play based on initial execTurn results. 
     local attackName = nil
     local defendName = nil
@@ -261,15 +267,18 @@ function getDefenseAnimation(def,att,hitType,statTable)
     if statTable[6] then
         dodgeTable = statTable[6] -- table consists of : dodgeType,damageC,dodgePct
     end
-
-    local defenderMove = 0 -- could be card cName or assigned by a function
+    local animationTable = {}
+    local defenderMove = "string" -- could be card cName or assigned by a function
     if didCardHit and didStatHit then
         --will hit
         --hit/stun effects are contingent on the percentage of total health subtracted by the damage.
+        
+        --animationTable["hitAnimation"] = getHitAnimation()
         --next look to see if there will be a crit
         --then look to see the level of crit, load animation of crit
     elseif didCardHit and didStatHit == false then
-        defenderMove = getDodgeAnimation(dodgeTable)
+        return getDodgeAnimation(dodgeTable,def,att)
+
     elseif didCardHit == false and didStatHit then
         -- card-based block\dodge animation
     elseif didCardHit == false and didStatHit == false then

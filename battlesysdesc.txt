@@ -91,3 +91,10 @@ ___
 12) If new turn, do new turn calcs for speed and such.
 
 
+flow of beam attacks
+
+
+
+
+---get attack----check for card dodge-----check for stat dodge----calculate damage---get hit animation based on percent of total health the attack is worth
+---apply animation on impact----get animation effects based on percent like above(another frame\sprite change may be necessary at that point)----apply recovery animation

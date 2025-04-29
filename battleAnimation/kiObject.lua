@@ -4,6 +4,20 @@
 local gfx = playdate.graphics
 local ui = playdate.ui
 
+KiObjectRangeTables = {                                         -- There are several defenses against Ki objects. Each has an animation that will begin at 
+    
+        ["instantTransmission"]=0.50,                                  --various times. For instance, a dodge won't occur until the ki object collides with the defender,
+        ["breath"]=0.50,
+        ["placeholder"]=0.50,                                                       --but other animations will begin when the ki object is only halfway to the target. This table
+        ["badGraze"]=0.90,                                                        --is a matrix of values that tells defenseTransition when to trigger the defense animation. 
+        ["medGraze"]=0.85,
+        ["lowGraze"]=0.80                                           --any string value indicated here should be given an 'x' value the ki object must be at
+                                                                --before the animation will trigger. Otherwise, the animation will trigger once the kiObject
+                                                                --reaches the target
+                                                                
+
+}
+
 function KiProjectile:new(side, type, name, size, speed, effectTab)
     --type can be underhand, overhand, and fore. 
     local self = gfx.sprite.new()
@@ -12,14 +26,23 @@ function KiProjectile:new(side, type, name, size, speed, effectTab)
     self.type = type
     self.name = name
     self.size = size
+    self.width = self:getSize()
     self.spriteTable = gfx.imagetable.new(self:getSpriteSheet())
     self:setImage(self.spriteTable[self.tableRef])
     self.dir = self:getDirection()
     self.side = side
     self.effectTab = effectTab
-    self.transition = false -- flag for whether or not the transition to the enemy has occured.  
+    self.status = "outbound"
     self.x, self.y = side:getPosition()
     self:add()
+
+    local w,h = self:getSize()
+    self:setCollideRect(0,0,w,h)
+    self.collisionResponseType = gfx.sprite.kCollisionTypeOverlap
+    self:setGroups(COLLISION_GROUP.Ki)
+    self:setCollidesWithGroups({COLLISION_GROUP.Defender})
+
+
     self:moveTo(self.x,self.y)
 end
 
@@ -49,19 +72,65 @@ function KiProjectile:getDirection()
 end
 
 function KiProjectile:update()
-    if self.dir == "right" then
-        self:moveBy(self.speed, 0)
-        if self.x > 420 and self.transition == false then
-            self.transition = true
+
+    if self.status == "exploded" then 
+        return
+    end
+    if self.status == "outbound" then
+        self:moveBy(self.dir == "right" and self.speed or -self.speed, 0)
+
+        if (self.dir == "right" and self.x > 420) or
+           (self.dir == "left"  and self.x < -20) then
+            self.status = "transition" 
             self.effectTab.controller:kiTransition(self)
         end
-    elseif self.dir == "left" then
-        self:moveBy(-self.speed, 0)
-        if self.x < -20 and self.transition == false then
-            self.transition = true
-            self.effectTab.controller:kiTransition(self) -- transition to defender once the ki object leaves the screen
+    elseif self.status == "inbound" then
+        self:moveBy(self.dir == "right" and self.speed or -self.speed, 0)
+        
+        if (self.dir == "right" and self.x >= self.xTrig) or
+           (self.dir == "left"  and self.x <= self.xTrig) then
+            self.status = "nearTarget"
+            self.effectTab.controller:kiStrike(self)
+        end
+    elseif self.status == "nearTarget" then
+        if (self.dir == "right" and self.x >= ((self.xTrig * 2) - self.width)) or
+            (self.dir == "left"  and self.x <= (self.xTrig * 2)) then
+                self:explode()
+        end
+    elseif self.status == "miss" then
+        self:moveBy(self.dir == "right" and self.speed or -self.speed, 0)
+        if (self.dir == "right" and self.x >= 460) or
+        (self.dir == "left"  and self.x <= -120) then
+            self:remove()
+
         end
     end
+end
+
+function KiProjectile:collidedWith(other)
+    if other.tag ~= "defender" or self.hitRegistered then 
+        return 
+    end
+    self.hitRegistered = true
+
+    local ctrl = self.effectTab.controller
+    local dmg  = ctrl.attSpr.turnOutcome.statHitMiss[1]
+
+    ctrl:onHitConfirmed(dmg)
+
+    -- decide whether the blast physically explodes
+    local dodge = ctrl.defSpr.turnOutcome.dodgeType[1]
+    if ctrl:getHitOrMissForKi(dodge) then -- boolean for contact causing an explosion
+        self:explode()
+    else
+
+        self:setCollidesWithGroups{}   -- empty list no further checks
+    end
+end
+
+
+function KiProjectile:explode()
+    self:remove()
 end
 
 
