@@ -17,9 +17,43 @@ setmetatable(KiProjectile, {
     __index = gfx.sprite
 })
 
+-- ki wave group
+
 KiWave = {}
 KiWave.__index = KiWave
 setmetatable(KiWave, {
+    __index = gfx.sprite
+})
+
+KiBase = {}
+KiBase.__index = KiBase
+setmetatable(KiBase, {
+    __index = gfx.sprite
+})
+
+KiEdge = {}
+KiEdge.__index = KiEdge
+setmetatable(KiEdge, {
+    __index = gfx.sprite
+})
+
+KiTail = {}
+KiTail.__index = KiTail
+setmetatable(KiTail, {
+    __index = gfx.sprite
+})
+
+KiWaveSeg = {}
+KiWaveSeg.__index = KiWaveSeg
+setmetatable(KiWaveSeg, {
+    __index = gfx.sprite
+})
+
+
+
+Explosion = {}
+Explosion.__index = Explosion
+setmetatable(Explosion, {
     __index = gfx.sprite
 })
 

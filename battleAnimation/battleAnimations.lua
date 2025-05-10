@@ -13,6 +13,7 @@ import 'battleAnimation/comm'
 import 'battleAnimation/fx'
 import 'battleAnimation/sprites'
 import 'battleAnimation/controller'
+import 'battleAnimation/explosion'
 
 local gfx = playdate.graphics
 local ui = playdate.ui

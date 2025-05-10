@@ -323,6 +323,44 @@ function BattleController:kiTransition(kiObj)
     end)
 end
 
+function BattleController:getDefenseRecoveryAfterCard() -- decides what pose the defender will be in after a card-based attack
+        local defStat = 0
+        local attStat = 0
+        if CurrentPhase == Phase.ATTACK then
+            defStat = enemyChr.chrDef
+            attStat = playerChr.chrStr
+        -- recovery animation is affected by 
+        -- the strength of the attacker vs the defense of the defender
+        elseif CurrentPhase == Phase.DEFENSE then
+            defStat = playerChr.chrDef
+            attStat = enemyChr.chrStr
+        end
+    
+        local more = math.max(attStat, defStat)
+        local least = math.min(attStat, defStat)
+        local prc = (least / more) * 100
+    
+        local def = self.defSpr
+        if prc < 20 then
+            -- No recovery needed. Enemy is too weak
+            def:playAni("normalStance", nil, { controller = self })
+        elseif prc >= 20 and prc < 50 then
+            -- slight recovery. Normal Pose
+            def:playAni("normalStance", nil, { controller = self })
+        elseif prc >= 50 and prc < 120 then
+            def:playAni("normalStance", nil, { controller = self })
+        elseif prc >= 120 and prc < 170 then
+            -- Move obviously hurt the opponent
+            def:playAni("normalStance", nil, { controller = self })
+        elseif prc >= 170 then
+            -- Opponent is reeling from the attack
+            def:playAni("normalStance", nil, { controller = self }) 
+        end
+        local endTimer = playdate.timer.new(1000, function ()
+            self:atkOver()
+        end)
+    end
+
 function BattleController:getAnimationForUnguardedDamage(prct)
     local def = self.defSpr
     print("animations must be defined in getAnimationForUnguardedDamage")
@@ -436,6 +474,7 @@ print("getDefenseRecovery")
         -- Opponent is reeling from the attack
         def:playAni("recoveryNormal", nil, { controller = self }) 
     end
+
 end
 
 function BattleController:cmdVSGrd()
@@ -810,26 +849,44 @@ function BattleController:applyStunOrKnockBack(attPower)
     --prct = 0.02
     if prct <= 0.01 then
         --print("You managed to singe some of my leg hair.")
+
     elseif prct > 0.01 and prct <= 0.03 then
         --print("Nice one. That made my arm tingle.")
-        self.defSpr:startSprShake(1, 300)
+        self.defSpr:startSprShake(1, 300, function ()
+            self:getDefenseRecoveryAfterCard()
+        end)
+
     elseif prct > 0.03 and prct <= 0.08 then
         --print("Looks like you've got some fight in you.")
-        self.defSpr:slideBack(2, 5)
+        self.defSpr:slideBack(2, 5, 1, function ()
+                self:getDefenseRecoveryAfterCard()
+        end)
+
     elseif prct > 0.08 and prct <= 0.12 then
         --print("I underestimated you.")
-        self.defSpr:slideBack(5, 15, 1)
+        self.defSpr:slideBack(5, 15, 1, function ()
+            self:getDefenseRecoveryAfterCard()
+        end)
+
     elseif prct > 0.12 and prct <= 0.20 then
         --print("Where did you get this power?!")
-        self.defSpr:slideBack(2, 25)
+        self.defSpr:slideBack(2, 25, 1, function ()
+            self:getDefenseRecoveryAfterCard()
+        end)
+
     elseif prct > 0.20 and prct <=0.29 then
         --print("Only one hit has made contact...why am I so damaged?!")
         --print("Apply a knockback at this point")
-        self.defSpr:slideBack(2, 35)
-    elseif prct > 0.30 then
+        self.defSpr:slideBack(2, 35, 1, function ()
+            self:getDefenseRecoveryAfterCard()
+        end)
 
+    elseif prct > 0.30 then
         --print("Boy did anyone get the number on that bus...d-don't worry about me! Heh heh...ugh...")
-        self.defSpr:slideBack(3,40)
+        self.defSpr:slideBack(3,40,2, function ()
+            self:getDefenseRecoveryAfterCard()
+        end)
+
         --print("get knockback at this point")
     end
 end

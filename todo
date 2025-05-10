@@ -28,6 +28,17 @@ Maybe add a CC cap that gets raised with level ups.
 
 Introduce different knockback levels for parries because of failed stg attacks. So a strong enemy will deliver a more devastating counter
 
+kibeam - 
+kibeams have 3 parts
+
+the base object protrudes from the hand
+
+The stem is made up of 1px segments that get added as the edge travels away.
+
+The leading edge travels away from the base
+
+Should these be their own objects?
+
 ---- Story ----
 Create more dialogue
 create graphics

@@ -511,11 +511,8 @@ characterAnimationTables = {
 
 kiSprite16Table = {
     ["Ki Blast"] = 1,
-    ["Ki Wave Base"] = 2,
-    ["Ki Wave Edge"] = 3,
-    ["Ki Wave Tail"] = 4,
-    ["Finger Beam Base"] = 5,
-    ["Finger Beam Edge"] = 6,
+    ["Ki Wave"] = {base=2,edge=3,tail=4,width=6}, --width is the width in pixels
+    ["Finger Beam"] = {base=5,edge=6,tail=7,width=4},
     ["One Arm Charge 1"] = 7,
     ["One Arm Charge 2"] = 8,
     ["One Arm Charge 3"] = 9

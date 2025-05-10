@@ -42,7 +42,6 @@ function KiProjectile:new(side, type, name, size, speed, effectTab)
     self:setGroups(COLLISION_GROUP.Ki)
     self:setCollidesWithGroups({COLLISION_GROUP.Defender})
 
-
     self:moveTo(self.x,self.y)
 end
 
@@ -76,6 +75,12 @@ function KiProjectile:update()
     if self.status == "exploded" then 
         return
     end
+    self:checkCollisions(self:getPosition())
+
+    --local dx = (self.dir == "right") and  self.speed or -self.speed
+    --local _, _, collisions, count = self:moveWithCollisions(dx, 0)
+    --self:moveWithCollisions(dx, 0)
+
     if self.status == "outbound" then
         self:moveBy(self.dir == "right" and self.speed or -self.speed, 0)
 
@@ -93,21 +98,26 @@ function KiProjectile:update()
             self.effectTab.controller:kiStrike(self)
         end
     elseif self.status == "nearTarget" then
-        if (self.dir == "right" and self.x >= ((self.xTrig * 2) - self.width)) or
-            (self.dir == "left"  and self.x <= (self.xTrig * 2)) then
-                self:explode()
-        end
+        self:moveBy(self.dir == "right" and self.speed or -self.speed, 0)
+            local spriteTable = self:overlappingSprites()
+            --printTable(spriteTable)
+            print("bitMask")
+            for i,v in pairs(spriteTable) do
+                if v:getGroupMask() == self:getCollidesWithGroupsMask() then
+                    self:explode()
+                end
+            end        
     elseif self.status == "miss" then
         self:moveBy(self.dir == "right" and self.speed or -self.speed, 0)
         if (self.dir == "right" and self.x >= 460) or
         (self.dir == "left"  and self.x <= -120) then
             self:remove()
-
         end
     end
 end
 
 function KiProjectile:collidedWith(other)
+    print("collided with")
     if other.tag ~= "defender" or self.hitRegistered then 
         return 
     end
@@ -121,6 +131,7 @@ function KiProjectile:collidedWith(other)
     -- decide whether the blast physically explodes
     local dodge = ctrl.defSpr.turnOutcome.dodgeType[1]
     if ctrl:getHitOrMissForKi(dodge) then -- boolean for contact causing an explosion
+        print("ctrlgetHitOrMiss")
         self:explode()
     else
 
@@ -128,11 +139,26 @@ function KiProjectile:collidedWith(other)
     end
 end
 
-
 function KiProjectile:explode()
+    self.x,self.y = self:getPosition()
+    self.effectTab.explosion = Explosion:new( 
+        self:getExplosionSize(),
+        self.x,
+        self.y,
+        self:getExplosionType()
+    )
     self:remove()
 end
 
+function KiProjectile:getExplosionSize()
+    if self.size == 16 then
+        return "small" --stand-in
+    end
+end
+
+function KiProjectile:getExplosionType()
+    return "none"
+end
 
 --Ki Wave Type
 
@@ -143,15 +169,50 @@ function KiWave:new(side, type, name, size, speed, effectTab)
     self.speed = speed or 8
     self.type = type
     self.name = name
-    self.size = size
+    self.size = size 
     self.spriteTable = gfx.imagetable.new(self:getSpriteSheet())
-    self.setImage()
 
-    
-    self.dir = self:getDirection()
+    self.base = KiBase:new(self.tableRef.base,self)
+    self.edge = KiEdge:new(self.tableRef.edge,self)
+    self.tail = KiTail:new(self.tableRef.tail,self) -- end of the beam. may or may not use
+    self.beamWidth = self.tableRef.width -- width of beam in pixels
+    self.dir = self:getDirection() -- spawn edge to the left or right of the base and travel away
     self.side = side
     self.effectTab = effectTab
-    self.x, self.y = side:getPosition()
+    self.xPos,self.yPos = side:getPosition()
     self:add()
-    self:moveTo(self.x,self.y)
+    self:moveTo(self.xPos,self.yPos)
+end
+
+function KiWave:getSpriteSheet()
+    local spriteTableKi = {}
+    if self.size == 16 then
+        self.tableRef = kiSprite16Table[self.name]
+        return 'assets/images/battleGraphics/ki_16'
+    else
+        print("KiProjectile size not recognized.")
+    end
+end
+
+function KiWave:update()
+    
+end
+
+function KiBase:new(image,kiWave)
+    local self = gfx.sprite.new()
+    setmetatable(self,KiWave)
+end
+
+function KiEdge:new(image,kiWave)
+    local self = gfx.sprite.new()
+    setmetatable(self,KiWave)
+end
+
+function KiTail:new(image,kiWave)
+    local self = gfx.sprite.new()
+    setmetatable(self,KiWave)
+end
+
+function KiWaveSeg:new(image,kiWave)
+
 end

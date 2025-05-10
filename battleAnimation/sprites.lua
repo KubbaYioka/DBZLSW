@@ -23,7 +23,9 @@ function btlSprite:new(side, aniTable)
     self:moveTo(200,120)
     self.tag = side
     if self.tag == "attacker" then
-        self.visible = true
+        self:setVisible(true)
+    else
+        self:setVisible(false)
     end
     
     self:setZIndex(85)
@@ -33,9 +35,7 @@ function btlSprite:new(side, aniTable)
     self:getSideAndAbilities(self.tag)
     self:updateFrame("normalStance")
     
-    if self.visible == true then
-        self:add()
-    end
+    self:add()
 
     local w,h = self:getSize()
     local groupC = 0
@@ -45,7 +45,7 @@ function btlSprite:new(side, aniTable)
     else
         groupC = COLLISION_GROUP.Defender
     end
-    self:setGroups{GroupC}
+    self:setGroups{groupC}
     self:setCollidesWithGroups{COLLISION_GROUP.Ki} -- and possibly the opposite fighter?
     self.collisionResponseType = gfx.sprite.kCollisionTypeOverlap
 
@@ -71,19 +71,9 @@ end
 
 function btlSprite:trigger(onOff)
     if onOff == "on" then
-        if self.visible == "true" then
-            return
-        else
-            self.visible = true
-            self:add()
-        end
+        self:setVisible(true)
     elseif onOff == "off" then
-        if self.visible == false then
-            return
-        elseif self.visible == true then
-            self.visible = false
-            self:remove()
-        end
+        self:setVisible(false)
     end
 end
 
@@ -684,11 +674,11 @@ function btlSprite:sprStagger(intensity, distance)
     end
 end
 
-function btlSprite:slideBack(intensity, distance, speed)
+function btlSprite:slideBack(intensity, distance, speed, onComplete)
     print(intensity,distance,speed)
-    local shake      = intensity
-    local duration   = 800
-    local startX, y  = self:getPosition()
+    local shake = intensity or 0
+    local duration = 800
+    local startX, y = self:getPosition()
     local startY = y
     local destX = distance + startX
     local speed = speed
@@ -706,7 +696,9 @@ function btlSprite:slideBack(intensity, distance, speed)
             else
                 moveTimer:remove()
                 self:moveTo(x,startY)
-                --self:playAni("normalStance")
+                if onComplete then
+                    onComplete(self)
+                end
             end
         else
             if x < destX then
@@ -717,6 +709,9 @@ function btlSprite:slideBack(intensity, distance, speed)
             else
                 moveTimer:remove()
                 self:moveTo(x,startY)
+                if onComplete then
+                    onComplete(self)
+                end
                 --self:playAni("normalStance")
             end
         end
