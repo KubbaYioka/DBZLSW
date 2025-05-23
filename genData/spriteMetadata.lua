@@ -387,7 +387,7 @@ characterAnimationTables = {
                 "rightKi",
                 4000,
                 function(self, animation, frameIndex, trigFunction, effectTab)
-                    KiWave:new(self, KiThrowType.KIFORE, "Ki Wave", 16, 14, effectTab)
+                    KiWave:new(self, KiThrowType.KIFORE, "Ki Wave", 16, 20, effectTab)
                 end
             }
         },

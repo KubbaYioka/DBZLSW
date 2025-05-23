@@ -21,9 +21,6 @@ setmetatable(KiProjectile, {
 
 KiWave = {}
 KiWave.__index = KiWave
-setmetatable(KiWave, {
-    __index = gfx.sprite
-})
 
 KiBase = {}
 KiBase.__index = KiBase
