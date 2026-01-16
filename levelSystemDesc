@@ -1,0 +1,171 @@
+Alright, so here is the leveling system as it stands now:
+
+There are many characters. Characters are grouped into tiers based on the Sagas of Dragon Ball and Dragon Ball Z. Some characters will be in multiple tiers because they appear in multiple sagas. This is sorta inspired by the different versions of characters from Budokai Tenkaichi 3, but since this is an RPG, it's way more granular.
+
+	For instance, tiers might resemble this:
+	----------------------------------------
+	|     Pilaf     |      21Budokai       |
+	----------------------------------------
+	|     Goku      |        Goku          |
+	|    Yamcha     |       Krillin        |
+	| Master Roshi  |    Master Roshi      |
+	|  Bear Thief   |       Yamcha         |
+	|   Ox King     |        Nam           |
+	|     etc       |        etc           |
+	----------------------------------------
+	
+	And so on. 
+
+The main purpose of tiers is to preserve the characters within specific windows of time along with their abilities and strength. Some of this may loosen up the more the player progresses and unlocks things. It also allows the game to sorta become a "Dragon Ball Simulator" so they can see if their Red Ribbon Saga Goku could stand a chance against a Saibaman or whatever. Z fans love this shit and so do I sorta.
+
+Game-wise, tiers contain base stats for a character.
+HP, STR, KI, SPD, and DEF. All of these contribute to computing accuracy, evasion, mass (resistance to getting knocked around), and Power Level.
+
+Base Stats in a tier are considered Level 1. 
+
+To progress to the next level, players need to spend XP, which is earned through fights. XP is global, so any character can be leveled with it. But once XP is spent on levelling, it is gone.
+
+Each tier has a cost designation per level, which the player can spend XP to get.
+
+So for Tier 1 (Pilaf Saga) these cost designations could be something like:
+
+Level 1: Starting Point
+Level 2: 6 XP
+Level 3: 8 XP
+Level 4: 10 XP
+Level 5: 12 XP
+
+And Tier 2 (21st Tournament) could look like:
+
+Level 1: Starting Point
+Level 2: 26 XP
+Level 3: 32 XP
+Level 4: 38 XP
+Level 5: 42 XP
+
+And so on. To get a character to level 5 in Tier 1, the player has to earn and spend 36 XP.
+
+For now, there will be a cap at level at 5 for each tier since the max level in Legendary Super Warriors was also 5. Maybe a few characters can breach level 6 as a super secret or something. If it becomes neccessary, the level caps can be raised to give players more to try and attain.
+
+Generally, it won't be possible for a character in a tier to reach level 5 in the first run of the game, just as it was not possible to max a character in the first run of DBZLSW.
+
+Each character will also have growth stats per tier. So upon a level up, two characters won't have the same numbers across their stats.
+
+	In Tier 1 (Pilaf Saga), Yamcha might have a Ki growth figure of 0.2, but Goku might have 0.25 or something. The same will be the case for all stats, so each character has a different growth profile in each tier.
+
+To put this into more perspective, base stats for Tier 1 and 2 might look like this for Goku:
+
+	-------------------------------------
+	|     Pilaf     |      21Budokai    |
+	-------------------------------------
+	|     Goku      |        Goku       |
+	|  HP : 80      |    HP : 95        |
+	|  STR: 3       |    STR: 11        |
+	|  KI : 1       |    KI :  8        |
+	|  SPD: 2       |    SPD:  9        |
+	|  DEF: 2       |    DEF:  7        |
+	|  BP : 8       |     BP:  35       |
+	-------------------------------------
+
+And then let's say these characters are levelled up to 5.
+
+	-------------------------------------
+	|     Pilaf     |      21Budokai    |
+	-------------------------------------
+	|     Goku      |        Goku       |
+	|  HP : 89      |    HP : 102       |
+	|  STR: 7       |    STR: 18        |
+	|  KI : 6       |    KI : 17        |
+	|  SPD: 6       |    SPD: 18        |
+	|  DEF: 5       |    DEF: 17        |
+	|  BP : 24      |     BP: 70        |
+	-------------------------------------
+	
+In this way, a maxed character in a lower tier will never become more powerful than their next tier. Note how Goku's max battle power in Tier 1 does not exceed Level 1 Goku in Tier 2. This may change as needed, but level 5 of a previous tier should have rough parity with level 1 of the next tier.
+
+Which then begs the question: what is the point of leveling up if the characters all go back to level 1 for the next tier and seemingly get stronger automatically?
+
+	- Leveling can provide advantages against fighters in the same tier. 
+	- It can also unlock abilities sooner than they normally appeared in canon. 
+	- Some events may be locked behind the player's ability to level a character in a tier.
+	- Some cards (moves) may not be available to characters unless they are a certain level in a tier.
+	- Putting characters within certain tiers and giving them base stats ensures that the huuuuuuge amount of times the player will use Goku in Dragon Ball sagas won't result in having like, a level 212 Goku and a Tienshinhan and Krillin that are level 6. 
+	- This also allows for the canon to remain relevant while allowing a player to sort of experiment with a character's snapshot in the canon.
+	- In the original DBZLSW, you could literally kill Kid Buu with fucking Guldo. Tiers and levels within tiers eliminate that ridiculousness (outside of some crazy shenanigans the player devises, which I welcome).	
+
+Additionally, each level up grants a "star" to a character they can then assign to the character in that tier. These can be assigned to any one stat to apply a bonus increase to that stat. Stars are semi-permanent.
+	- Each character may have an optimal distribution of stars per tier. Characters may change in their advantages over time (Sort of how Trunks dished out Ki and was super fast in early Android, but by the Cell games he was a shit brick house in terms of strength).
+	- Players must figure out what this optimal star distribution is, and when to do it. For instance, the first star might add a bonus of 3 points to a stat, but the third star might add 4.
+	- A maximum of two stars can be placed on any one stat. Two stats must be boosted before any one stat can have a second star.
+	- Even if a character is advanced to Level 5, they cannot have stars assigned to their stats unless they have enough "usage points", which are tier-local experience points a character gains from usage.
+	- Usage point costs might be static across tiers or increase steadily.
+	- A player might wish to "reset" the stars for a character in order to experiment with different allocations. This comes at a cost.
+		- There will be opportunities to find Uranai Baba throughout the game. She will reset the stars for a character provided the player does the following:
+			- Gives her two of their cards (leaning towards rarer ones)
+			- Spend a high amount of XP (relative to the tier the player wants to reset)
+			- Defeat 5 of her warriors (which are skewed against the player)
+			- If a player does any of this, their chosen character's stars are reset so the player can assign them any way they want, but the character's usage points are also reset, meaning the stars cannot be allocated immediately.
+		- If the player manages to find all seven dragon balls, they can summon Shenron. Among some of the things a player can wish for, they can wish to reset their stars.
+		
+
+When a player progresses from one saga to the next, the Tier will increment. This has several effects:
+
+1) The way that the previous tier appears will be left that way. In NewGame+, the characters' stats and such will appear exactly how the player left them.
+2) Any stars earned in the previous tier don't carry over to the next one. Those must be earned again for the next tier. eg. stars are local to the tier they are earned within.
+3) Unspent global XP rolls over to the next tier.
+4) If a character has certain global unlockables, such as the ability to fly, power up, use limit decks, etc, those will carry over as well (tbd on that one).
+
+So if we are thinking about data structures, we have:
+
+Immutable Data
+
+["tierLevels"] = {
+	["TierOneXPTable"] = { -- exp needed for a level up
+		[1] = 4,
+		[2] = 6,
+		[3] = 8,
+		[4] = 10,
+		[5] = 12
+	},
+	["localXPForStars"] = { -- the amount of local (usage) exp that must be earned by this character to assign a star (eg, they must be in the team upon victory conditions. Intentionally out of step with levels denoted in the tierLevels table.
+		[1] = 9,
+		[2] = 18,
+		[3] = 26,
+		[4] = 32,
+		[5] = 40
+	},
+	...
+}
+
+["character"]={
+	["globalStats"] = {
+		canFly = boolean,
+		hasLimit = boolean,
+		limitSlots = integer,
+		limitCards = {
+			card,
+			card,
+			...
+		["transformations"] = {
+			name = boolean,
+			...
+			
+		},
+		
+	},
+	
+	["tierDefinitions"] = {
+		["tierName"] = {
+			["growthFactor"] = {
+				["HP"] = 0.05,
+				["STR"] = 0.30,
+				["KI"] = 0.30,
+				["SPD"] = 0.20,
+				["DEF"] = 0.20,
+			},
+			...
+		},
+		...other tiers...
+	},
+	...anything else...
+}
